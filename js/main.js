@@ -186,3 +186,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
+// Ajoute les "data-label" (libellés) aux cellules de la filmographie pour l'affichage mobile
+(function(){
+  const table = document.querySelector('#filmography');
+  if (!table) return;
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  rows.forEach(tr => {
+    Array.from(tr.children).forEach((td, i) => {
+      td.setAttribute('data-label', headers[i] || '');
+    });
+  });
+})();
+
+
