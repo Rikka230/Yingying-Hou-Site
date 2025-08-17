@@ -18,22 +18,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
-// Filmographie: tri & filtre + dialog détails
+// Filmographie: tri & filtre + dialog + recherche
 (function(){
-  const table = $('#filmography');
+  const table = document.querySelector('#filmography');
   if (!table) return;
 
   const tbody = table.tBodies[0];
-  const filterSel = $('#filter-category');
-  const sortSel = $('#sort-by');
+  const filterSel = document.querySelector('#filter-category');
+  const sortSel = document.querySelector('#sort-by');
+  const searchInput = document.querySelector('#search');
   const rows = Array.from(tbody.rows);
 
   function apply(){
-    const cat = filterSel.value;
+    const cat = filterSel ? filterSel.value : 'all';
+    const q = (searchInput?.value || '').trim().toLowerCase();
+
     let visible = rows.filter(r => {
-      return cat === 'all' || r.dataset.category === cat;
+      const okCat = (cat === 'all' || r.dataset.category === cat);
+      if (!okCat) return false;
+      if (!q) return true;
+      const txt = r.textContent.toLowerCase();
+      return txt.includes(q);
     });
-    const sort = sortSel.value;
+
+    // Sort
+    const sort = sortSel ? sortSel.value : 'year-desc';
     visible.sort((a,b)=>{
       if (sort === 'year-desc') return (+b.dataset.year) - (+a.dataset.year);
       if (sort === 'year-asc') return (+a.dataset.year) - (+b.dataset.year);
@@ -41,19 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sort === 'title-desc') return b.dataset.title.localeCompare(a.dataset.title);
       return 0;
     });
+
+    // Render
     tbody.innerHTML = '';
     visible.forEach(r => tbody.appendChild(r));
   }
-  filterSel.addEventListener('change', apply);
-  sortSel.addEventListener('change', apply);
+
+  filterSel?.addEventListener('change', apply);
+  sortSel?.addEventListener('change', apply);
+  searchInput?.addEventListener('input', apply);
   apply();
 
-  const dialog = $('#detailDialog');
-  const closeBtn = $('.dialog-close', dialog);
-  const poster = $('#detailPoster', dialog);
-  const syn = $('#detailSynopsis', dialog);
-  const title = $('#detailTitle', dialog);
-  const imdb = $('#detailImdb', dialog);
+  // Dialog détails
+  const dialog = document.querySelector('#detailDialog');
+  const closeBtn = dialog?.querySelector('.dialog-close');
+  const poster = dialog?.querySelector('#detailPoster');
+  const syn = dialog?.querySelector('#detailSynopsis');
+  const title = dialog?.querySelector('#detailTitle');
+  const imdb = dialog?.querySelector('#detailImdb');
 
   tbody.addEventListener('click', (e)=>{
     const a = e.target.closest('a[data-detail]');
@@ -69,10 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
     dialog.showModal();
   });
   closeBtn?.addEventListener('click', ()=> dialog.close());
-  dialog?.addEventListener('click', (e)=> {
-    if (e.target === dialog) dialog.close();
-  });
+  dialog?.addEventListener('click', (e)=> { if (e.target === dialog) dialog.close(); });
 })();
+
 
 // Galerie: lightbox avec clavier + swipe
 (function(){
