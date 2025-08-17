@@ -143,6 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (dx < -40) next();
     startX = 0;
   });
+
+  // ... (dans l'IIFE Galerie existante)
+  // Fermer en cliquant sur l'arrière-plan sombre
+  lb.addEventListener('click', (e)=>{
+    // si on clique sur la zone noire (ni l'image ni les boutons)
+    if (e.target === lb) close();
+  });
+
 })();
 
 // Contact: validation & honeypot (remplace par ton back)
