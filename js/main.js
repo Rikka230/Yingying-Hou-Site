@@ -133,22 +133,35 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // Contact: validation & honeypot (remplace par ton back)
+// Contact: validation & honeypot (modern status)
 (function(){
-  const form = $('#contactForm');
+  const form = document.querySelector('#contactForm');
   if (!form) return;
-  const status = $('#formStatus');
+  const status = document.querySelector('#formStatus');
+
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
+
+    // anti-bot
     if (form.company && form.company.value.trim() !== '') {
-      status.textContent = 'Merci.';
+      status.textContent = 'Merci.'; status.className = 'form-status ok';
       return;
     }
+
     const data = Object.fromEntries(new FormData(form).entries());
-    if (!data.name || !data.email || !data.message){
-      status.textContent = 'Veuillez remplir les champs requis.';
+    const required = ['name','email','message'];
+    const missing = required.some(k => !data[k] || !String(data[k]).trim());
+
+    if (missing){
+      status.textContent = 'Veuillez remplir les champs requis.'; 
+      status.className = 'form-status err';
       return;
     }
+
+    // TODO: remplacer par un POST réel vers votre backend
     status.textContent = 'Message envoyé (démo).';
+    status.className = 'form-status ok';
     form.reset();
   });
 })();
+
