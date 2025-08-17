@@ -199,4 +199,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
+// Libellés pour l’affichage mobile de la filmographie
+(function(){
+  const table = document.querySelector('#filmography');
+  if (!table) return;
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  rows.forEach(tr => {
+    Array.from(tr.children).forEach((td, i) => {
+      td.setAttribute('data-label', headers[i] || '');
+    });
+  });
+})();
 
