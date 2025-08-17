@@ -194,3 +194,78 @@ a.link{color:#1a66ff}
 .social-list a{ text-decoration: underline; text-underline-offset: 3px }
 .social-list a:hover{ opacity:.85 }
 
+/* === Mobile tweaks === */
+
+/* 1) Accueil : voir toute la bannière sur mobile */
+@media (max-width: 700px){
+  .hero picture, .hero img{ height:auto; }   /* plus de hauteur fixe */
+  .hero img{ object-fit: contain; }          /* on voit toute l’image */
+  .hero-copy{ margin-top: 12px; }            /* évite le chevauchement */
+}
+
+/* 2) Galerie : 2 colonnes sur téléphone (1 colonne seulement très petit) */
+@media (max-width: 520px){
+  .gallery{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 360px){
+  .gallery{ grid-template-columns: 1fr; }
+}
+
+/* 3) Filmographie : cartes lisibles sur mobile */
+@media (max-width: 700px){
+  #filmography thead{ display:none; }
+  .table-wrap{ border:0; }
+  #filmography tbody tr{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    padding: 12px;
+    border-bottom:1px solid var(--line);
+    background:#fff;
+  }
+  #filmography tbody td{
+    border:0;
+    padding: 4px 0;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  /* libellé devant chaque valeur (ajouté via JS) */
+  #filmography tbody td::before{
+    content: attr(data-label);
+    color: var(--muted);
+    min-width: 96px;
+    font-weight:600;
+    flex: 0 0 auto;
+  }
+  /* Titre en tête, sur 2 colonnes, sans libellé */
+  #filmography tbody td:nth-child(2){
+    grid-column: 1 / -1;
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  #filmography tbody td:nth-child(2)::before{ content:""; display:none; }
+  /* Lien "Voir" à droite */
+  #filmography tbody td:last-child{ justify-content:flex-end; }
+  /* Catégorie en “pilule” */
+  #filmography tbody td:nth-child(5){
+    background: rgba(255,193,7,.18);
+    border-radius: 999px;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items:center;
+  }
+  #filmography tbody td:nth-child(5)::before{
+    content:"Catégorie";
+    margin-right:8px; color:var(--muted); font-weight:600;
+  }
+}
+
+/* Filtres filmographie : layout mobile propre */
+@media (max-width: 700px){
+  .filters{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .filters .search{ grid-column: 1 / -1; }
+  .filters label{ width:100%; }
+  .filters select, .filters input[type="search"]{ width:100%; }
+}
+
