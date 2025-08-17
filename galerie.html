@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Galerie photo — Yingying HOU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Galerie officielle de photos de Yingying HOU. Ouvrez chaque image en grand (lightbox), navigation clavier et mobile." />
+  <link rel="canonical" href="https://www.example.com/galerie.html" />
+  <meta property="og:title" content="Galerie photo — Yingying HOU" />
+  <meta property="og:image" content="https://www.example.com/img/og.jpg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/">Yingying <strong>HOU</strong></a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav id="nav" class="site-nav">
+        <ul>
+          <li><a href="/">Accueil</a></li>
+          <li><a href="/filmographie.html">Filmographie</a></li>
+          <li class="active"><a href="/galerie.html" aria-current="page">Galerie</a></li>
+          <li><a href="/contact.html">Contact / Booking</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap pad">
+    <h1>Galerie photo</h1>
+    <p>Images HD, légendes et crédits. Cliquez pour agrandir.</p>
+
+    <ul class="gallery" id="gallery">
+      <li>
+        <a href="/img/gallery/1-xl.jpg" data-caption="Portrait studio — Crédit: A. Doe">
+          <img loading="lazy"
+               src="/img/gallery/1-sm.jpg"
+               srcset="/img/gallery/1-sm.jpg 480w, /img/gallery/1-md.jpg 960w, /img/gallery/1-xl.jpg 1600w"
+               sizes="(max-width: 700px) 50vw, 33vw"
+               alt="Portrait studio de Yingying HOU">
+        </a>
+      </li>
+      <li>
+        <a href="/img/gallery/2-xl.jpg" data-caption="Tournage — Crédit: B. Smith">
+          <img loading="lazy"
+               src="/img/gallery/2-sm.jpg"
+               srcset="/img/gallery/2-sm.jpg 480w, /img/gallery/2-md.jpg 960w, /img/gallery/2-xl.jpg 1600w"
+               sizes="(max-width: 700px) 50vw, 33vw"
+               alt="Photo de tournage avec Yingying HOU">
+        </a>
+      </li>
+      <li>
+        <a href="/img/gallery/3-xl.jpg" data-caption="Festival — Crédit: C. Liu">
+          <img loading="lazy"
+               src="/img/gallery/3-sm.jpg"
+               srcset="/img/gallery/3-sm.jpg 480w, /img/gallery/3-md.jpg 960w, /img/gallery/3-xl.jpg 1600w"
+               sizes="(max-width: 700px) 50vw, 33vw"
+               alt="Yingying HOU au festival du film">
+        </a>
+      </li>
+    </ul>
+
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Visionneuse">
+      <button class="lb-close" aria-label="Fermer">×</button>
+      <figure class="lb-figure">
+        <img id="lb-image" alt="">
+        <figcaption id="lb-caption"></figcaption>
+      </figure>
+      <button class="lb-prev" aria-label="Précédent">‹</button>
+      <button class="lb-next" aria-label="Suivant">›</button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© <span id="year"></span> Yingying HOU</p>
+      <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
+    </div>
+  </footer>
+
+  <script src="/js/main.js" defer></script>
+</body>
+</html>

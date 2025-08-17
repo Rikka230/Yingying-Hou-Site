@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Contact & Booking — Yingying HOU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Contact booking pour l'actrice Yingying HOU : formulaire de demande, agent et coordonnées." />
+  <link rel="canonical" href="https://www.example.com/contact.html" />
+  <meta property="og:title" content="Contact — Yingying HOU" />
+  <meta property="og:image" content="https://www.example.com/img/og.jpg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/">Yingying <strong>HOU</strong></a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav id="nav" class="site-nav">
+        <ul>
+          <li><a href="/">Accueil</a></li>
+          <li><a href="/filmographie.html">Filmographie</a></li>
+          <li><a href="/galerie.html">Galerie</a></li>
+          <li class="active"><a href="/contact.html" aria-current="page">Contact / Booking</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap pad">
+    <h1>Contact / Booking</h1>
+
+    <div class="split">
+      <form id="contactForm" class="card" novalidate>
+        <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
+        <label>Nom
+          <input type="text" name="name" required />
+        </label>
+        <label>Email
+          <input type="email" name="email" required />
+        </label>
+        <label>Objet
+          <input type="text" name="subject" />
+        </label>
+        <label>Message
+          <textarea name="message" rows="6" required></textarea>
+        </label>
+        <button class="btn" type="submit">Envoyer</button>
+        <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
+        <p class="muted">Ou écrivez directement : <a href="mailto:booking@example.com">booking@example.com</a></p>
+      </form>
+
+      <aside class="card">
+        <h2>Agent</h2>
+        <p><strong>Nom de l’agent</strong><br>
+        <a href="mailto:agent@example.com">agent@example.com</a><br>
+        +33 1 23 45 67 89</p>
+        <h3>Réseaux</h3>
+        <p><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a> ·
+           <a href="https://www.imdb.com/" target="_blank" rel="noopener">IMDb</a></p>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© <span id="year"></span> Yingying HOU</p>
+      <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
+    </div>
+  </footer>
+
+  <script src="/js/main.js" defer></script>
+</body>
+</html>
