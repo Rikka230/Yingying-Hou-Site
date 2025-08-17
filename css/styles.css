@@ -269,3 +269,69 @@ a.link{color:#1a66ff}
   .filters select, .filters input[type="search"]{ width:100%; }
 }
 
+/* === PATCH MOBILE — Lisibilité + grille === */
+
+/* Filmographie : cartes claires sur mobile */
+@media (max-width: 700px){
+  #filmography thead{ display:none; }
+  .table-wrap{ border:0; }
+
+  /* chaque ligne devient une "carte" */
+  #filmography tbody tr{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    padding: 12px;
+    border-bottom:1px solid var(--line);
+    background:#fff;
+    border-radius:12px;
+  }
+  #filmography tbody td{
+    border:0;
+    padding:4px 0;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+
+  /* Année tout en haut, discrète */
+  #filmography tbody td:nth-child(1){
+    grid-column:1 / -1;
+    color:var(--muted);
+    font-weight:700;
+    padding-top:4px;
+  }
+  #filmography tbody td:nth-child(1)::before{ content:''; display:none; }
+
+  /* Titre en grand, pleine largeur */
+  #filmography tbody td:nth-child(2){
+    grid-column:1 / -1;
+    font-weight:800;
+    font-size:1.05rem;
+    margin-top:-2px;
+  }
+  #filmography tbody td:nth-child(2)::before{ content:''; display:none; }
+
+  /* Catégorie compacte (on enlève le label "Catégorie") */
+  #filmography tbody td:nth-child(5){
+    background:rgba(255,193,7,.18);
+    border-radius:999px;
+    padding:4px 10px;
+    display:inline-flex;
+    align-items:center;
+  }
+  #filmography tbody td:nth-child(5)::before{ content:''; display:none; }
+
+  /* Lien "Voir" aligné à droite et un peu plus affirmé */
+  #filmography tbody td:last-child{ justify-content:flex-end; }
+  #filmography tbody td:last-child a{ font-weight:700; }
+}
+
+/* Galerie : forcer 2 colonnes sur téléphone */
+@media (max-width: 520px){
+  .gallery{ grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+}
+@media (max-width: 360px){
+  .gallery{ grid-template-columns: 1fr !important; }
+}
+
