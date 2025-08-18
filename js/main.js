@@ -154,29 +154,36 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // Contact: validation & honeypot (remplace par ton back)
-// Contact: validation & honeypot (modern status)
-// Contact (Netlify Forms) : simple validation puis POST natif
+// Contact (Netlify Forms) : validation légère, POST natif
 (function(){
   const form = document.querySelector('#contactForm');
   if (!form) return;
   const status = document.querySelector('#formStatus');
 
   form.addEventListener('submit', (e)=>{
-    // Si le honeypot est rempli -> Netlify gère (on ne bloque pas)
+    // Honeypot: si rempli, on laisse Netlify filtrer (pas de preventDefault)
     if (form.company && form.company.value.trim() !== '') return;
 
-    const name = form.name?.value.trim();
-    const email = form.email?.value.trim();
-    const message = form.message?.value.trim();
+    const okName = form.name?.value.trim();
+    const okEmail = form.email?.value.trim();
+    const okMsg = form.message?.value.trim();
 
-    if (!name || !email || !message){
+    if (!okName || !okEmail || !okMsg){
       e.preventDefault();
-      status.textContent = 'Veuillez remplir les champs requis.';
-      status.className = 'form-status err';
+      if (status){
+        status.textContent = 'Veuillez remplir les champs requis.';
+        status.className = 'form-status err';
+      }
+      return;
     }
-    // sinon : on NE fait rien -> le navigateur POST vers Netlify
+    // sinon on laisse le navigateur POSTer vers Netlify (pas de preventDefault)
+    if (status){
+      status.textContent = 'Envoi en cours…';
+      status.className = 'form-status';
+    }
   });
 })();
+
 
 
 // Ajoute les "data-label" (libellés) aux cellules de la filmographie pour l'affichage mobile
