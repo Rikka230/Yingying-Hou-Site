@@ -371,3 +371,6 @@ a.link{color:#1a66ff}
       "awards";
   }
 }
+
+/* Espace fixe avant la valeur */
+.info .kv span{ min-width: 140px; display:inline-block; }
