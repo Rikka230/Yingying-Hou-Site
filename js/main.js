@@ -155,36 +155,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Contact: validation & honeypot (remplace par ton back)
 // Contact: validation & honeypot (modern status)
+// Contact (Netlify Forms) : simple validation puis POST natif
 (function(){
   const form = document.querySelector('#contactForm');
   if (!form) return;
   const status = document.querySelector('#formStatus');
 
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
+  form.addEventListener('submit', (e)=>{
+    // Si le honeypot est rempli -> Netlify gère (on ne bloque pas)
+    if (form.company && form.company.value.trim() !== '') return;
 
-    // anti-bot
-    if (form.company && form.company.value.trim() !== '') {
-      status.textContent = 'Merci.'; status.className = 'form-status ok';
-      return;
-    }
+    const name = form.name?.value.trim();
+    const email = form.email?.value.trim();
+    const message = form.message?.value.trim();
 
-    const data = Object.fromEntries(new FormData(form).entries());
-    const required = ['name','email','message'];
-    const missing = required.some(k => !data[k] || !String(data[k]).trim());
-
-    if (missing){
-      status.textContent = 'Veuillez remplir les champs requis.'; 
+    if (!name || !email || !message){
+      e.preventDefault();
+      status.textContent = 'Veuillez remplir les champs requis.';
       status.className = 'form-status err';
-      return;
     }
-
-    // TODO: remplacer par un POST réel vers votre backend
-    status.textContent = 'Message envoyé (démo).';
-    status.className = 'form-status ok';
-    form.reset();
+    // sinon : on NE fait rien -> le navigateur POST vers Netlify
   });
 })();
+
 
 // Ajoute les "data-label" (libellés) aux cellules de la filmographie pour l'affichage mobile
 (function(){
