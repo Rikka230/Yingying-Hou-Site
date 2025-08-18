@@ -40,7 +40,12 @@
     <!-- CONTENT -->
     <section class="wrap pad contact-grid">
       <!-- FORM -->
-      <form id="contactForm" class="card form-card" novalidate>
+      <form id="contactForm" name="contact" method="POST"
+      data-netlify="true" netlify-honeypot="company"
+      class="card form-card">
+  <input type="hidden" name="form-name" value="contact" />
+  <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
+
         <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
 
         <div class="form-row">
@@ -69,7 +74,8 @@
           <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
         </div>
 
-        <p class="muted small">
+        <a href="mailto:kukyying@gmail.com">kukyying@gmail.com</a>
+</p>
           Ou écrivez directement : <a href="mailto:booking@example.com">kukyying@gmail.com</a>
         </p>
       </form>
