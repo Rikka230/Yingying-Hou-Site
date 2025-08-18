@@ -347,3 +347,27 @@ a.link{color:#1a66ff}
   display:block;
 }
 
+/* Layout de la home : showreel à gauche sur 2 rangées,
+   colonne de droite = Rôle puis Récompenses */
+.grid--home{
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;   /* gauche un peu plus large */
+  gap: 18px;
+  grid-template-areas:
+    "showreel role"
+    "showreel awards";
+}
+.grid--home .showreel{ grid-area: showreel; }
+.grid--home .role{ grid-area: role; }
+.grid--home .awards{ grid-area: awards; }
+
+/* Empile proprement sur mobile */
+@media (max-width: 900px){
+  .grid--home{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "showreel"
+      "role"
+      "awards";
+  }
+}
