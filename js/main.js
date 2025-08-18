@@ -153,36 +153,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 
-// Contact: validation & honeypot (remplace par ton back)
-// Contact (Netlify Forms) : validation légère, POST natif
+// Contact → envoi via la function Vercel
 (function(){
   const form = document.querySelector('#contactForm');
   if (!form) return;
   const status = document.querySelector('#formStatus');
 
-  form.addEventListener('submit', (e)=>{
-    // Honeypot: si rempli, on laisse Netlify filtrer (pas de preventDefault)
-    if (form.company && form.company.value.trim() !== '') return;
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
 
-    const okName = form.name?.value.trim();
-    const okEmail = form.email?.value.trim();
-    const okMsg = form.message?.value.trim();
-
-    if (!okName || !okEmail || !okMsg){
-      e.preventDefault();
-      if (status){
-        status.textContent = 'Veuillez remplir les champs requis.';
-        status.className = 'form-status err';
-      }
+    if (form.company && form.company.value.trim() !== '') {
+      status.textContent = 'Merci.'; status.className = 'form-status ok'; return;
+    }
+    const data = {
+      name: form.name?.value.trim(),
+      email: form.email?.value.trim(),
+      subject: form.subject?.value.trim(),
+      message: form.message?.value.trim()
+    };
+    if (!data.name || !data.email || !data.message){
+      status.textContent = 'Veuillez remplir les champs requis.';
+      status.className = 'form-status err';
       return;
     }
-    // sinon on laisse le navigateur POSTer vers Netlify (pas de preventDefault)
-    if (status){
-      status.textContent = 'Envoi en cours…';
-      status.className = 'form-status';
+
+    status.textContent = 'Envoi en cours…';
+    try {
+      const r = await fetch('/api/send-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      status.textContent = 'Message envoyé. Merci !';
+      status.className = 'form-status ok';
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      status.textContent = 'Erreur lors de l’envoi. Réessayez plus tard.';
+      status.className = 'form-status err';
     }
   });
 })();
+
 
 
 
