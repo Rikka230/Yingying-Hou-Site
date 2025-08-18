@@ -40,7 +40,12 @@
     <!-- CONTENT -->
     <section class="wrap pad contact-grid">
       <!-- FORM -->
-      <form id="contactForm" action="https://formspree.io/f/TON_ID" method="POST" class="card form-card">
+      <form id="contactForm" name="contact" method="POST"
+      data-netlify="true" netlify-honeypot="company"
+      class="card form-card">
+  <input type="hidden" name="form-name" value="contact" />
+  <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
+
 
         <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
 
@@ -70,16 +75,17 @@
           <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
         </div>
 
-        <p class="muted small"></p>
-          Ou écrivez directement : <a href="mailto:booking@example.com">kukyying@gmail.com</a>
-        </p>
+       <p class="muted small">
+  Ou écrivez directement :
+  <a href="mailto:kukyying@gmail.com">kukyying@gmail.com</a>
+</p>
       </form>
 
       <!-- AGENT -->
       <aside class="card agent-card">
         <h2>Agent</h2>
         <p class="agent-name">Séquence SUD</p>
-        <p><a href="mailto:agent@example.com">contact@sequencesud.com</a>
+        <p><a href="mailto:contact@sequencesud.com">contact@sequencesud.com</a></p>
 
         <div class="agent-meta">
           <h3>Réseaux</h3>
