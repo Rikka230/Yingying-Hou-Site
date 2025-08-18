@@ -153,48 +153,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 
-// Contact → envoi via la function Vercel
-(function(){
+// Validation légère du formulaire Contact :
+// - bloque uniquement si champs manquants / email invalide
+// - sinon, laisse le navigateur POSTer (Netlify, FormSubmit, etc.)
+(function () {
   const form = document.querySelector('#contactForm');
   if (!form) return;
+
   const status = document.querySelector('#formStatus');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
 
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-
+  form.addEventListener('submit', (e) => {
+    // Honeypot anti-bot : si rempli, on annule en silence
     if (form.company && form.company.value.trim() !== '') {
-      status.textContent = 'Merci.'; status.className = 'form-status ok'; return;
-    }
-    const data = {
-      name: form.name?.value.trim(),
-      email: form.email?.value.trim(),
-      subject: form.subject?.value.trim(),
-      message: form.message?.value.trim()
-    };
-    if (!data.name || !data.email || !data.message){
-      status.textContent = 'Veuillez remplir les champs requis.';
-      status.className = 'form-status err';
+      e.preventDefault();
+      if (status) {
+        status.textContent = 'Merci.';
+        status.className = 'form-status ok';
+      }
       return;
     }
 
-    status.textContent = 'Envoi en cours…';
-    try {
-      const r = await fetch('/api/send-contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!r.ok) throw new Error('HTTP '+r.status);
-      status.textContent = 'Message envoyé. Merci !';
-      status.className = 'form-status ok';
-      form.reset();
-    } catch (err) {
-      console.error(err);
-      status.textContent = 'Erreur lors de l’envoi. Réessayez plus tard.';
-      status.className = 'form-status err';
+    const name = form.name?.value.trim();
+    const email = form.email?.value.trim();
+    const message = form.message?.value.trim();
+    const subject = form.subject?.value.trim(); // facultatif
+
+    const errors = [];
+    if (!name) errors.push('Nom');
+    if (!email || !isEmail(email)) errors.push('Email');
+    if (!message) errors.push('Message');
+
+    if (errors.length) {
+      e.preventDefault(); // on bloque uniquement en cas d’erreur
+      if (status) {
+        status.textContent = 'Champs à compléter : ' + errors.join(', ') + '.';
+        status.className = 'form-status err';
+      }
+      // focus premier champ invalide
+      (!name ? form.name : !email ? form.email : form.message)?.focus();
+      return;
     }
+
+    // OK : on laisse soumettre normalement
+    if (status) {
+      status.textContent = 'Envoi en cours…';
+      status.className = 'form-status';
+    }
+    submitBtn?.setAttribute('disabled', 'disabled'); // anti double-clic
   });
 })();
+
 
 
 
