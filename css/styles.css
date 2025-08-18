@@ -334,3 +334,5 @@ a.link{color:#1a66ff}
 @media (max-width: 360px){
   .gallery{ grid-template-columns: 1fr !important; }
 }
+
+.embed-16x9{ width:100%; aspect-ratio:16/9; border:0; border-radius:12px; display:block; }
