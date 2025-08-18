@@ -335,4 +335,15 @@ a.link{color:#1a66ff}
   .gallery{ grid-template-columns: 1fr !important; }
 }
 
-.embed-16x9{ width:100%; aspect-ratio:16/9; border:0; border-radius:12px; display:block; }
+.ratio-16x9{ position:relative; padding-top:56.25%; } /* 16:9 */
+.ratio-16x9 > iframe,
+.ratio-16x9 > video{
+  position:absolute !important;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+  border-radius:12px;
+  display:block;
+}
+
