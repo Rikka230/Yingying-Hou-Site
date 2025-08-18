@@ -42,17 +42,12 @@
       <!-- FORM -->
       <form name="contact" id="contactForm" method="POST"
       data-netlify="true" netlify-honeypot="company"
-      action="/merci.html"  <!-- optionnel : page de succès -->
-      class="card form-card">
-
-  <!-- requis par Netlify -->
+      action="/merci.html" class="card form-card">
   <input type="hidden" name="form-name" value="contact" />
-  <!-- honeypot anti-bot -->
   <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" />
+  <!-- …champs name / email / subject / message… -->
+</form>
 
-
-
-        <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
 
         <div class="form-row">
           <div class="field">
