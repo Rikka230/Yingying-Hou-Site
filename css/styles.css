@@ -374,3 +374,25 @@ a.link{color:#1a66ff}
 
 /* Espace fixe avant la valeur */
 .info .kv span{ min-width: 140px; display:inline-block; }
+
+/* Infos pro : grille label/valeur avec vrai espace */
+.info .kv{ row-gap: 0; }
+.info .kv li{
+  display: grid;
+  grid-template-columns: 150px 1fr; /* largeur fixe du label */
+  align-items: start;
+  gap: 12px;                        /* espace entre label et valeur */
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.info .kv li:last-child{ border-bottom: none; }
+.info .kv span{ color: var(--muted); }
+.info .kv b{ justify-self: end; text-align: right; }
+
+/* Sur mobile, on aligne la valeur à gauche pour les textes longs (Langues) */
+@media (max-width: 560px){
+  .info .kv{ row-gap: 6px; }
+  .info .kv li{ grid-template-columns: 120px 1fr; }
+  .info .kv b{ justify-self: start; text-align: left; }
+}
+
