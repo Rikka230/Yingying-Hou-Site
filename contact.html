@@ -40,11 +40,16 @@
     <!-- CONTENT -->
     <section class="wrap pad contact-grid">
       <!-- FORM -->
-      <form id="contactForm" name="contact" method="POST"
+      <form name="contact" id="contactForm" method="POST"
       data-netlify="true" netlify-honeypot="company"
+      action="/merci.html"  <!-- optionnel : page de succès -->
       class="card form-card">
+
+  <!-- requis par Netlify -->
   <input type="hidden" name="form-name" value="contact" />
-  <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
+  <!-- honeypot anti-bot -->
+  <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" />
+
 
 
         <input type="text" name="company" autocomplete="off" class="hp" aria-hidden="true" tabindex="-1" />
