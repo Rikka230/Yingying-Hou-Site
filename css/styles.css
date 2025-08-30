@@ -204,6 +204,39 @@ a.link{color:#1a66ff}
 }
 
 /* 2) Galerie : 2 colonnes sur téléphone (1 colonne seulement très petit) */
+/* Galerie responsive masonry sans espaces */
+.gallery {
+  column-count: 3;         /* 3 colonnes sur desktop */
+  column-gap: 0;           /* colle les photos */
+  padding: 0;
+  margin: 0;
+}
+
+.gallery li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  break-inside: avoid;     /* évite les coupures d'images */
+}
+
+.gallery img {
+  width: 100%;
+  display: block;
+  margin: 0;               /* supprime les blancs */
+  border-radius: 0;        /* option : pas d'arrondi pour collage parfait */
+  border: none;            /* option : supprime la bordure */
+}
+
+/* Adaptation mobile */
+@media (max-width: 900px){
+  .gallery { column-count: 2; }
+}
+@media (max-width: 520px){
+  .gallery { column-count: 2; }  /* force 2 colonnes */
+}
+@media (max-width: 360px){
+  .gallery { column-count: 1; }  /* en très petit écran */
+}
 
 
 /* 3) Filmographie : cartes lisibles sur mobile */
@@ -390,3 +423,4 @@ a.link{color:#1a66ff}
   .info .kv li{ grid-template-columns: 120px 1fr; }
   .info .kv b{ justify-self: start; text-align: left; }
 }
+
