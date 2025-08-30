@@ -396,3 +396,22 @@ a.link{color:#1a66ff}
   .info .kv b{ justify-self: start; text-align: left; }
 }
 
+.gallery {
+  column-count: 3; /* nombre de colonnes */
+  column-gap: 0;   /* supprime l'espace entre colonnes */
+  padding: 0;
+  margin: 0;
+}
+
+.gallery li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  break-inside: avoid; /* évite que les images soient coupées */
+}
+
+.gallery img {
+  width: 100%;
+  display: block;
+  margin-bottom: 0; /* colle bien les photos entre elles */
+}
