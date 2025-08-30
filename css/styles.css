@@ -204,12 +204,7 @@ a.link{color:#1a66ff}
 }
 
 /* 2) Galerie : 2 colonnes sur téléphone (1 colonne seulement très petit) */
-@media (max-width: 520px){
-  .gallery{ grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 360px){
-  .gallery{ grid-template-columns: 1fr; }
-}
+
 
 /* 3) Filmographie : cartes lisibles sur mobile */
 @media (max-width: 700px){
@@ -394,24 +389,4 @@ a.link{color:#1a66ff}
   .info .kv{ row-gap: 6px; }
   .info .kv li{ grid-template-columns: 120px 1fr; }
   .info .kv b{ justify-self: start; text-align: left; }
-}
-
-.gallery {
-  column-count: 3; /* nombre de colonnes */
-  column-gap: 0;   /* supprime l'espace entre colonnes */
-  padding: 0;
-  margin: 0;
-}
-
-.gallery li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  break-inside: avoid; /* évite que les images soient coupées */
-}
-
-.gallery img {
-  width: 100%;
-  display: block;
-  margin-bottom: 0; /* colle bien les photos entre elles */
 }
