@@ -83,11 +83,40 @@ a.link{color:#1a66ff}
 .filters label{display:flex;gap:8px;align-items:center}
 .link{font-weight:600}
 
-.gallery{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-@media (max-width:900px){.gallery{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:520px){.gallery{grid-template-columns:1fr}}
-.gallery img{border-radius:12px;border:1px solid var(--line);transition:transform .15s ease}
-.gallery a:hover img{transform:scale(1.02)}
+/* Galerie responsive masonry sans espaces */
+.gallery {
+  column-count: 3;         /* 3 colonnes sur desktop */
+  column-gap: 0;           /* colle les photos */
+  padding: 0;
+  margin: 0;
+}
+
+.gallery li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  break-inside: avoid;     /* évite les coupures d'images */
+}
+
+.gallery img {
+  width: 100%;
+  display: block;
+  margin: 0;               /* supprime les blancs */
+  border-radius: 0;        /* option : pas d'arrondi pour collage parfait */
+  border: none;            /* option : supprime la bordure */
+}
+
+/* Adaptation mobile */
+@media (max-width: 900px){
+  .gallery { column-count: 2; }
+}
+@media (max-width: 520px){
+  .gallery { column-count: 2; }  /* force 2 colonnes */
+}
+@media (max-width: 360px){
+  .gallery { column-count: 1; }  /* en très petit écran */
+}
+
 
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:grid;grid-template-areas:"prev body next";grid-template-columns:72px 1fr 72px;opacity:0;pointer-events:none;transition:opacity .2s ease}
 .lightbox[aria-hidden="false"]{opacity:1;pointer-events:auto}
