@@ -453,3 +453,17 @@ a.link{color:#1a66ff}
   .info .kv b{ justify-self: start; text-align: left; }
 }
 
+/* Bloc rôles en jaune */
+.roles-highlight {
+  background: linear-gradient(135deg, #fff8dc, #ffe066); /* fond dégradé jaune léger */
+  border: 2px solid #ffcc00;
+}
+
+.roles-highlight h2 {
+  color: #ffb400; /* titre en jaune plus fort */
+}
+
+.roles-highlight .badges li {
+  color: #333; /* texte lisible sur fond clair */
+  font-weight: 500;
+}
