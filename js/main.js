@@ -235,3 +235,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const table = document.querySelector("table");
+  const rows = table.querySelectorAll("tbody tr");
+
+  // FILTRAGE par catégorie
+  const filterSelect = document.querySelector("#filterCategory");
+  if (filterSelect) {
+    filterSelect.addEventListener("change", () => {
+      const value = filterSelect.value;
+      rows.forEach(row => {
+        if (value === "all" || row.dataset.category === value) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    });
+  }
+
+  // TRI par année
+  const sortButton = document.querySelector("#sortYear");
+  if (sortButton) {
+    sortButton.addEventListener("click", () => {
+      const tbody = table.querySelector("tbody");
+      const sorted = [...rows].sort((a, b) => b.dataset.year - a.dataset.year);
+      tbody.innerHTML = "";
+      sorted.forEach(r => tbody.appendChild(r));
+    });
+  }
+});
+</script>
