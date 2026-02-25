@@ -1,5 +1,5 @@
 // ==========================================
-// 1. UTILITAIRES & ANNÉE FOOTER
+// 1. UTILITAIRES & MENU MOBILE
 // ==========================================
 const $ = (sel, ctx=document) => ctx.querySelector(sel);
 const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
@@ -8,9 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const y = $('#year'); if (y) y.textContent = new Date().getFullYear();
 });
 
-// ==========================================
-// 2. MENU MOBILE
-// ==========================================
 (function(){
   const btn = $('.nav-toggle');
   const nav = $('#nav');
@@ -22,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// 3. FILMOGRAPHIE (Filtres, Tri & Modale)
+// 2. FILMOGRAPHIE (Filtres, Tri & Modale)
 // ==========================================
 (function(){
   const table = document.querySelector('#filmography');
@@ -33,13 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const filterSel = document.querySelector('#filter-category');
   const sortSel = document.querySelector('#sort-by');
-  const searchInput = document.querySelector('#search'); 
-  
   const rows = Array.from(tbody.querySelectorAll('tr'));
 
   function apply(){
     const cat = filterSel ? filterSel.value.toLowerCase() : 'all';
-    const q = (searchInput?.value || '').trim().toLowerCase();
     const sort = sortSel ? sortSel.value : 'year-desc';
 
     rows.sort((a,b) => {
@@ -57,20 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     rows.forEach(r => {
       const rowCat = (r.dataset.category || '').toLowerCase();
-      const txt = r.textContent.toLowerCase();
-
-      const okCat = (cat === 'all' || rowCat.includes(cat));
-      const okSearch = (!q || txt.includes(q));
-
-      r.style.display = (okCat && okSearch) ? '' : 'none';
+      r.style.display = (cat === 'all' || rowCat.includes(cat)) ? '' : 'none';
       tbody.appendChild(r);
     });
   }
 
   filterSel?.addEventListener('change', apply);
   sortSel?.addEventListener('change', apply);
-  searchInput?.addEventListener('input', apply);
-  
   apply();
 
   // Modale détails
@@ -109,11 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
           imdb.style.display = 'none';
         }
       }
-      
       dialog?.showModal();
-    } catch (err) {
-      console.error("Erreur JSON data-detail", err);
-    }
+    } catch (err) { console.error("Erreur JSON", err); }
   });
 
   closeBtn?.addEventListener('click', ()=> dialog?.close());
@@ -126,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// 4. GALERIE (Lightbox / Zoom)
+// 3. GALERIE (Lightbox / Zoom)
 // ==========================================
 (function(){
   const gallery = $('#gallery');
@@ -149,10 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lb.setAttribute('aria-hidden','false');
     document.body.style.overflow='hidden';
   }
-  function close(){
-    lb.setAttribute('aria-hidden','true');
-    document.body.style.overflow='';
-  }
+  function close(){ lb.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
   function next(){ open(index+1) }
   function prev(){ open(index-1) }
 
@@ -173,13 +154,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowLeft') prev();
   });
 
-  lb.addEventListener('click', (e)=>{
-    if (e.target === lb) close();
+  lb.addEventListener('click', (e)=>{ if (e.target === lb) close(); });
+})();
+
+// ==========================================
+// 4. ONGLETS DES RÔLES (NOUVEAU)
+// ==========================================
+(function(){
+  const roleTabBtns = document.querySelectorAll('.role-tab-btn');
+  const rolePages = document.querySelectorAll('.role-page');
+  
+  if (!roleTabBtns.length || !rolePages.length) return;
+
+  roleTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      roleTabBtns.forEach(b => b.classList.remove('active'));
+      rolePages.forEach(p => p.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-target');
+      document.getElementById(targetId).classList.add('active');
+    });
   });
 })();
 
 // ==========================================
-// 5. SLIDER YOUTUBE (Auto + Flèches)
+// 5. SLIDER YOUTUBE (Rotation + Flèches)
 // ==========================================
 (function(){
   const slider = document.getElementById('ytSlider');
@@ -188,8 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const prevBtn = document.querySelector('.prev-btn');
   const nextBtn = document.querySelector('.next-btn');
   let autoScrollInterval;
-  
-  // Coupe-circuit : on arrête l'auto-scroll si l'utilisateur interagit
   let isVideoPlayingOrInteracted = false; 
 
   function getItemWidth() {
@@ -200,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function scrollToNext() {
     const itemWidth = getItemWidth();
     const maxScroll = slider.scrollWidth - slider.clientWidth;
-
     if (slider.scrollLeft >= maxScroll - 10) {
        slider.scrollTo({ left: 0, behavior: 'smooth' });
     } else {
@@ -217,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- AUTO SCROLL ---
   function startAutoScroll() {
     if (isVideoPlayingOrInteracted) return;
     autoScrollInterval = setInterval(() => {
@@ -225,13 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  function stopAutoScroll() {
-    clearInterval(autoScrollInterval);
-  }
+  function stopAutoScroll() { clearInterval(autoScrollInterval); }
 
-  // --- ACTIONS DES FLÈCHES ---
   function handleManualNav(direction) {
-    isVideoPlayingOrInteracted = true; // On stoppe l'auto-scroll
+    isVideoPlayingOrInteracted = true; 
     stopAutoScroll();
     if (direction === 'next') scrollToNext();
     else scrollToPrev();
@@ -240,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (nextBtn) nextBtn.addEventListener('click', () => handleManualNav('next'));
   if (prevBtn) prevBtn.addEventListener('click', () => handleManualNav('prev'));
 
-  // --- DÉTECTION LECTURE VIDÉO ---
   window.addEventListener('blur', () => {
     if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
       isVideoPlayingOrInteracted = true;
@@ -248,16 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --- PAUSE AU SURVOL ---
   slider.addEventListener('mouseenter', stopAutoScroll);
-  slider.addEventListener('mouseleave', () => { 
-    if (!isVideoPlayingOrInteracted) startAutoScroll(); 
-  });
-  
+  slider.addEventListener('mouseleave', () => { if (!isVideoPlayingOrInteracted) startAutoScroll(); });
   slider.addEventListener('touchstart', stopAutoScroll, {passive: true});
-  slider.addEventListener('touchend', () => { 
-    if (!isVideoPlayingOrInteracted) startAutoScroll(); 
-  });
+  slider.addEventListener('touchend', () => { if (!isVideoPlayingOrInteracted) startAutoScroll(); });
 
   startAutoScroll();
 })();
@@ -283,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = form.name?.value.trim();
     const email = form.email?.value.trim();
     const message = form.message?.value.trim();
-
     const errors = [];
     if (!name) errors.push('Nom');
     if (!email || !isEmail(email)) errors.push('Email');
