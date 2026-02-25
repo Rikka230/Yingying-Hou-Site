@@ -136,25 +136,33 @@ a.link{color:#1a66ff}
   transform: translateY(-1px);
 }
 
-/* === FILTRES (Mise à jour) === */
-.filters{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
-.filters label{display:flex;gap:8px;align-items:center; font-weight:600;}
-.filters select {
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 15px;
-  background: #fff;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Filtres filmographie : layout mobile ultra-compact */
+@media (max-width: 700px){
+  .filters {
+    display: flex;
+    flex-direction: row; /* Met les éléments côte à côte */
+    justify-content: center;
+    gap: 12px;
+    margin-top: 0;
+    margin-bottom: 24px;
+  }
+  .filters label {
+    width: 50%;
+    font-size: 0; /* Astuce DA : cache les labels "Catégorie" pour gagner de la place */
+  }
+  .filters select {
+    width: 100%;
+    margin: 0;
+    font-size: 14px; /* On garde le texte intérieur lisible */
+    font-weight: 600;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--card); /* Fond légèrement gris-bleu pour faire bouton */
+    border: 1px solid var(--line);
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04); /* Légère ombre élégante */
+  }
 }
-.filters select:focus {
-  border-color: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(255,193,7,.18);
-}
-.link{font-weight:600}
 
 /* Galerie responsive masonry sans espaces */
 .gallery {
