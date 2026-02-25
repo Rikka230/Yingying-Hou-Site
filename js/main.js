@@ -254,3 +254,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 })();
+
+// ==========================================
+// SLIDER YOUTUBE AUTOMATIQUE
+// ==========================================
+(function(){
+  const slider = document.getElementById('ytSlider');
+  if (!slider) return;
+  
+  let autoScrollInterval;
+
+  // Fonction d'autoscroll fluide (1 pixel à la fois)
+  function startAutoScroll() {
+    autoScrollInterval = setInterval(() => {
+      slider.scrollLeft += 1;
+      
+      // Si on arrive tout au bout, on revient au début
+      if (slider.scrollLeft >= (slider.scrollWidth - slider.clientWidth - 1)) {
+         slider.scrollLeft = 0;
+      }
+    }, 30); // Vitesse : plus le chiffre est bas, plus c'est rapide
+  }
+
+  function stopAutoScroll() {
+    clearInterval(autoScrollInterval);
+  }
+
+  // On lance le slider au démarrage
+  startAutoScroll();
+
+  // On met en pause quand on survole pour pouvoir cliquer sur Play
+  slider.addEventListener('mouseenter', stopAutoScroll);
+  slider.addEventListener('mouseleave', startAutoScroll);
+  
+  // Pause aussi quand on touche sur mobile
+  slider.addEventListener('touchstart', stopAutoScroll);
+  slider.addEventListener('touchend', startAutoScroll);
+})();
