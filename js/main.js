@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// SLIDER YOUTUBE AUTOMATIQUE
+// SLIDER YOUTUBE AUTOMATIQUE (Vidéo par vidéo)
 // ==========================================
 (function(){
   const slider = document.getElementById('ytSlider');
@@ -264,30 +264,40 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let autoScrollInterval;
 
-  // Fonction d'autoscroll fluide (1 pixel à la fois)
+  function scrollToNext() {
+    // Calcule la largeur d'une vidéo + l'espace (gap)
+    const item = slider.querySelector('.yt-item');
+    if(!item) return;
+    
+    const itemWidth = item.offsetWidth + 16; 
+    const maxScroll = slider.scrollWidth - slider.clientWidth;
+
+    // Si on est tout au bout, on revient doucement au début
+    if (slider.scrollLeft >= maxScroll - 10) {
+       slider.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+       // Sinon on avance d'exactement une vidéo
+       slider.scrollTo({ left: slider.scrollLeft + itemWidth, behavior: 'smooth' });
+    }
+  }
+
   function startAutoScroll() {
-    autoScrollInterval = setInterval(() => {
-      slider.scrollLeft += 1;
-      
-      // Si on arrive tout au bout, on revient au début
-      if (slider.scrollLeft >= (slider.scrollWidth - slider.clientWidth - 1)) {
-         slider.scrollLeft = 0;
-      }
-    }, 30); // Vitesse : plus le chiffre est bas, plus c'est rapide
+    // Rotation toutes les 3.5 secondes
+    autoScrollInterval = setInterval(scrollToNext, 3500);
   }
 
   function stopAutoScroll() {
     clearInterval(autoScrollInterval);
   }
 
-  // On lance le slider au démarrage
+  // On lance le slider
   startAutoScroll();
 
-  // On met en pause quand on survole pour pouvoir cliquer sur Play
+  // On met en pause quand on survole (pour pouvoir cliquer sur Play)
   slider.addEventListener('mouseenter', stopAutoScroll);
   slider.addEventListener('mouseleave', startAutoScroll);
   
-  // Pause aussi quand on touche sur mobile
-  slider.addEventListener('touchstart', stopAutoScroll);
+  // Idem sur mobile quand on pose le doigt
+  slider.addEventListener('touchstart', stopAutoScroll, {passive: true});
   slider.addEventListener('touchend', startAutoScroll);
 })();
