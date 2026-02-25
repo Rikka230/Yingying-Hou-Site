@@ -158,14 +158,38 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// 4. ONGLETS DES RÔLES (NOUVEAU)
+// 4. ONGLETS DES RÔLES (Intelligent)
 // ==========================================
 (function(){
+  const paginationContainer = document.querySelector('.role-pagination');
   const roleTabBtns = document.querySelectorAll('.role-tab-btn');
   const rolePages = document.querySelectorAll('.role-page');
   
-  if (!roleTabBtns.length || !rolePages.length) return;
+  if (!roleTabBtns.length || !rolePages.length || !paginationContainer) return;
 
+  let activePagesCount = 0;
+
+  // 1. On vérifie si chaque page contient des rôles (des balises <li>)
+  rolePages.forEach((page, index) => {
+    // Compte combien de rôles (<li>) il y a dans cette page
+    const rolesCount = page.querySelectorAll('li').length;
+    const btn = roleTabBtns[index];
+    
+    if (rolesCount === 0 && btn) {
+      // S'il n'y a aucun rôle sur cette page, on cache son bouton
+      btn.style.display = 'none';
+    } else if (rolesCount > 0) {
+      // Sinon, on compte cette page comme "active"
+      activePagesCount++;
+    }
+  });
+
+  // 2. S'il n'y a qu'une seule page (ou zéro), on cache tout le bloc de pagination !
+  if (activePagesCount <= 1) {
+    paginationContainer.style.display = 'none';
+  }
+
+  // 3. Écouteur de clics pour la navigation
   roleTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       roleTabBtns.forEach(b => b.classList.remove('active'));
