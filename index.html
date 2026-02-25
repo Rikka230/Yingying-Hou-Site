@@ -114,10 +114,22 @@
 
         <article class="bento-card bento-awards roles-highlight">
           <h2>Récompenses & Festivals</h2>
-          <ul class="badges">
-            <li>🏆 Sélection officielle (Réalisatrice) — Hong Kong Youth Film Festival 2019</li>
-            <li>🎬 Prix du court métrage SONGE — Concours Mairie de Marseille & INA 2018</li>
-          </ul>
+          
+          <div id="award-tabs">
+            <ul class="badges role-page active" id="apage-1">
+              <li>🏆 Sélection officielle (Réalisatrice) — Hong Kong Youth Film Festival 2019</li>
+              <li>🎬 Prix du court métrage SONGE — Concours Mairie de Marseille & INA 2018</li>
+            </ul>
+
+            <ul class="badges role-page" id="apage-2">
+            </ul>
+
+            <div class="role-pagination">
+              <button class="role-tab-btn active" aria-label="Page 1" data-target="apage-1">1</button>
+              <button class="role-tab-btn" aria-label="Page 2" data-target="apage-2">2</button>
+            </div>
+          </div>
+          
         </article>
 
       </div>
