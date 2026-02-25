@@ -158,50 +158,57 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// 4. ONGLETS DES RÔLES (Intelligent)
+// 4. ONGLETS INTELLIGENTS (Rôles & Récompenses)
 // ==========================================
 (function(){
-  const paginationContainer = document.querySelector('.role-pagination');
-  const roleTabBtns = document.querySelectorAll('.role-tab-btn');
-  const rolePages = document.querySelectorAll('.role-page');
-  
-  if (!roleTabBtns.length || !rolePages.length || !paginationContainer) return;
+  // On crée une fonction réutilisable pour n'importe quelle boîte !
+  function setupTabs(containerSelector) {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
 
-  let activePagesCount = 0;
-
-  // 1. On vérifie si chaque page contient des rôles (des balises <li>)
-  rolePages.forEach((page, index) => {
-    // Compte combien de rôles (<li>) il y a dans cette page
-    const rolesCount = page.querySelectorAll('li').length;
-    const btn = roleTabBtns[index];
+    const paginationContainer = container.querySelector('.role-pagination');
+    const tabBtns = container.querySelectorAll('.role-tab-btn');
+    const pages = container.querySelectorAll('.role-page');
     
-    if (rolesCount === 0 && btn) {
-      // S'il n'y a aucun rôle sur cette page, on cache son bouton
-      btn.style.display = 'none';
-    } else if (rolesCount > 0) {
-      // Sinon, on compte cette page comme "active"
-      activePagesCount++;
-    }
-  });
+    if (!tabBtns.length || !pages.length || !paginationContainer) return;
 
-  // 2. S'il n'y a qu'une seule page (ou zéro), on cache tout le bloc de pagination !
-  if (activePagesCount <= 1) {
-    paginationContainer.style.display = 'none';
+    let activePagesCount = 0;
+
+    // 1. On vérifie le contenu de chaque page dans CE conteneur spécifique
+    pages.forEach((page, index) => {
+      const itemsCount = page.querySelectorAll('li').length;
+      const btn = tabBtns[index];
+      
+      if (itemsCount === 0 && btn) {
+        btn.style.display = 'none'; // Cache le bouton si vide
+      } else if (itemsCount > 0) {
+        activePagesCount++;
+      }
+    });
+
+    // 2. S'il n'y a qu'une page remplie, on cache les numéros
+    if (activePagesCount <= 1) {
+      paginationContainer.style.display = 'none';
+    }
+
+    // 3. Gestion de la navigation entre les pages
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // On retire l'état "actif" uniquement dans cette boîte
+        tabBtns.forEach(b => b.classList.remove('active'));
+        pages.forEach(p => p.classList.remove('active'));
+        
+        btn.classList.add('active');
+        const targetId = btn.getAttribute('data-target');
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
   }
 
-  // 3. Écouteur de clics pour la navigation
-  roleTabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      roleTabBtns.forEach(b => b.classList.remove('active'));
-      rolePages.forEach(p => p.classList.remove('active'));
-      
-      btn.classList.add('active');
-      const targetId = btn.getAttribute('data-target');
-      document.getElementById(targetId).classList.add('active');
-    });
-  });
+  // On lance la machine sur les deux boîtes !
+  setupTabs('.bento-roles');
+  setupTabs('.bento-awards');
 })();
-
 // ==========================================
 // 5. SLIDER YOUTUBE (Rotation + Flèches)
 // ==========================================
