@@ -46,9 +46,21 @@ a.link{color:#1a66ff}
 .ratio-16x9{position:relative;padding-top:56.25%}
 .ratio-16x9 iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
 .split{display:grid;grid-template-columns:2fr 1fr;gap:24px}
-.info .kv{list-style:none;padding:0;margin:0}
-.info .kv li{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:8px 0}
-.info .kv span{color:var(--muted)}
+.info .kv { list-style: none; padding: 0; margin: 0; }
+.info .kv li { 
+  display: flex; 
+  justify-content: space-between; 
+  gap: 16px; /* FIX : Force un bel espace de 16 pixels entre la gauche et la droite */
+  border-bottom: 1px dashed var(--line); 
+  padding: 12px 0; 
+}
+.info .kv span { 
+  color: var(--muted); 
+  flex-shrink: 0; /* FIX : Empêche le mot de gauche (ex: "Langues") d'être écrasé */
+}
+.info .kv b { 
+  text-align: right; /* FIX : Pousse le texte joliment vers la droite */
+}
 
 /* TABLEAU FILMOGRAPHIE */
 .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--shadow); }
