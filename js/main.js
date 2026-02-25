@@ -161,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // 4. ONGLETS INTELLIGENTS (Rôles & Récompenses)
 // ==========================================
 (function(){
-  // On crée une fonction réutilisable pour n'importe quelle boîte !
   function setupTabs(containerSelector) {
     const container = document.querySelector(containerSelector);
     if (!container) return;
@@ -174,41 +173,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activePagesCount = 0;
 
-    // 1. On vérifie le contenu de chaque page dans CE conteneur spécifique
+    // 1. On compte les pages qui ont vraiment du contenu
     pages.forEach((page, index) => {
       const itemsCount = page.querySelectorAll('li').length;
       const btn = tabBtns[index];
       
       if (itemsCount === 0 && btn) {
-        btn.style.display = 'none'; // Cache le bouton si vide
+        btn.style.display = 'none'; // Cache le bouton 2 si la liste 2 est vide
       } else if (itemsCount > 0) {
         activePagesCount++;
       }
     });
 
-    // 2. S'il n'y a qu'une page remplie, on cache les numéros
+    // 2. S'il n'y a qu'une seule page remplie, on supprime TOUTE la barre de numéros !
     if (activePagesCount <= 1) {
       paginationContainer.style.display = 'none';
     }
 
-    // 3. Gestion de la navigation entre les pages
-    tabBtns.forEach(btn => {
+    // 3. Navigation par ordre (Anti-bug si on se trompe dans le HTML)
+    tabBtns.forEach((btn, index) => {
       btn.addEventListener('click', () => {
-        // On retire l'état "actif" uniquement dans cette boîte
+        // Désactive tout uniquement dans CETTE boîte précise
         tabBtns.forEach(b => b.classList.remove('active'));
         pages.forEach(p => p.classList.remove('active'));
         
+        // Active le bouton cliqué et la page correspondante
         btn.classList.add('active');
-        const targetId = btn.getAttribute('data-target');
-        document.getElementById(targetId).classList.add('active');
+        if(pages[index]) {
+          pages[index].classList.add('active');
+        }
       });
     });
   }
 
-  // On lance la machine sur les deux boîtes !
+  // On lance la machine sur les deux boîtes sans qu'elles se croisent !
   setupTabs('.bento-roles');
   setupTabs('.bento-awards');
 })();
+
 // ==========================================
 // 5. SLIDER YOUTUBE (Rotation + Flèches)
 // ==========================================
