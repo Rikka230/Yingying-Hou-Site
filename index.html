@@ -13,7 +13,7 @@
   <meta property="og:image" content="https://www.example.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preload" as="image" href="/img/hero-lg.jpg" imagesrcset="/img/hero-sm.jpg 640w, /img/hero-md.jpg 1280w, /img/hero-lg.jpg 1920w" imagesizes="100vw" />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
@@ -25,9 +25,9 @@
       <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
         <ul>
           <li><a href="/">Accueil</a></li>
-          <li><a href="/filmographie.html">Filmographie</a></li>
-          <li><a href="/galerie.html">Galerie</a></li>
-          <li><a href="/contact.html">Contact / Booking</a></li>
+          <li><a href="filmographie.html">Filmographie</a></li>
+          <li><a href="galerie.html">Galerie</a></li>
+          <li><a href="contact.html">Contact / Booking</a></li>
         </ul>
       </nav>
     </div>
@@ -43,9 +43,9 @@
         <h1>Yingying HOU — <span class="accent">Actrice</span></h1>
         <p class="lead">Présence à l’écran lumineuse, rôles dramatiques et d’action. Disponible pour cinéma, TV, Pub, théâtre et voix.</p>
         <div class="cta">
-          <a class="btn" href="/filmographie.html">Voir la filmographie</a>
-          <a class="btn" href="/galerie.html">Galerie Photo</a>
-          <a class="btn ghost" href="/contact.html">Réserver / Booking</a>
+          <a class="btn" href="filmographie.html">Voir la filmographie</a>
+          <a class="btn" href="galerie.html">Galerie Photo</a>
+          <a class="btn ghost" href="contact.html">Réserver / Booking</a>
           <a class="btn outline" href="press/CV_Photo_Ying_2025.pdf" target="_blank" rel="noopener">Press kit (PDF)</a>
         </div>
       </div>
@@ -68,21 +68,32 @@
 
         <article class="bento-card bento-roles roles-highlight">
           <h2>Rôles récents</h2>
-          <ul class="badges scrollable-list">
-            <li>💖 Assistante Star — <b>GLAMSQUAD</b> (Série TV 2025)</li>
-            <li>💖 Ying (Mère) — <b>MÉTÉORES</b> (Court-métrage 2025)</li>
-            <li>💖 Rôle Principal — <b>Pub ORANGE-Samsung</b> (2025)</li>
-            <li>💖 Femme Chinoise — <b>Kotowari</b> (Film 2024)</li>
-            <li>💖 Kim — <b>Plus Belle La Vie</b> (Série 2022)</li>
-            <li>💖 Nadia — <b>Mère Indigne</b> (Série 2023)</li>
-            <li>💖 Serveuse — <b>5-Cent Life</b> (Film 2018)</li>
-            <li>💖 La Maman — <b>Je suis une lessive</b> (Court 2017)</li>
-          </ul>
+          <div id="role-tabs">
+            <ul class="badges role-page active" id="rpage-1">
+              <li>💖 Assistante Star — <b>GLAMSQUAD</b> (Série TV 2025)</li>
+              <li>💖 Ying (Mère) — <b>MÉTÉORES</b> (Court-métrage 2025)</li>
+              <li>💖 Rôle Principal — <b>Pub ORANGE-Samsung</b> (2025)</li>
+              <li>💖 Femme Chinoise — <b>Kotowari</b> (Film 2024)</li>
+              <li>💖 Kim — <b>Plus Belle La Vie</b> (Série 2022)</li>
+              <li>💖 Nadia — <b>Mère Indigne</b> (Série 2023)</li>
+              <li>💖 Serveuse — <b>5-Cent Life</b> (Film 2018)</li>
+              <li>💖 La Maman — <b>Je suis une lessive</b> (Court 2017)</li>
+            </ul>
+
+            <ul class="badges role-page" id="rpage-2">
+              <li>💖 Nouveau rôle à venir prochainement...</li>
+              <li>💖 Un autre rôle...</li>
+            </ul>
+
+            <div class="role-pagination">
+              <button class="role-tab-btn active" aria-label="Page 1" data-target="rpage-1">1</button>
+              <button class="role-tab-btn" aria-label="Page 2" data-target="rpage-2">2</button>
+            </div>
+          </div>
         </article>
 
         <article class="bento-card bento-youtube">
           <h2>Apparitions & Extraits</h2>
-          
           <div class="slider-wrapper">
             <button class="slider-btn prev-btn" aria-label="Vidéo précédente">‹</button>
             
@@ -126,7 +137,7 @@
             <summary>Lire la biographie complète</summary>
             <p>Biographie longue (300–500 mots). Parcours, écoles, rôles marquants, disciplines (danse, arts martiaux), centres d’intérêt. Texte SEO avec mots-clés pertinents et ton professionnel.</p>
           </details>
-          <a class="btn" href="/filmographie.html">Explorer la filmographie</a>
+          <a class="btn" href="filmographie.html">Explorer la filmographie</a>
         </div>
         <aside class="info">
           <h3>Infos pro</h3>
@@ -147,31 +158,14 @@
     <div class="wrap">
       <p>© <span id="year"></span> Yingying HOU. Tous droits réservés.</p>
       <nav aria-label="Liens de pied de page">
-        <a href="/legal.html">Mentions légales</a>
-        <a href="/privacy.html">Politique de confidentialité</a>
-        <a href="/sitemap.xml">Sitemap</a>
+        <a href="legal.html">Mentions légales</a>
+        <a href="privacy.html">Politique de confidentialité</a>
         <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
         <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
       </nav>
     </div>
   </footer>
 
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"Person",
-    "name":"Yingying HOU",
-    "jobTitle":"Actress",
-    "url":"https://www.example.com/",
-    "image":"https://www.example.com/img/og.jpg",
-    "sameAs":[
-      "https://www.imdb.com/",
-      "https://www.instagram.com/"
-    ],
-    "knowsLanguage":["fr","en","zh"],
-    "worksFor":{"@type":"Organization","name":"—"}
-  }
-  </script>
-  <script src="/js/main.js" defer></script>
+  <script src="js/main.js" defer></script>
 </body>
 </html>
