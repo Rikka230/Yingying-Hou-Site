@@ -75,10 +75,66 @@ a.link{color:#1a66ff}
 .info .kv li{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:8px 0}
 .info .kv span{color:var(--muted)}
 
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
-.table{width:100%;border-collapse:separate;border-spacing:0}
-.table th,.table td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
-.table thead th{background:#fafbfe;position:sticky;top:0}
+/* =========================================
+   TABLEAU (Desktop optimisé)
+========================================= */
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow); /* Ajoute un peu de profondeur */
+}
+.table {
+  width: 100%;
+  border-collapse: collapse; /* Fusionne les bordures pour un rendu net */
+  text-align: left;
+}
+.table th, .table td {
+  padding: 16px 20px; /* On donne beaucoup plus d'air aux cellules */
+  border-bottom: 1px solid var(--line); /* Rail visuel horizontal */
+  vertical-align: middle;
+}
+/* Différencier l'en-tête pour structurer la lecture */
+.table thead th {
+  background: #fdfdfd;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #eaeaea; /* Ligne plus forte sous l'en-tête */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+/* Effet de survol très doux pour guider l'œil */
+.table tbody tr {
+  transition: background 0.2s ease;
+}
+.table tbody tr:hover {
+  background: #fafbfe; 
+}
+/* Mettre le Titre en valeur (colonne 2) */
+.table tbody td:nth-child(2) {
+  font-weight: 700;
+  color: var(--text);
+}
+/* Rendre le lien "Voir" plus incitatif (aspect pilule) */
+.table tbody td:last-child a {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(255, 193, 7, 0.15); /* Rappel subtil de ton jaune */
+  color: var(--yellow-ink);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.table tbody td:last-child a:hover {
+  background: var(--yellow);
+  transform: translateY(-1px);
+}
 
 /* === FILTRES (Mise à jour) === */
 .filters{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
