@@ -308,56 +308,59 @@ a.link{color:#1a66ff}
 
 /* 3) Filmographie : cartes lisibles sur mobile */
 @media (max-width: 700px){
-  #filmography thead{ display:none; }
-  .table-wrap{ border:0; }
-  #filmography tbody tr{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 12px;
-    padding: 12px;
-    border-bottom:1px solid var(--line);
-    background:#fff;
-    border-radius:12px;
-    margin-bottom: 10px;
+  .table thead { display: none; } /* On cache l'en-tête de bureau */
+  .table-wrap { border: 0; background: transparent; box-shadow: none; }
+  
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
   }
-  #filmography tbody td{
-    border:0;
-    padding: 4px 0;
-    display:flex;
-    align-items:baseline;
-    gap:8px;
+  
+  .table tbody td {
+    border: 0;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
   }
-  /* Année tout en haut, discrète */
-  #filmography tbody td:nth-child(1){
-    grid-column:1 / -1;
-    color:var(--muted);
-    font-weight:700;
-    padding-top:4px;
-  }
-  #filmography tbody td:nth-child(1)::before{ content:''; display:none; }
 
-  /* Titre en grand, pleine largeur */
-  #filmography tbody td:nth-child(2){
-    grid-column:1 / -1;
-    font-weight:800;
-    font-size:1.05rem;
-    margin-top:-2px;
+  /* Le secret pour afficher "Rôle :" et "Réalisateur :" grâce au Javascript */
+  .table tbody td::before {
+    content: attr(data-label) " : "; 
+    min-width: 105px; /* Aligne les textes proprement */
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.85rem;
   }
-  #filmography tbody td:nth-child(2)::before{ content:''; display:none; }
 
-  /* Catégorie compacte */
-  #filmography tbody td:nth-child(5){
-    background:rgba(255,193,7,.18);
-    border-radius:999px;
-    padding:4px 10px;
-    display:inline-flex;
-    align-items:center;
-  }
-  #filmography tbody td:nth-child(5)::before{ content:''; display:none; }
+  /* --- Design spécifique de la carte --- */
+  
+  /* 1. Année (discrète en haut) */
+  .table tbody td:nth-child(1) { order: 1; padding-bottom: 0; color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+  .table tbody td:nth-child(1)::before { display: none; }
 
-  /* Lien "Voir" aligné à droite et un peu plus affirmé */
-  #filmography tbody td:last-child{ justify-content:flex-end; }
-  #filmography tbody td:last-child a{ font-weight:700; }
+  /* 2. Titre (grand et en gras) */
+  .table tbody td:nth-child(2) { order: 2; padding-top: 0; font-size: 1.25rem; font-weight: 800; border-bottom: 1px dashed var(--line); margin-bottom: 10px; padding-bottom: 10px; }
+  .table tbody td:nth-child(2)::before { display: none; }
+
+  /* 3. Rôle */
+  .table tbody td:nth-child(3) { order: 3; }
+
+  /* 4. Réalisateur */
+  .table tbody td:nth-child(4) { order: 4; }
+
+  /* 5. Catégorie (se transforme en badge jaune) */
+  .table tbody td:nth-child(5) { order: 5; margin-top: 12px; display: inline-block; background: rgba(255,193,7,.15); color: var(--yellow-ink); padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; align-self: flex-start; }
+  .table tbody td:nth-child(5)::before { display: none; }
+
+  /* 6. Bouton "Voir" (remonte sur la même ligne que le badge) */
+  .table tbody td:last-child { order: 6; justify-content: flex-end; margin-top: -34px; }
+  .table tbody td:last-child::before { display: none; }
 }
 
 /* Filtres filmographie : layout mobile propre */
