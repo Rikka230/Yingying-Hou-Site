@@ -79,14 +79,31 @@ a.link{color:#1a66ff}
 .table{width:100%;border-collapse:separate;border-spacing:0}
 .table th,.table td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
 .table thead th{background:#fafbfe;position:sticky;top:0}
+
+/* === FILTRES (Mise à jour) === */
 .filters{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
-.filters label{display:flex;gap:8px;align-items:center}
+.filters label{display:flex;gap:8px;align-items:center; font-weight:600;}
+.filters select {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filters select:focus {
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255,193,7,.18);
+}
 .link{font-weight:600}
 
 /* Galerie responsive masonry sans espaces */
 .gallery {
-  column-count: 3;         /* 3 colonnes sur desktop */
-  column-gap: 0;           /* colle les photos */
+  column-count: 3;         
+  column-gap: 0;           
   padding: 0;
   margin: 0;
 }
@@ -95,37 +112,38 @@ a.link{color:#1a66ff}
   list-style: none;
   margin: 0;
   padding: 0;
-  break-inside: avoid;     /* évite les coupures d'images */
+  break-inside: avoid;     
 }
 
 .gallery img {
   width: 100%;
   display: block;
-  margin: 0;               /* supprime les blancs */
-  border-radius: 0;        /* option : pas d'arrondi pour collage parfait */
-  border: none;            /* option : supprime la bordure */
+  margin: 0;               
+  border-radius: 0;        
+  border: none;            
 }
 
-/* Adaptation mobile */
-@media (max-width: 900px){
-  .gallery { column-count: 2; }
-}
-@media (max-width: 520px){
-  .gallery { column-count: 2; }  /* force 2 colonnes */
-}
-@media (max-width: 360px){
-  .gallery { column-count: 1; }  /* en très petit écran */
-}
+@media (max-width: 900px){ .gallery { column-count: 2; } }
+@media (max-width: 520px){ .gallery { column-count: 2; } }
+@media (max-width: 360px){ .gallery { column-count: 1; } }
 
-
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:grid;grid-template-areas:"prev body next";grid-template-columns:72px 1fr 72px;opacity:0;pointer-events:none;transition:opacity .2s ease}
-.lightbox[aria-hidden="false"]{opacity:1;pointer-events:auto}
+/* === LIGHTBOX (Mise à jour pour le JS) === */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:grid;grid-template-areas:"prev body next";grid-template-columns:72px 1fr 72px;opacity:0;pointer-events:none;transition:opacity .2s ease; z-index:9999;}
+.lightbox[aria-hidden="false"], .lightbox.active {opacity:1;pointer-events:auto}
 .lb-figure{grid-area:body;place-self:center;max-width:min(92vw,1200px)}
-.lb-figure img{width:100%;height:auto;border-radius:12px}
-.lb-prev,.lb-next,.lb-close{position:absolute;background:#000;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:12px;padding:8px 12px}
+.lb-figure img{width:100%;height:auto;border-radius:12px; max-height:85vh; object-fit:contain;}
+.lb-prev,.lb-next,.lb-close{
+  position:absolute;background:#000;border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:12px;padding:8px 12px;
+  cursor:pointer; transition: background 0.2s ease, color 0.2s ease;
+}
+.lb-prev:hover, .lb-next:hover, .lb-close:hover {
+  background: var(--yellow);
+  color: var(--yellow-ink);
+}
 .lb-prev{left:16px;top:50%;transform:translateY(-50%)}
 .lb-next{right:16px;top:50%;transform:translateY(-50%)}
-.lb-close{right:16px;top:16px}
+.lb-close{right:16px;top:16px; padding: 10px 16px; font-weight:bold;}
 .lb-figure figcaption{color:#fff;text-align:center;margin-top:8px}
 
 .hp{display:none !important}
@@ -227,46 +245,10 @@ a.link{color:#1a66ff}
 
 /* 1) Accueil : voir toute la bannière sur mobile */
 @media (max-width: 700px){
-  .hero picture, .hero img{ height:auto; }   /* plus de hauteur fixe */
-  .hero img{ object-fit: contain; }          /* on voit toute l’image */
-  .hero-copy{ margin-top: 12px; }            /* évite le chevauchement */
+  .hero picture, .hero img{ height:auto; }   
+  .hero img{ object-fit: contain; }          
+  .hero-copy{ margin-top: 12px; }            
 }
-
-/* 2) Galerie : 2 colonnes sur téléphone (1 colonne seulement très petit) */
-/* Galerie responsive masonry sans espaces */
-.gallery {
-  column-count: 3;         /* 3 colonnes sur desktop */
-  column-gap: 0;           /* colle les photos */
-  padding: 0;
-  margin: 0;
-}
-
-.gallery li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  break-inside: avoid;     /* évite les coupures d'images */
-}
-
-.gallery img {
-  width: 100%;
-  display: block;
-  margin: 0;               /* supprime les blancs */
-  border-radius: 0;        /* option : pas d'arrondi pour collage parfait */
-  border: none;            /* option : supprime la bordure */
-}
-
-/* Adaptation mobile */
-@media (max-width: 900px){
-  .gallery { column-count: 2; }
-}
-@media (max-width: 520px){
-  .gallery { column-count: 2; }  /* force 2 colonnes */
-}
-@media (max-width: 360px){
-  .gallery { column-count: 1; }  /* en très petit écran */
-}
-
 
 /* 3) Filmographie : cartes lisibles sur mobile */
 @media (max-width: 700px){
@@ -279,6 +261,8 @@ a.link{color:#1a66ff}
     padding: 12px;
     border-bottom:1px solid var(--line);
     background:#fff;
+    border-radius:12px;
+    margin-bottom: 10px;
   }
   #filmography tbody td{
     border:0;
@@ -287,70 +271,6 @@ a.link{color:#1a66ff}
     align-items:baseline;
     gap:8px;
   }
-  /* libellé devant chaque valeur (ajouté via JS) */
-  #filmography tbody td::before{
-    content: attr(data-label);
-    color: var(--muted);
-    min-width: 96px;
-    font-weight:600;
-    flex: 0 0 auto;
-  }
-  /* Titre en tête, sur 2 colonnes, sans libellé */
-  #filmography tbody td:nth-child(2){
-    grid-column: 1 / -1;
-    font-weight: 800;
-    font-size: 1.05rem;
-  }
-  #filmography tbody td:nth-child(2)::before{ content:""; display:none; }
-  /* Lien "Voir" à droite */
-  #filmography tbody td:last-child{ justify-content:flex-end; }
-  /* Catégorie en “pilule” */
-  #filmography tbody td:nth-child(5){
-    background: rgba(255,193,7,.18);
-    border-radius: 999px;
-    padding: 4px 10px;
-    display: inline-flex;
-    align-items:center;
-  }
-  #filmography tbody td:nth-child(5)::before{
-    content:"Catégorie";
-    margin-right:8px; color:var(--muted); font-weight:600;
-  }
-}
-
-/* Filtres filmographie : layout mobile propre */
-@media (max-width: 700px){
-  .filters{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-  .filters .search{ grid-column: 1 / -1; }
-  .filters label{ width:100%; }
-  .filters select, .filters input[type="search"]{ width:100%; }
-}
-
-/* === PATCH MOBILE — Lisibilité + grille === */
-
-/* Filmographie : cartes claires sur mobile */
-@media (max-width: 700px){
-  #filmography thead{ display:none; }
-  .table-wrap{ border:0; }
-
-  /* chaque ligne devient une "carte" */
-  #filmography tbody tr{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 12px;
-    padding: 12px;
-    border-bottom:1px solid var(--line);
-    background:#fff;
-    border-radius:12px;
-  }
-  #filmography tbody td{
-    border:0;
-    padding:4px 0;
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-  }
-
   /* Année tout en haut, discrète */
   #filmography tbody td:nth-child(1){
     grid-column:1 / -1;
@@ -369,7 +289,7 @@ a.link{color:#1a66ff}
   }
   #filmography tbody td:nth-child(2)::before{ content:''; display:none; }
 
-  /* Catégorie compacte (on enlève le label "Catégorie") */
+  /* Catégorie compacte */
   #filmography tbody td:nth-child(5){
     background:rgba(255,193,7,.18);
     border-radius:999px;
@@ -384,15 +304,15 @@ a.link{color:#1a66ff}
   #filmography tbody td:last-child a{ font-weight:700; }
 }
 
-/* Galerie : forcer 2 colonnes sur téléphone */
-@media (max-width: 520px){
-  .gallery{ grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
-}
-@media (max-width: 360px){
-  .gallery{ grid-template-columns: 1fr !important; }
+/* Filtres filmographie : layout mobile propre */
+@media (max-width: 700px){
+  .filters{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .filters .search{ grid-column: 1 / -1; }
+  .filters label{ width:100%; display: flex; flex-direction: column; align-items: flex-start;}
+  .filters select, .filters input[type="search"]{ width:100%; margin-left: 0; margin-top: 5px;}
 }
 
-.ratio-16x9{ position:relative; padding-top:56.25%; } /* 16:9 */
+.ratio-16x9{ position:relative; padding-top:56.25%; } 
 .ratio-16x9 > iframe,
 .ratio-16x9 > video{
   position:absolute !important;
@@ -404,11 +324,10 @@ a.link{color:#1a66ff}
   display:block;
 }
 
-/* Layout de la home : showreel à gauche sur 2 rangées,
-   colonne de droite = Rôle puis Récompenses */
+/* Layout de la home */
 .grid--home{
   display: grid;
-  grid-template-columns: 1.35fr 1fr;   /* gauche un peu plus large */
+  grid-template-columns: 1.35fr 1fr;   
   gap: 18px;
   grid-template-areas:
     "showreel role"
@@ -418,7 +337,6 @@ a.link{color:#1a66ff}
 .grid--home .role{ grid-area: role; }
 .grid--home .awards{ grid-area: awards; }
 
-/* Empile proprement sur mobile */
 @media (max-width: 900px){
   .grid--home{
     grid-template-columns: 1fr;
@@ -429,16 +347,14 @@ a.link{color:#1a66ff}
   }
 }
 
-/* Espace fixe avant la valeur */
+/* Infos pro */
 .info .kv span{ min-width: 140px; display:inline-block; }
-
-/* Infos pro : grille label/valeur avec vrai espace */
 .info .kv{ row-gap: 0; }
 .info .kv li{
   display: grid;
-  grid-template-columns: 150px 1fr; /* largeur fixe du label */
+  grid-template-columns: 150px 1fr; 
   align-items: start;
-  gap: 12px;                        /* espace entre label et valeur */
+  gap: 12px;                        
   padding: 10px 0;
   border-bottom: 1px dashed var(--line);
 }
@@ -446,7 +362,6 @@ a.link{color:#1a66ff}
 .info .kv span{ color: var(--muted); }
 .info .kv b{ justify-self: end; text-align: right; }
 
-/* Sur mobile, on aligne la valeur à gauche pour les textes longs (Langues) */
 @media (max-width: 560px){
   .info .kv{ row-gap: 6px; }
   .info .kv li{ grid-template-columns: 120px 1fr; }
@@ -455,15 +370,13 @@ a.link{color:#1a66ff}
 
 /* Bloc rôles en jaune */
 .roles-highlight {
-  background: linear-gradient(135deg, #fff8dc, #ffe066); /* fond dégradé jaune léger */
+  background: linear-gradient(135deg, #fff8dc, #ffe066); 
   border: 2px solid #ffcc00;
 }
-
 .roles-highlight h2 {
-  color: #ffb400; /* titre en jaune plus fort */
+  color: #ffb400; 
 }
-
 .roles-highlight .badges li {
-  color: #333; /* texte lisible sur fond clair */
+  color: #333; 
   font-weight: 500;
 }
