@@ -27,45 +27,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.querySelector('#filmography tbody');
 
   if (filterSelect && sortSelect && tbody) {
+    // On capture toutes les lignes existantes une bonne fois pour toutes
     const rows = Array.from(tbody.querySelectorAll('tr'));
 
     function updateTable() {
       const filterValue = filterSelect.value.toLowerCase();
       const sortValue = sortSelect.value;
 
-      // Filtrer
-      let visibleRows = rows.filter(row => {
-        if (filterValue === 'all') return true;
-        const category = row.dataset.category ? row.dataset.category.toLowerCase() : '';
-        return category.includes(filterValue);
-      });
-
-      // Trier
-      visibleRows.sort((a, b) => {
-        const yearA = parseInt(a.dataset.year) || 0;
-        const yearB = parseInt(b.dataset.year) || 0;
-        const titleA = a.dataset.title ? a.dataset.title.toLowerCase() : '';
-        const titleB = b.dataset.title ? b.dataset.title.toLowerCase() : '';
+      // ÉTAPE A : Trier notre liste de lignes
+      rows.sort((a, b) => {
+        // On récupère les valeurs depuis les attributs data-*
+        const yearA = parseInt(a.getAttribute('data-year')) || 0;
+        const yearB = parseInt(b.getAttribute('data-year')) || 0;
+        const titleA = (a.getAttribute('data-title') || '').toLowerCase();
+        const titleB = (b.getAttribute('data-title') || '').toLowerCase();
 
         switch (sortValue) {
-          case 'year-desc': return yearB - yearA; 
-          case 'year-asc': return yearA - yearB;  
-          case 'title-asc': return titleA.localeCompare(titleB); 
-          case 'title-desc': return titleB.localeCompare(titleA); 
+          case 'year-desc': return yearB - yearA; // Du plus récent au plus ancien
+          case 'year-asc': return yearA - yearB;  // Du plus ancien au plus récent
+          case 'title-asc': return titleA.localeCompare(titleB); // A vers Z
+          case 'title-desc': return titleB.localeCompare(titleA); // Z vers A
           default: return 0;
         }
       });
 
-      // Réafficher
-      tbody.innerHTML = '';
-      visibleRows.forEach(row => tbody.appendChild(row));
-      
-      // Il faut ré-attacher les événements de la modale aux nouveaux boutons affichés
-      attachModalEvents();
+      // ÉTAPE B : Appliquer le filtre et réinsérer les lignes dans le bon ordre
+      rows.forEach(row => {
+        const category = (row.getAttribute('data-category') || '').toLowerCase();
+        
+        // Est-ce que cette ligne correspond au filtre choisi ?
+        const matchesFilter = (filterValue === 'all') || category.includes(filterValue);
+        
+        // Si oui, on l'affiche. Sinon, on la cache proprement.
+        row.style.display = matchesFilter ? '' : 'none';
+        
+        // On la replace dans le tableau (cela modifie physiquement l'ordre)
+        tbody.appendChild(row);
+      });
     }
 
+    // On lance l'écoute des changements
     filterSelect.addEventListener('change', updateTable);
     sortSelect.addEventListener('change', updateTable);
+
+    // On force un premier tri au chargement de la page pour que l'ordre soit correct
+    updateTable();
+  } else {
+    console.error("Le script de tri n'a pas trouvé les filtres ou le tableau.");
   }
 
   // ==========================================
@@ -148,3 +156,4 @@ document.addEventListener('DOMContentLoaded', () => {
   attachModalEvents();
 
 });
+
