@@ -264,3 +264,46 @@ a.link{color:#1a66ff}
     font-size: 1.05rem;
   }
 }
+
+/* =========================================
+   CORRECTIONS ERGONOMIE MOBILE (Boutons, Marges, Bio)
+========================================= */
+@media (max-width: 700px) {
+  
+  /* 1. Boutons (CTA) empilés et larges pour le tactile */
+  .cta {
+    display: flex;
+    flex-direction: column; /* Empile de haut en bas */
+    gap: 12px;
+    width: 100%;
+  }
+  .cta .btn {
+    width: 100%; /* Prend toute la largeur */
+    text-align: center;
+  }
+
+  /* 2. Marges intérieures de la boîte d'accueil (pour que le texte ne touche pas le bord) */
+  .hero-copy {
+    padding: 30px 24px 20px 24px !important;
+    width: calc(100% - 20px); /* Laisse un peu de décor autour de la carte blanche */
+    margin: -40px auto 0 !important;
+    border-radius: 24px; /* Arrondi complet sur mobile */
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.08); /* Jolie ombre portée */
+  }
+
+  /* 3. Réduction des grands espaces vides (comme au-dessus de la Bio) */
+  .pad {
+    padding: 30px 0 !important; /* Divise le vide par presque deux */
+  }
+
+  /* 4. Forcer la marge latérale globale (sécurité anti-bords touchés) */
+  .wrap {
+    padding: 0 24px !important;
+  }
+  
+  /* Aération de la liste de Rôles sur mobile */
+  .role-page li {
+    padding: 14px 16px;
+    margin-bottom: 4px;
+  }
+}
