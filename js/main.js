@@ -1,13 +1,16 @@
-// Utilitaires
+// ==========================================
+// 1. UTILITAIRES & ANNÉE FOOTER
+// ==========================================
 const $ = (sel, ctx=document) => ctx.querySelector(sel);
 const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
 
-// Année dynamique
 document.addEventListener('DOMContentLoaded', () => {
   const y = $('#year'); if (y) y.textContent = new Date().getFullYear();
 });
 
-// Menu mobile
+// ==========================================
+// 2. MENU MOBILE
+// ==========================================
 (function(){
   const btn = $('.nav-toggle');
   const nav = $('#nav');
@@ -18,7 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
-// Filmographie: tri & filtre + dialog + recherche
+// ==========================================
+// 3. FILMOGRAPHIE (Filtres, Tri & Modale)
+// ==========================================
 (function(){
   const table = document.querySelector('#filmography');
   if (!table) return;
@@ -28,9 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const filterSel = document.querySelector('#filter-category');
   const sortSel = document.querySelector('#sort-by');
-  const searchInput = document.querySelector('#search'); // Au cas où tu ajoutes une barre de recherche
+  const searchInput = document.querySelector('#search'); 
   
-  // On capture toutes les lignes existantes
   const rows = Array.from(tbody.querySelectorAll('tr'));
 
   function apply(){
@@ -38,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const q = (searchInput?.value || '').trim().toLowerCase();
     const sort = sortSel ? sortSel.value : 'year-desc';
 
-    // 1. On trie le tableau des lignes
     rows.sort((a,b) => {
       const yearA = parseInt(a.dataset.year) || 0;
       const yearB = parseInt(b.dataset.year) || 0;
@@ -52,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return 0;
     });
 
-    // 2. On applique les filtres et on réinjecte proprement dans le DOM
     rows.forEach(r => {
       const rowCat = (r.dataset.category || '').toLowerCase();
       const txt = r.textContent.toLowerCase();
@@ -60,10 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const okCat = (cat === 'all' || rowCat.includes(cat));
       const okSearch = (!q || txt.includes(q));
 
-      // On cache ou on affiche selon le filtre
       r.style.display = (okCat && okSearch) ? '' : 'none';
-      
-      // On replace la ligne dans le tableau (cela modifie l'ordre d'affichage)
       tbody.appendChild(r);
     });
   }
@@ -72,10 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
   sortSel?.addEventListener('change', apply);
   searchInput?.addEventListener('input', apply);
   
-  // On lance le tri une première fois au chargement
   apply();
 
-  // --- Dialog détails (Modale) ---
+  // Modale détails
   const dialog = document.querySelector('#detailDialog');
   const closeBtn = dialog?.querySelector('.dialog-close');
   const poster = dialog?.querySelector('#detailPoster');
@@ -97,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if(poster) {
         if(detail.affiche) {
           poster.src = detail.affiche;
-          poster.alt = 'Affiche — ' + (title?.textContent || '');
           poster.style.display = 'block';
         } else {
           poster.style.display = 'none';
@@ -115,13 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       dialog?.showModal();
     } catch (err) {
-      console.error("Format JSON invalide dans data-detail", err);
+      console.error("Erreur JSON data-detail", err);
     }
   });
 
   closeBtn?.addEventListener('click', ()=> dialog?.close());
   dialog?.addEventListener('click', (e)=> { 
-    // Ferme la modale si on clique à l'extérieur
     const rect = dialog.getBoundingClientRect();
     const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
       rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
@@ -129,7 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
-// Galerie: lightbox avec clavier + swipe
+// ==========================================
+// 4. GALERIE (Lightbox / Zoom)
+// ==========================================
 (function(){
   const gallery = $('#gallery');
   const lb = $('#lightbox');
@@ -147,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     index = (i+items.length)%items.length;
     const a = items[index];
     img.src = a.getAttribute('href');
-    img.alt = $('img', a).alt || 'Image';
     caption.textContent = a.dataset.caption || '';
     lb.setAttribute('aria-hidden','false');
     document.body.style.overflow='hidden';
@@ -176,87 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowLeft') prev();
   });
 
-  let startX=0;
-  lb.addEventListener('pointerdown', e=> startX = e.clientX);
-  lb.addEventListener('pointerup', e=>{
-    if (!startX) return;
-    const dx = e.clientX - startX;
-    if (dx > 40) prev();
-    else if (dx < -40) next();
-    startX = 0;
-  });
-
-  // Fermer en cliquant sur l'arrière-plan sombre
   lb.addEventListener('click', (e)=>{
     if (e.target === lb) close();
-  });
-
-})();
-
-// Validation légère du formulaire Contact
-(function () {
-  const form = document.querySelector('#contactForm');
-  if (!form) return;
-
-  const status = document.querySelector('#formStatus');
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
-
-  form.addEventListener('submit', (e) => {
-    // Honeypot anti-bot : si rempli, on annule en silence
-    if (form.company && form.company.value.trim() !== '') {
-      e.preventDefault();
-      if (status) {
-        status.textContent = 'Merci.';
-        status.className = 'form-status ok';
-      }
-      return;
-    }
-
-    const name = form.name?.value.trim();
-    const email = form.email?.value.trim();
-    const message = form.message?.value.trim();
-
-    const errors = [];
-    if (!name) errors.push('Nom');
-    if (!email || !isEmail(email)) errors.push('Email');
-    if (!message) errors.push('Message');
-
-    if (errors.length) {
-      e.preventDefault(); 
-      if (status) {
-        status.textContent = 'Champs à compléter : ' + errors.join(', ') + '.';
-        status.className = 'form-status err';
-      }
-      // focus premier champ invalide
-      (!name ? form.name : !email ? form.email : form.message)?.focus();
-      return;
-    }
-
-    // OK : on laisse soumettre normalement
-    if (status) {
-      status.textContent = 'Envoi en cours…';
-      status.className = 'form-status';
-    }
-    submitBtn?.setAttribute('disabled', 'disabled'); 
-  });
-})();
-
-// Libellés pour l’affichage mobile de la filmographie (data-label)
-(function(){
-  const table = document.querySelector('#filmography');
-  if (!table) return;
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-  rows.forEach(tr => {
-    Array.from(tr.children).forEach((td, i) => {
-      td.setAttribute('data-label', headers[i] || '');
-    });
   });
 })();
 
 // ==========================================
-// SLIDER YOUTUBE (Rotation + Flèches + Stop sur Play)
+// 5. SLIDER YOUTUBE (Auto + Flèches)
 // ==========================================
 (function(){
   const slider = document.getElementById('ytSlider');
@@ -266,17 +189,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextBtn = document.querySelector('.next-btn');
   let autoScrollInterval;
   
-  // Cette variable agit comme un coupe-circuit
+  // Coupe-circuit : on arrête l'auto-scroll si l'utilisateur interagit
   let isVideoPlayingOrInteracted = false; 
 
   function getItemWidth() {
     const item = slider.querySelector('.yt-item');
-    return item ? item.offsetWidth + 16 : 0; // 16 est la valeur de ton 'gap'
+    return item ? item.offsetWidth + 16 : 0; 
   }
 
   function scrollToNext() {
-    if (isVideoPlayingOrInteracted) return; // Stoppe tout si interaction
-    
     const itemWidth = getItemWidth();
     const maxScroll = slider.scrollWidth - slider.clientWidth;
 
@@ -296,9 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- AUTO SCROLL ---
   function startAutoScroll() {
     if (isVideoPlayingOrInteracted) return;
-    autoScrollInterval = setInterval(scrollToNext, 3500);
+    autoScrollInterval = setInterval(() => {
+      if (!isVideoPlayingOrInteracted) scrollToNext();
+    }, 3500);
   }
 
   function stopAutoScroll() {
@@ -306,9 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- ACTIONS DES FLÈCHES ---
-  // Si on clique sur une flèche, on coupe la rotation auto définitivement
   function handleManualNav(direction) {
-    isVideoPlayingOrInteracted = true; 
+    isVideoPlayingOrInteracted = true; // On stoppe l'auto-scroll
     stopAutoScroll();
     if (direction === 'next') scrollToNext();
     else scrollToPrev();
@@ -317,8 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (nextBtn) nextBtn.addEventListener('click', () => handleManualNav('next'));
   if (prevBtn) prevBtn.addEventListener('click', () => handleManualNav('prev'));
 
-  // --- DÉTECTION DU CLIC SUR PLAY ---
-  // Si la fenêtre perd le focus au profit d'une vidéo iframe, on tue la rotation
+  // --- DÉTECTION LECTURE VIDÉO ---
   window.addEventListener('blur', () => {
     if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
       isVideoPlayingOrInteracted = true;
@@ -326,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --- COMPORTEMENT DE SURVOL CLASSIQUE ---
+  // --- PAUSE AU SURVOL ---
   slider.addEventListener('mouseenter', stopAutoScroll);
   slider.addEventListener('mouseleave', () => { 
     if (!isVideoPlayingOrInteracted) startAutoScroll(); 
@@ -337,6 +259,63 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isVideoPlayingOrInteracted) startAutoScroll(); 
   });
 
-  // Démarrage initial
   startAutoScroll();
+})();
+
+// ==========================================
+// 6. FORMULAIRE CONTACT
+// ==========================================
+(function () {
+  const form = document.querySelector('#contactForm');
+  if (!form) return;
+
+  const status = document.querySelector('#formStatus');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
+
+  form.addEventListener('submit', (e) => {
+    if (form.company && form.company.value.trim() !== '') {
+      e.preventDefault();
+      if (status) { status.textContent = 'Merci.'; status.className = 'form-status ok'; }
+      return;
+    }
+
+    const name = form.name?.value.trim();
+    const email = form.email?.value.trim();
+    const message = form.message?.value.trim();
+
+    const errors = [];
+    if (!name) errors.push('Nom');
+    if (!email || !isEmail(email)) errors.push('Email');
+    if (!message) errors.push('Message');
+
+    if (errors.length) {
+      e.preventDefault(); 
+      if (status) {
+        status.textContent = 'Champs à compléter : ' + errors.join(', ') + '.';
+        status.className = 'form-status err';
+      }
+      return;
+    }
+    if (status) {
+      status.textContent = 'Envoi en cours…';
+      status.className = 'form-status';
+    }
+    submitBtn?.setAttribute('disabled', 'disabled'); 
+  });
+})();
+
+// ==========================================
+// 7. LIBELLÉS MOBILE FILMOGRAPHIE
+// ==========================================
+(function(){
+  const table = document.querySelector('#filmography');
+  if (!table) return;
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  rows.forEach(tr => {
+    Array.from(tr.children).forEach((td, i) => {
+      td.setAttribute('data-label', headers[i] || '');
+    });
+  });
 })();
