@@ -307,3 +307,22 @@ a.link{color:#1a66ff}
     margin-bottom: 4px;
   }
 }
+
+/* =========================================
+   COMPORTEMENT HYBRIDE (PC vs Mobile) 
+========================================= */
+@media (min-width: 701px) {
+  /* Sur Grand Écran (PC / Tablette large) */
+  
+  #role-tabs, #award-tabs {
+    gap: 12px; /* Lie visuellement la liste 1 et la liste 2 */
+  }
+  
+  .role-page {
+    display: flex !important; /* Force l'affichage de TOUS les rôles d'un coup */
+  }
+  
+  .role-pagination {
+    display: none !important; /* Cache les boutons 1, 2, 3 qui ne servent plus */
+  }
+}
