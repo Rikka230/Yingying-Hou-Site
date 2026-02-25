@@ -256,33 +256,48 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// SLIDER YOUTUBE AUTOMATIQUE (Vidéo par vidéo)
+// SLIDER YOUTUBE (Rotation + Flèches + Stop sur Play)
 // ==========================================
 (function(){
   const slider = document.getElementById('ytSlider');
   if (!slider) return;
   
+  const prevBtn = document.querySelector('.prev-btn');
+  const nextBtn = document.querySelector('.next-btn');
   let autoScrollInterval;
+  
+  // Cette variable agit comme un coupe-circuit
+  let isVideoPlayingOrInteracted = false; 
+
+  function getItemWidth() {
+    const item = slider.querySelector('.yt-item');
+    return item ? item.offsetWidth + 16 : 0; // 16 est la valeur de ton 'gap'
+  }
 
   function scrollToNext() {
-    // Calcule la largeur d'une vidéo + l'espace (gap)
-    const item = slider.querySelector('.yt-item');
-    if(!item) return;
+    if (isVideoPlayingOrInteracted) return; // Stoppe tout si interaction
     
-    const itemWidth = item.offsetWidth + 16; 
+    const itemWidth = getItemWidth();
     const maxScroll = slider.scrollWidth - slider.clientWidth;
 
-    // Si on est tout au bout, on revient doucement au début
     if (slider.scrollLeft >= maxScroll - 10) {
        slider.scrollTo({ left: 0, behavior: 'smooth' });
     } else {
-       // Sinon on avance d'exactement une vidéo
        slider.scrollTo({ left: slider.scrollLeft + itemWidth, behavior: 'smooth' });
     }
   }
 
+  function scrollToPrev() {
+    const itemWidth = getItemWidth();
+    if (slider.scrollLeft <= 0) {
+       slider.scrollTo({ left: slider.scrollWidth, behavior: 'smooth' });
+    } else {
+       slider.scrollTo({ left: slider.scrollLeft - itemWidth, behavior: 'smooth' });
+    }
+  }
+
   function startAutoScroll() {
-    // Rotation toutes les 3.5 secondes
+    if (isVideoPlayingOrInteracted) return;
     autoScrollInterval = setInterval(scrollToNext, 3500);
   }
 
@@ -290,14 +305,38 @@ document.addEventListener('DOMContentLoaded', () => {
     clearInterval(autoScrollInterval);
   }
 
-  // On lance le slider
-  startAutoScroll();
+  // --- ACTIONS DES FLÈCHES ---
+  // Si on clique sur une flèche, on coupe la rotation auto définitivement
+  function handleManualNav(direction) {
+    isVideoPlayingOrInteracted = true; 
+    stopAutoScroll();
+    if (direction === 'next') scrollToNext();
+    else scrollToPrev();
+  }
 
-  // On met en pause quand on survole (pour pouvoir cliquer sur Play)
+  if (nextBtn) nextBtn.addEventListener('click', () => handleManualNav('next'));
+  if (prevBtn) prevBtn.addEventListener('click', () => handleManualNav('prev'));
+
+  // --- DÉTECTION DU CLIC SUR PLAY ---
+  // Si la fenêtre perd le focus au profit d'une vidéo iframe, on tue la rotation
+  window.addEventListener('blur', () => {
+    if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+      isVideoPlayingOrInteracted = true;
+      stopAutoScroll();
+    }
+  });
+
+  // --- COMPORTEMENT DE SURVOL CLASSIQUE ---
   slider.addEventListener('mouseenter', stopAutoScroll);
-  slider.addEventListener('mouseleave', startAutoScroll);
+  slider.addEventListener('mouseleave', () => { 
+    if (!isVideoPlayingOrInteracted) startAutoScroll(); 
+  });
   
-  // Idem sur mobile quand on pose le doigt
   slider.addEventListener('touchstart', stopAutoScroll, {passive: true});
-  slider.addEventListener('touchend', startAutoScroll);
+  slider.addEventListener('touchend', () => { 
+    if (!isVideoPlayingOrInteracted) startAutoScroll(); 
+  });
+
+  // Démarrage initial
+  startAutoScroll();
 })();
