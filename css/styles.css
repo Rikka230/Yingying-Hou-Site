@@ -470,3 +470,55 @@ a.link{color:#1a66ff}
     padding: 14px 24px !important; /* Boutons légèrement plus hauts pour le doigt */
   }
 }
+
+/* =========================================
+   INDICATEURS DE SCROLL ANIMÉS
+========================================= */
+.scroll-hint {
+  position: fixed; /* Reste toujours au même endroit sur l'écran */
+  bottom: 40px; /* Distance du bas */
+  z-index: 90; /* Passe au-dessus du contenu mais sous les modales */
+  color: var(--yellow); /* Ta couleur jaune */
+  display: flex;
+  flex-direction: column; /* Empile les deux chevrons verticalement */
+  align-items: center;
+  pointer-events: none; /* Laisse passer les clics au travers (important !) */
+  opacity: 0.8;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* L'animation de rebond */
+  animation: bounceHint 2.5s ease-in-out infinite;
+}
+
+/* Positionnement gauche / droite */
+.left-hint { left: 30px; }
+.right-hint { right: 30px; }
+
+/* Réglage des icônes SVG */
+.scroll-hint svg {
+  display: block;
+  /* Les angles sont nets grâce à stroke-linecap="round" et stroke-linejoin="round" dans le HTML */
+}
+
+/* Astuce pour l'effet "double flèche" : on remonte celle du bas */
+.chevron-bottom {
+  margin-top: -18px; /* Chevauchement pour un look compact */
+  opacity: 0.6; /* La deuxième flèche est légèrement plus transparente pour le style */
+}
+
+/* Définition de l'animation de rebond */
+@keyframes bounceHint {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); } /* Monte */
+  60% { transform: translateY(-5px); } /* Petit rebond */
+}
+
+/* Sur mobile, on les cache car l'espace est précieux et le scroll est naturel */
+@media (max-width: 700px) {
+  .scroll-hint { display: none; }
+}
+
+/* Classe utilitaire pour les cacher via JS quand on est en bas */
+.scroll-hint.hidden {
+  opacity: 0;
+  transform: translateY(20px); /* Petit effet de sortie vers le bas */
+}
