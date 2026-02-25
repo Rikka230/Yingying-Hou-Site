@@ -97,12 +97,26 @@ a.link{color:#1a66ff}
 .roles-highlight h2 { color: #ffb400; }
 .bento-roles { display: flex; flex-direction: column; }
 #role-tabs { display: flex; flex-direction: column; flex-grow: 1; }
-.role-page { display: none; flex-direction: column; flex-grow: 1; justify-content: space-evenly; gap: 8px; margin: 0; padding: 0; animation: fadeIn 0.4s ease; }
+
+.role-page { 
+  display: none; 
+  flex-direction: column; 
+  justify-content: flex-start; /* FIX : Aligne les rôles proprement vers le haut */
+  gap: 12px; /* FIX : Espace fixe entre les rôles */
+  margin: 0; padding: 0; 
+  animation: fadeIn 0.4s ease; 
+}
 .role-page.active { display: flex; }
 .role-page li { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 12px; padding: 10px 16px; font-size: 0.95rem; line-height: 1.4; transition: transform 0.2s ease, background 0.2s ease; }
 .role-page li:hover { transform: translateX(4px); background: #fff; }
 
-.role-pagination { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+.role-pagination { 
+  display: flex; 
+  justify-content: center; 
+  gap: 10px; 
+  margin-top: auto; /* FIX : Pousse toujours les numéros tout en bas de la carte jaune */
+  padding-top: 15px; 
+}
 .role-tab-btn { background: transparent; border: 2px solid rgba(255, 193, 7, 0.4); color: #333; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
 .role-tab-btn:hover { border-color: var(--yellow); }
 .role-tab-btn.active { background: var(--yellow); color: var(--yellow-ink); border-color: var(--yellow); }
