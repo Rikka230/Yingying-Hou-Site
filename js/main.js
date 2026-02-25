@@ -339,34 +339,27 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ==========================================
-// GESTION INTELLIGENTE DES FLÈCHES DE SCROLL
+// GESTION DES INDICATEURS DE SCROLL (PC & Mobile)
 // ==========================================
 (function(){
-  const hints = document.querySelectorAll('.scroll-hint');
+  const hints = document.querySelectorAll('.scroll-hint, .scroll-hint-mobile');
   if (!hints.length) return;
 
-  function checkScroll() {
-    // Calcule la distance restante avant le bas de page
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const documentHeight = document.documentElement.scrollHeight;
-    const distanceToBottom = documentHeight - scrollPosition;
-
-    // Si on est à moins de 150px du bas, on cache les flèches
-    if (distanceToBottom < 150) {
-      hints.forEach(h => h.classList.add('hidden'));
-    } else {
-      // Sinon, si on remonte, elles réapparaissent
-      hints.forEach(h => h.classList.remove('hidden'));
-    }
-  }
-
-  // Écoute le scroll et lance la vérification (avec un petit délai pour la performance)
-  let isScrolling;
   window.addEventListener('scroll', () => {
-    window.clearTimeout(isScrolling);
-    isScrolling = setTimeout(checkScroll, 50);
-  });
+    const scrollY = window.scrollY;
 
-  // Vérification initiale au chargement
-  checkScroll();
+    hints.forEach(hint => {
+      // Sur mobile (central), on cache dès qu'on a scrollé de 50px
+      if (hint.classList.contains('scroll-hint-mobile')) {
+        if (scrollY > 50) hint.classList.add('hidden');
+        else hint.classList.remove('hidden');
+      } 
+      // Sur PC (côtés), on cache quand on arrive près du bas (footer)
+      else {
+        const distanceToBottom = document.documentElement.scrollHeight - (scrollY + window.innerHeight);
+        if (distanceToBottom < 150) hint.classList.add('hidden');
+        else hint.classList.remove('hidden');
+      }
+    });
+  }, { passive: true });
 })();
