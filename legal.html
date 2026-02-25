@@ -4,13 +4,44 @@
   <meta charset="utf-8" />
   <title>Mentions légales — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Mentions légales du site de l'actrice Yingying HOU." />
+  <meta name="description" content="Mentions légales du site officiel de l'actrice Yingying HOU." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    /* Style spécifique pour aérer le texte légal et le rendre élégant */
+    .legal-card {
+      padding: 48px;
+      margin-top: -20px;
+    }
+    .legal-card h2 {
+      font-size: 1.3rem;
+      color: var(--text);
+      margin-top: 36px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid rgba(255, 193, 7, 0.3); /* Soulignement jaune subtil */
+      padding-bottom: 8px;
+      display: inline-block;
+    }
+    .legal-card h2:first-child { margin-top: 0; }
+    .legal-card p { 
+      margin-bottom: 16px; 
+      color: #555; 
+      line-height: 1.8; 
+    }
+    .legal-card strong { color: var(--text); }
+    .legal-card a { color: #d49a00; font-weight: 600; transition: color 0.2s; }
+    .legal-card a:hover { color: var(--text); }
+
+    @media (max-width: 700px) {
+      .legal-card { padding: 30px 24px; }
+    }
+  </style>
 </head>
 <body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="/">Yingying <strong>HOU</strong></a>
@@ -20,22 +51,73 @@
           <li><a href="/">Accueil</a></li>
           <li><a href="/filmographie.html">Filmographie</a></li>
           <li><a href="/galerie.html">Galerie</a></li>
-          <li><a href="/contact.html">Contact</a></li>
+          <li><a href="/contact.html">Contact / Booking</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <main class="wrap pad">
-    <h1>Mentions légales</h1>
-    <p>Éditeur : Nom / Société — Adresse — Contact.</p>
-    <p>Hébergement : Hébergeur — Adresse — Contact.</p>
-    <p>Directeur de la publication : …</p>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Mentions Légales</h1>
+        <p class="kicker">Informations juridiques et conditions d'utilisation du site.</p>
+      </div>
+    </section>
+
+    <section class="wrap pad">
+      <article class="bento-card legal-card">
+        
+        <h2>1. Éditeur du site</h2>
+        <p>
+          Le présent site, accessible à l’URL <strong>kukyying.netlify.app</strong> (ainsi que tout nom de domaine personnalisé y étant rattaché), est édité par :<br>
+          <strong>Yingying HOU</strong>, actrice.<br>
+          <em>[Si tu as un statut auto-entrepreneur ou une adresse professionnelle, tu peux l'ajouter ici, sinon tu peux laisser ton email]</em><br>
+          <strong>Contact :</strong> Via le <a href="/contact.html">formulaire de contact</a> du site.
+        </p>
+
+        <h2>2. Directeur de la publication</h2>
+        <p>
+          La Directrice de la publication du Site est <strong>Yingying HOU</strong>.
+        </p>
+
+        <h2>3. Hébergement</h2>
+        <p>
+          Ce site est hébergé par la société <strong>Netlify, Inc.</strong><br>
+          <strong>Siège social :</strong> 44 Montgomery Street, Suite 300, San Francisco, California 94104, États-Unis.<br>
+          <strong>Contact de l'hébergeur :</strong> support@netlify.com / Site web : <a href="https://www.netlify.com" target="_blank" rel="noopener">www.netlify.com</a>
+        </p>
+
+        <h2>4. Propriété intellectuelle</h2>
+        <p>
+          L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle. Tous les droits de reproduction sont réservés, y compris pour les documents téléchargeables (Press kit, CV) et les représentations iconographiques, photographiques et vidéos (Showreel, extraits).
+        </p>
+        <p>
+          La reproduction, l'adaptation ou la représentation de tout ou partie de ce site sur un support quel qu'il soit, est formellement interdite sauf autorisation expresse de la directrice de la publication. Les photos et vidéos présentées sur ce site appartiennent à leurs auteurs et producteurs respectifs.
+        </p>
+
+        <h2>5. Données personnelles</h2>
+        <p>
+          De manière générale, vous n’êtes pas tenu de nous communiquer vos données personnelles lorsque vous visitez le site Internet. Cependant, ce principe comporte certaines exceptions. En effet, pour certains services proposés par notre site, vous pouvez être amenés à nous communiquer certaines données telles que : votre nom et votre adresse électronique. Tel est le cas lorsque vous remplissez le formulaire qui vous est proposé en ligne, dans la rubrique « Contact / Booking ».
+        </p>
+        <p>
+          Ces données sont utilisées uniquement dans le cadre d'échanges professionnels (castings, propositions de rôles, prises de contact) et ne sont en aucun cas cédées ou vendues à des tiers. Conformément à la loi « informatique et libertés », vous pouvez exercer votre droit d'accès aux données vous concernant et les faire rectifier en contactant Yingying HOU via le formulaire du site.
+        </p>
+
+      </article>
+    </section>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap"><p>© <span id="year"></span> Yingying HOU</p></div>
+    <div class="wrap">
+      <p>© <span id="year"></span> Yingying HOU. Tous droits réservés.</p>
+      <nav>
+        <a href="/legal.html">Mentions légales</a> 
+        <a href="/privacy.html">Politique de confidentialité</a>
+      </nav>
+    </div>
   </footer>
+
   <script src="/js/main.js" defer></script>
 </body>
 </html>
