@@ -337,3 +337,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 })();
+
+// ==========================================
+// GESTION INTELLIGENTE DES FLÈCHES DE SCROLL
+// ==========================================
+(function(){
+  const hints = document.querySelectorAll('.scroll-hint');
+  if (!hints.length) return;
+
+  function checkScroll() {
+    // Calcule la distance restante avant le bas de page
+    const scrollPosition = window.scrollY + window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const distanceToBottom = documentHeight - scrollPosition;
+
+    // Si on est à moins de 150px du bas, on cache les flèches
+    if (distanceToBottom < 150) {
+      hints.forEach(h => h.classList.add('hidden'));
+    } else {
+      // Sinon, si on remonte, elles réapparaissent
+      hints.forEach(h => h.classList.remove('hidden'));
+    }
+  }
+
+  // Écoute le scroll et lance la vérification (avec un petit délai pour la performance)
+  let isScrolling;
+  window.addEventListener('scroll', () => {
+    window.clearTimeout(isScrolling);
+    isScrolling = setTimeout(checkScroll, 50);
+  });
+
+  // Vérification initiale au chargement
+  checkScroll();
+})();
