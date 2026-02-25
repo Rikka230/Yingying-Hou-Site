@@ -1,0 +1,152 @@
+/* =========================================
+   VARIABLES & RESET GLOBAL
+========================================= */
+:root {
+  --primary-color: #1a1a1a;
+  --accent-color: #d4af37; /* Ton doré élégant pour le côté actrice/cinéma */
+  --bg-color: #f9f9f9;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --border-radius: 8px;
+  --transition: all 0.3s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+a:hover { color: var(--accent-color); }
+ul { list-style: none; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.pad { padding: 60px 0; }
+.sr-only, .skip { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+
+/* =========================================
+   HEADER & NAVIGATION
+========================================= */
+.site-header {
+  background: var(--primary-color);
+  color: #fff;
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.site-header .wrap { display: flex; justify-content: space-between; align-items: center; }
+.brand { font-size: 1.5rem; font-weight: 300; letter-spacing: 1px; }
+.brand strong { font-weight: 700; color: var(--accent-color); }
+
+.site-nav ul { display: flex; gap: 20px; }
+.site-nav a { color: #ccc; font-weight: 500; font-size: 0.9rem; text-transform: uppercase; }
+.site-nav a:hover, .site-nav .active a { color: var(--accent-color); }
+
+.nav-toggle { display: none; background: transparent; border: none; color: #fff; font-size: 1rem; cursor: pointer; }
+
+/* =========================================
+   BOUTONS
+========================================= */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: var(--primary-color);
+  color: #fff;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  border: 2px solid var(--primary-color);
+  cursor: pointer;
+}
+.btn:hover { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+.btn.outline { background: transparent; color: var(--primary-color); }
+.btn.outline:hover { background: var(--primary-color); color: #fff; }
+.btn.ghost { background: transparent; border-color: transparent; text-decoration: underline; }
+
+/* =========================================
+   HERO SECTIONS
+========================================= */
+.hero, .page-hero {
+  text-align: center;
+  padding: 80px 20px;
+  background: var(--card-bg);
+  border-bottom: 1px solid #eee;
+}
+.hero img { width: 100%; max-width: 400px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; }
+.hero-copy h1, .page-hero h1 { font-size: 2.5rem; margin-bottom: 15px; color: var(--primary-color); }
+.accent { color: var(--accent-color); }
+.lead, .kicker { font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto 30px; }
+.cta { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+
+/* =========================================
+   GRILLES & CARTES
+========================================= */
+.grid { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card { background: var(--card-bg); padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.card h2 { margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid var(--accent-color); display: inline-block; padding-bottom: 5px; }
+
+.badges li { padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+.badges li:last-child { border-bottom: none; }
+
+/* =========================================
+   GALERIE
+========================================= */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+.gallery img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  transition: transform 0.3s ease;
+}
+.gallery a:hover img { transform: scale(1.03); }
+
+/* =========================================
+   TABLEAU FILMOGRAPHIE
+========================================= */
+.table-wrap { overflow-x: auto; margin-top: 30px; background: var(--card-bg); border-radius: var(--border-radius); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.table-modern { width: 100%; border-collapse: collapse; text-align: left; }
+.table-modern th, .table-modern td { padding: 15px 20px; border-bottom: 1px solid #eee; }
+.table-modern th { background: var(--primary-color); color: #fff; font-weight: 500; }
+.table-modern tr:hover td { background: #f4f4f4; }
+.table-modern a.link { color: var(--accent-color); font-weight: bold; }
+
+/* Les filtres (Sélecteurs) */
+label select { padding: 8px; margin-left: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
+
+/* =========================================
+   FORMULAIRE CONTACT
+========================================= */
+.contact-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.field { margin-bottom: 20px; display: flex; flex-direction: column-reverse; }
+.field input, .field textarea { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 1rem; }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--accent-color); }
+.field label { margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; color: #555; }
+.hp { display: none; } /* Honeypot anti-spam */
+
+/* =========================================
+   FOOTER
+========================================= */
+.site-footer { background: var(--primary-color); color: #fff; text-align: center; padding: 30px 0; margin-top: 40px; }
+.site-footer nav { margin-top: 15px; display: flex; justify-content: center; gap: 20px; }
+.site-footer nav a { color: #ccc; font-size: 0.9rem; }
+
+/* =========================================
+   RESPONSIVE (MOBILES)
+========================================= */
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .site-nav ul { display: none; flex-direction: column; width: 100%; text-align: center; padding: 20px 0; background: var(--primary-color); position: absolute; top: 100%; left: 0; }
+  .site-nav.is-open ul { display: flex; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
