@@ -92,17 +92,19 @@ a.link{color:#1a66ff}
 .bento-youtube { grid-column: 1 / 2; grid-row: 2 / 3; }
 .bento-awards { grid-column: 1 / 3; grid-row: 3 / 4; }
 
-/* ONGLET DES RÔLES (LA CORRECTION DE L'ESPACE VIDE EST ICI) */
+/* ONGLETS INTELLIGENTS (RÔLES & RÉCOMPENSES) - ESPACE CORRIGÉ */
 .roles-highlight { background: linear-gradient(135deg, #fff8dc, #ffe066); border: 2px solid #ffcc00; }
 .roles-highlight h2 { color: #ffb400; }
-.bento-roles { display: flex; flex-direction: column; }
-#role-tabs { display: flex; flex-direction: column; flex-grow: 1; }
+
+/* On applique la même structure aux deux boîtes */
+.bento-roles, .bento-awards { display: flex; flex-direction: column; }
+#role-tabs, #award-tabs { display: flex; flex-direction: column; flex-grow: 1; }
 
 .role-page { 
   display: none; 
   flex-direction: column; 
-  justify-content: flex-start; /* FIX : Aligne les rôles proprement vers le haut */
-  gap: 12px; /* FIX : Espace fixe entre les rôles */
+  justify-content: flex-start;
+  gap: 12px; 
   margin: 0; padding: 0; 
   animation: fadeIn 0.4s ease; 
 }
@@ -114,7 +116,7 @@ a.link{color:#1a66ff}
   display: flex; 
   justify-content: center; 
   gap: 10px; 
-  margin-top: auto; /* FIX : Pousse toujours les numéros tout en bas de la carte jaune */
+  margin-top: auto; /* Pousse les numéros tout en bas */
   padding-top: 15px; 
 }
 .role-tab-btn { background: transparent; border: 2px solid rgba(255, 193, 7, 0.4); color: #333; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
