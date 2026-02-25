@@ -516,6 +516,50 @@ a.link{color:#1a66ff}
   }
   .scrollable-list { max-height: 350px; }
 }
+
+/* Wrapper et Flèches du Slider */
+.slider-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.slider-btn {
+  position: absolute;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--line);
+  color: var(--text);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 28px;
+  line-height: 1;
+  padding-bottom: 4px; /* Centre visuellement la flèche */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.slider-btn:hover {
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  border-color: var(--yellow);
+  transform: scale(1.05);
+}
+
+/* Positionnement des flèches */
+.prev-btn { left: -15px; }
+.next-btn { right: -15px; }
+
+@media (max-width: 700px) {
+  .prev-btn { left: -10px; width: 36px; height: 36px; font-size: 22px; }
+  .next-btn { right: -10px; width: 36px; height: 36px; font-size: 22px; }
+}
 /* Infos pro */
 .info .kv span{ min-width: 140px; display:inline-block; }
 .info .kv{ row-gap: 0; }
