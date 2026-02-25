@@ -400,3 +400,73 @@ a.link{color:#1a66ff}
     display: none !important; /* Cache les boutons 1, 2, 3 qui ne servent plus */
   }
 }
+
+/* =========================================
+   MODERNISATION DU HAUT DE PAGE (HERO)
+========================================= */
+
+/* 1. La carte blanche devient "Premium" avec un effet verre dépoli */
+.hero-copy {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(12px) saturate(180%); /* Effet verre moderne */
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+  padding: 40px 48px !important;
+  transform: translateY(-60px); /* Remonte un peu plus sur l'image */
+  transition: transform 0.3s ease;
+}
+
+/* 2. Le mot "Actrice" en dégradé de texte élégant (plus de gros bloc jaune) */
+.hero h1 {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  font-size: clamp(32px, 5vw, 48px);
+  letter-spacing: -0.5px;
+}
+.accent {
+  background: linear-gradient(135deg, #FFC107, #FF9800);
+  -webkit-background-clip: text; /* Le dégradé se met DANS le texte */
+  -webkit-text-fill-color: transparent;
+  padding: 0;
+  font-weight: 800;
+}
+
+/* 3. Le texte de présentation plus lisible et aéré */
+.lead {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: #555;
+  margin-bottom: 24px;
+  max-width: 800px;
+}
+
+/* 4. Les boutons en forme de "Pilule" ultra-modernes */
+.btn {
+  border-radius: 50px !important; /* Arrondi total */
+  padding: 12px 24px !important;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase; /* Donne un côté très pro */
+  font-weight: 800;
+}
+.cta {
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Ajustements pour que ça reste parfait sur téléphone */
+@media (max-width: 700px) {
+  .hero-copy {
+    padding: 32px 24px !important;
+    transform: translateY(-40px);
+    border-radius: 24px;
+  }
+  .accent {
+    display: inline-block; /* Sécurité pour le rendu mobile */
+  }
+  .btn {
+    padding: 14px 24px !important; /* Boutons légèrement plus hauts pour le doigt */
+  }
+}
