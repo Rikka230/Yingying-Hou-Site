@@ -158,10 +158,92 @@ a.link{color:#1a66ff}
   transform: translateY(0);
 }
 
-/* Lightbox Premium (Glassmorphism) */
+/* =========================================
+   FIX LIGHTBOX (Boutons et Positionnement)
+========================================= */
 .lightbox {
-  background: rgba(255, 255, 255, 0.85) !important; /* Fond blanc translucide */
+  position: fixed; /* Reste fixe sur l'écran */
+  inset: 0; /* Prend toute la place */
+  background: rgba(255, 255, 255, 0.9); /* Fond blanc translucide */
   backdrop-filter: blur(15px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox:not([aria-hidden="true"]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* On place la figure (l'image) au centre */
+.lb-figure {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lb-figure img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+  border: 8px solid #fff;
+}
+
+/* Positionnement des boutons */
+.lb-close, .lb-prev, .lb-next {
+  position: absolute; /* Ils se positionnent par rapport à l'écran */
+  background: #fff !important;
+  color: #111 !important;
+  border: none !important;
+  width: 50px;
+  height: 50px;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  transition: all 0.2s ease;
+  z-index: 10000;
+  font-size: 24px;
+}
+
+.lb-close {
+  top: 30px;
+  right: 30px;
+}
+
+.lb-prev {
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lb-next {
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lb-close:hover, .lb-prev:hover, .lb-next:hover {
+  background: var(--yellow) !important;
+  transform: scale(1.1);
+}
+
+/* Sur mobile on écarte un peu moins les flèches */
+@media (max-width: 700px) {
+  .lb-prev { left: 10px; }
+  .lb-next { right: 10px; }
+  .lb-close { top: 20px; right: 20px; }
 }
 
 .lb-figure img {
