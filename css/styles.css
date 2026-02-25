@@ -425,11 +425,12 @@ a.link{color:#1a66ff}
 .bento-card {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px; /* Coins bien arrondis esprit Bento */
+  border-radius: 20px;
   padding: 24px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
+  min-width: 0; /* LE SECRET EST ICI : empêche la carte de faire exploser la grille */
 }
 .bento-card h2 { margin-top: 0; margin-bottom: 16px; font-size: 1.4rem; border-bottom: none; }
 
@@ -469,36 +470,43 @@ a.link{color:#1a66ff}
   background: #fff;
 }
 
-/* Slider YouTube */
+/* =========================================
+   SLIDER YOUTUBE (3 items avec magnétisme)
+========================================= */
 .yt-slider-container {
-  width: 100%;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none; /* Cache la scrollbar (Firefox) */
-}
-.yt-slider-container::-webkit-scrollbar { display: none; } /* Cache la scrollbar (Chrome/Safari) */
-
-.yt-track {
   display: flex;
   gap: 16px;
-  width: max-content;
-  padding-bottom: 5px;
+  width: 100%;
+  overflow-x: auto;
+  scroll-behavior: smooth; /* Glissement doux */
+  scroll-snap-type: x mandatory; /* Effet magnétique */
+  scrollbar-width: none; /* Cache la barre Firefox */
 }
+.yt-slider-container::-webkit-scrollbar { display: none; } /* Cache la barre Chrome/Safari */
+
 .yt-item {
-  scroll-snap-align: start;
-  width: 280px; /* Largeur d'une miniature vidéo */
+  /* Le calcul : 100% de la largeur - 2 fois le gap (32px), divisé par 3 */
+  flex: 0 0 calc((100% - 32px) / 3); 
+  scroll-snap-align: start; /* Aimante la vidéo sur le bord gauche */
   aspect-ratio: 16/9;
   border-radius: 12px;
   overflow: hidden;
   background: #000;
-  flex-shrink: 0;
 }
 .yt-item iframe {
   width: 100%;
   height: 100%;
   border: none;
+  pointer-events: auto;
 }
 
+/* Responsive : 2 vidéos sur tablette, 1 seule sur mobile */
+@media (max-width: 1024px) {
+  .yt-item { flex: 0 0 calc((100% - 16px) / 2); }
+}
+@media (max-width: 600px) {
+  .yt-item { flex: 0 0 100%; }
+}
 /* Version Mobile */
 @media (max-width: 900px) {
   .bento-grid { grid-template-columns: 1fr; }
