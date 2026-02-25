@@ -23,45 +23,59 @@ document.addEventListener('DOMContentLoaded', () => {
   const table = document.querySelector('#filmography');
   if (!table) return;
 
-  const tbody = table.tBodies[0];
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return;
+
   const filterSel = document.querySelector('#filter-category');
   const sortSel = document.querySelector('#sort-by');
-  const searchInput = document.querySelector('#search');
-  const rows = Array.from(tbody.rows);
+  const searchInput = document.querySelector('#search'); // Au cas où tu ajoutes une barre de recherche
+  
+  // On capture toutes les lignes existantes
+  const rows = Array.from(tbody.querySelectorAll('tr'));
 
   function apply(){
-    const cat = filterSel ? filterSel.value : 'all';
+    const cat = filterSel ? filterSel.value.toLowerCase() : 'all';
     const q = (searchInput?.value || '').trim().toLowerCase();
-
-    let visible = rows.filter(r => {
-      const okCat = (cat === 'all' || r.dataset.category === cat);
-      if (!okCat) return false;
-      if (!q) return true;
-      const txt = r.textContent.toLowerCase();
-      return txt.includes(q);
-    });
-
-    // Sort
     const sort = sortSel ? sortSel.value : 'year-desc';
-    visible.sort((a,b)=>{
-      if (sort === 'year-desc') return (+b.dataset.year) - (+a.dataset.year);
-      if (sort === 'year-asc') return (+a.dataset.year) - (+b.dataset.year);
-      if (sort === 'title-asc') return a.dataset.title.localeCompare(b.dataset.title);
-      if (sort === 'title-desc') return b.dataset.title.localeCompare(a.dataset.title);
+
+    // 1. On trie le tableau des lignes
+    rows.sort((a,b) => {
+      const yearA = parseInt(a.dataset.year) || 0;
+      const yearB = parseInt(b.dataset.year) || 0;
+      const titleA = (a.dataset.title || '').toLowerCase();
+      const titleB = (b.dataset.title || '').toLowerCase();
+
+      if (sort === 'year-desc') return yearB - yearA;
+      if (sort === 'year-asc') return yearA - yearB;
+      if (sort === 'title-asc') return titleA.localeCompare(titleB);
+      if (sort === 'title-desc') return titleB.localeCompare(titleA);
       return 0;
     });
 
-    // Render
-    tbody.innerHTML = '';
-    visible.forEach(r => tbody.appendChild(r));
+    // 2. On applique les filtres et on réinjecte proprement dans le DOM
+    rows.forEach(r => {
+      const rowCat = (r.dataset.category || '').toLowerCase();
+      const txt = r.textContent.toLowerCase();
+
+      const okCat = (cat === 'all' || rowCat.includes(cat));
+      const okSearch = (!q || txt.includes(q));
+
+      // On cache ou on affiche selon le filtre
+      r.style.display = (okCat && okSearch) ? '' : 'none';
+      
+      // On replace la ligne dans le tableau (cela modifie l'ordre d'affichage)
+      tbody.appendChild(r);
+    });
   }
 
   filterSel?.addEventListener('change', apply);
   sortSel?.addEventListener('change', apply);
   searchInput?.addEventListener('input', apply);
+  
+  // On lance le tri une première fois au chargement
   apply();
 
-  // Dialog détails
+  // --- Dialog détails (Modale) ---
   const dialog = document.querySelector('#detailDialog');
   const closeBtn = dialog?.querySelector('.dialog-close');
   const poster = dialog?.querySelector('#detailPoster');
@@ -74,18 +88,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!a) return;
     e.preventDefault();
     const tr = a.closest('tr');
-    const detail = JSON.parse(a.dataset.detail || '{}');
-    title.textContent = tr.cells[1].textContent;
-    syn.textContent = detail.synopsis || '';
-    poster.src = detail.affiche || '';
-    poster.alt = 'Affiche — ' + title.textContent;
-    imdb.href = detail.imdb || '#';
-    dialog.showModal();
+    
+    try {
+      const detail = JSON.parse(a.dataset.detail || '{}');
+      if(title) title.textContent = tr.dataset.title || '';
+      if(syn) syn.textContent = detail.synopsis || '';
+      
+      if(poster) {
+        if(detail.affiche) {
+          poster.src = detail.affiche;
+          poster.alt = 'Affiche — ' + (title?.textContent || '');
+          poster.style.display = 'block';
+        } else {
+          poster.style.display = 'none';
+        }
+      }
+      
+      if(imdb) {
+        if(detail.imdb) {
+          imdb.href = detail.imdb;
+          imdb.style.display = 'inline-block';
+        } else {
+          imdb.style.display = 'none';
+        }
+      }
+      
+      dialog?.showModal();
+    } catch (err) {
+      console.error("Format JSON invalide dans data-detail", err);
+    }
   });
-  closeBtn?.addEventListener('click', ()=> dialog.close());
-  dialog?.addEventListener('click', (e)=> { if (e.target === dialog) dialog.close(); });
-})();
 
+  closeBtn?.addEventListener('click', ()=> dialog?.close());
+  dialog?.addEventListener('click', (e)=> { 
+    // Ferme la modale si on clique à l'extérieur
+    const rect = dialog.getBoundingClientRect();
+    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
+    if (!isInDialog) dialog.close();
+  });
+})();
 
 // Galerie: lightbox avec clavier + swipe
 (function(){
@@ -144,18 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
     startX = 0;
   });
 
-  // ... (dans l'IIFE Galerie existante)
   // Fermer en cliquant sur l'arrière-plan sombre
   lb.addEventListener('click', (e)=>{
-    // si on clique sur la zone noire (ni l'image ni les boutons)
     if (e.target === lb) close();
   });
 
 })();
 
-// Validation légère du formulaire Contact :
-// - bloque uniquement si champs manquants / email invalide
-// - sinon, laisse le navigateur POSTer (Netlify, FormSubmit, etc.)
+// Validation légère du formulaire Contact
 (function () {
   const form = document.querySelector('#contactForm');
   if (!form) return;
@@ -178,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = form.name?.value.trim();
     const email = form.email?.value.trim();
     const message = form.message?.value.trim();
-    const subject = form.subject?.value.trim(); // facultatif
 
     const errors = [];
     if (!name) errors.push('Nom');
@@ -186,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!message) errors.push('Message');
 
     if (errors.length) {
-      e.preventDefault(); // on bloque uniquement en cas d’erreur
+      e.preventDefault(); 
       if (status) {
         status.textContent = 'Champs à compléter : ' + errors.join(', ') + '.';
         status.className = 'form-status err';
@@ -201,15 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
       status.textContent = 'Envoi en cours…';
       status.className = 'form-status';
     }
-    submitBtn?.setAttribute('disabled', 'disabled'); // anti double-clic
+    submitBtn?.setAttribute('disabled', 'disabled'); 
   });
 })();
 
-
-
-
-
-// Ajoute les "data-label" (libellés) aux cellules de la filmographie pour l'affichage mobile
+// Libellés pour l’affichage mobile de la filmographie (data-label)
 (function(){
   const table = document.querySelector('#filmography');
   if (!table) return;
@@ -221,49 +254,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 })();
-
-// Libellés pour l’affichage mobile de la filmographie
-(function(){
-  const table = document.querySelector('#filmography');
-  if (!table) return;
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-  rows.forEach(tr => {
-    Array.from(tr.children).forEach((td, i) => {
-      td.setAttribute('data-label', headers[i] || '');
-    });
-  });
-})();
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const table = document.querySelector("table");
-  const rows = table.querySelectorAll("tbody tr");
-
-  // FILTRAGE par catégorie
-  const filterSelect = document.querySelector("#filterCategory");
-  if (filterSelect) {
-    filterSelect.addEventListener("change", () => {
-      const value = filterSelect.value;
-      rows.forEach(row => {
-        if (value === "all" || row.dataset.category === value) {
-          row.style.display = "";
-        } else {
-          row.style.display = "none";
-        }
-      });
-    });
-  }
-
-  // TRI par année
-  const sortButton = document.querySelector("#sortYear");
-  if (sortButton) {
-    sortButton.addEventListener("click", () => {
-      const tbody = table.querySelector("tbody");
-      const sorted = [...rows].sort((a, b) => b.dataset.year - a.dataset.year);
-      tbody.innerHTML = "";
-      sorted.forEach(r => tbody.appendChild(r));
-    });
-  }
-});
-</script>
