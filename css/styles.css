@@ -806,3 +806,26 @@ a.link{color:#1a66ff}
   border: 3px solid #fff;
   box-shadow: var(--shadow);
 }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+  padding: 10px 0;
+}
+.page-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+.page-btn.active {
+  background: #d4af37;
+  color: #fff;
+  border-color: #d4af37;
+}
