@@ -127,7 +127,6 @@
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
-    // ⚠️ METS TES CLÉS ICI
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -142,128 +141,51 @@
     const auth = getAuth(app);
     const storage = getStorage(app);
 
-    let editRoleId = null;
     let editPhotoId = null;
 
-    // --- NAVIGATION ---
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.target).classList.add('active');
-      });
-    });
-
-    // --- AUTH ---
-    document.getElementById('btn-login').addEventListener('click', async () => {
-      const e = document.getElementById('email').value;
-      const p = document.getElementById('password').value;
-      try { await signInWithEmailAndPassword(auth, e, p); } 
-      catch { document.getElementById('login-error').textContent = "Identifiants erronés."; document.getElementById('login-error').style.display = 'block'; }
-    });
-    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('dashboard-screen').classList.remove('hidden');
-        loadRoles(); loadPhotos();
-      } else {
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('dashboard-screen').classList.add('hidden');
-      }
-    });
-
-    // --- LOGIQUE RÔLES ---
-    async function loadRoles() {
-      const q = query(collection(db, "role"), orderBy("annee", "desc"));
-      const snap = await getDocs(q);
-      const list = document.getElementById('list-roles');
-      list.innerHTML = "";
-      snap.forEach(d => {
-        const data = d.data();
-        const li = document.createElement('li');
-        li.className = "admin-list-item";
-        li.innerHTML = `<div><strong>${data.projet}</strong></div>
-                        <div class="action-btns">
-                          <button class="edit-role-btn">✏️</button>
-                          <button class="delete-role-btn">🗑️</button>
-                        </div>`;
-        li.querySelector('.edit-role-btn').onclick = () => {
-          editRoleId = d.id;
-          document.getElementById('role-title').textContent = "Modifier le Rôle";
-          document.getElementById('btn-role-cancel').classList.remove('hidden');
-          document.getElementById('role-projet').value = data.projet;
-          document.getElementById('role-titre').value = data.titre;
-          document.getElementById('role-type').value = data.type;
-          document.getElementById('role-annee').value = data.annee;
-          document.getElementById('role-real').value = data.realisateur || '';
-          document.getElementById('role-lien').value = data.lien || '';
-          window.scrollTo({top:0, behavior:'smooth'});
-        };
-        li.querySelector('.delete-role-btn').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db, "role", d.id)); loadRoles(); } };
-        list.appendChild(li);
-      });
-    }
-
-    document.getElementById('form-role').onsubmit = async (e) => {
-      e.preventDefault();
-      const data = {
-        projet: document.getElementById('role-projet').value,
-        titre: document.getElementById('role-titre').value,
-        type: document.getElementById('role-type').value,
-        annee: Number(document.getElementById('role-annee').value),
-        realisateur: document.getElementById('role-real').value,
-        lien: document.getElementById('role-lien').value
-      };
-      if(editRoleId) await updateDoc(doc(db, "role", editRoleId), data);
-      else await addDoc(collection(db, "role"), data);
-      document.getElementById('role-success').style.display='block';
-      setTimeout(()=> document.getElementById('role-success').style.display='none', 2000);
-      resetRoleForm(); loadRoles();
-    };
-
-    function resetRoleForm() {
-      editRoleId = null;
-      document.getElementById('form-role').reset();
-      document.getElementById('role-title').textContent = "Ajouter un Rôle";
-      document.getElementById('btn-role-cancel').classList.add('hidden');
-    }
-    document.getElementById('btn-role-cancel').onclick = resetRoleForm;
-
-    // --- LOGIQUE PHOTOS (AVEC COMPACTAGE) ---
-
-    // Fonction pour tasser les numéros (1, 2, 3...) sans trous
+    // --- FONCTION DE COMPACTAGE ULTIME ---
+    // Cette fonction garantit que les photos sont TOUJOURS 1, 2, 3, 4... sans exception.
     async function compactPhotos() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
       const batch = writeBatch(db);
+      
       let index = 1;
       snap.forEach(d => {
-        if(d.data().ordre !== index) {
-          batch.update(doc(db, "galerie", d.id), { ordre: index });
-        }
+        // On force chaque photo à prendre son nouveau rang
+        batch.update(doc(db, "galerie", d.id), { ordre: index });
         index++;
       });
+      
       await batch.commit();
+      console.log("✨ Ordre de la galerie nettoyé et compacté.");
     }
 
+    // --- CHARGEMENT DE LA LISTE ---
     async function loadPhotos() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
       const list = document.getElementById('list-photos');
       list.innerHTML = "";
+      
       let lastOrdre = 0;
       snap.forEach(d => {
         const data = d.data();
         if(data.ordre > lastOrdre) lastOrdre = data.ordre;
+        
         const li = document.createElement('li');
         li.className = "admin-list-item";
-        li.innerHTML = `<div><img src="${data.url}"> #${data.ordre}</div>
-                        <div class="action-btns">
-                          <button class="edit-photo-btn">✏️</button>
-                          <button class="delete-photo-btn">🗑️</button>
-                        </div>`;
-        
+        li.innerHTML = `
+          <div style="display:flex; align-items:center;">
+            <img src="${data.url}" style="width:50px; border-radius:5px; margin-right:10px;">
+            <strong style="color:#d4af37;">#${data.ordre}</strong>
+          </div>
+          <div class="action-btns">
+            <button class="edit-photo-btn">✏️</button>
+            <button class="delete-photo-btn">🗑️</button>
+          </div>`;
+
+        // Bouton Editer
         li.querySelector('.edit-photo-btn').onclick = () => {
           editPhotoId = d.id;
           document.getElementById('photo-title').textContent = "Modifier Photo";
@@ -274,19 +196,22 @@
           window.scrollTo({top:0, behavior:'smooth'});
         };
 
+        // Bouton Supprimer
         li.querySelector('.delete-photo-btn').onclick = async () => {
-          if(confirm("Supprimer?")){
-            await deleteDoc(doc(db,"galerie",d.id));
+          if(confirm("Supprimer cette photo ?")){
+            await deleteDoc(doc(db, "galerie", d.id));
             try { await deleteObject(ref(storage, data.url)); } catch(e){}
-            await compactPhotos();
+            await compactPhotos(); // On bouche le trou immédiatement
             loadPhotos();
           }
         };
         list.appendChild(li);
       });
+      
       if(!editPhotoId) document.getElementById('photo-ordre').value = lastOrdre + 1;
     }
 
+    // --- SOUMISSION DU FORMULAIRE ---
     document.getElementById('form-photo').onsubmit = async (e) => {
       e.preventDefault();
       const file = document.getElementById('photo-file').files[0];
@@ -296,34 +221,34 @@
 
       try {
         btn.disabled = true;
-        btn.textContent = "Traitement...";
+        btn.textContent = "Calcul de l'ordre...";
 
-        // 1. Décalage si on insère
-        const snap = await getDocs(collection(db, "galerie"));
-        const photos = []; snap.forEach(d => photos.push({id: d.id, ...d.data()}));
-        if (photos.some(p => p.ordre === ordreSaisi && p.id !== editPhotoId)) {
-          const up = photos.filter(p => p.ordre >= ordreSaisi).map(p => updateDoc(doc(db, "galerie", p.id), {ordre: p.ordre + 1}));
-          await Promise.all(up);
-        }
-
-        // 2. Envoi / Modif
+        // 1. On applique le changement temporaire (on autorise les doublons une fraction de seconde)
         if (editPhotoId) {
-          await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreSaisi });
+          // Si on change 2 en 4, on lui met 4.5 temporairement pour qu'il se place APRÈS le 4 au tri
+          await updateDoc(doc(db, "galerie", editPhotoId), { 
+            caption: caption, 
+            ordre: ordreSaisi + 0.5 
+          });
         } else {
+          // Nouvel ajout : on le met à la position voulue + 0.5
           if (!file) return;
           if (file.size > 2 * 1024 * 1024) throw new Error("Fichier trop lourd (Max 2Mo)");
+          
           const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`);
           await uploadBytes(sRef, file);
           const url = await getDownloadURL(sRef);
-          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreSaisi });
+          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreSaisi - 0.5 });
         }
 
-        // 3. Compactage final pour boucher les trous
+        // 2. On lance la moulinette de compactage qui va remettre tout le monde sur des entiers (1, 2, 3...)
         await compactPhotos();
         
         document.getElementById('photo-success').style.display='block';
         setTimeout(()=> document.getElementById('photo-success').style.display='none', 2000);
-        resetPhotoForm(); loadPhotos();
+        resetPhotoForm(); 
+        loadPhotos();
+
       } catch (err) { alert(err.message); }
       finally { btn.disabled = false; btn.textContent = "Envoyer"; }
     };
@@ -337,7 +262,7 @@
       loadPhotos();
     }
     document.getElementById('btn-photo-cancel').onclick = resetPhotoForm;
-
-  </script>
+</script>
 </body>
 </html>
+
