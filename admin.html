@@ -16,52 +16,36 @@
     .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
     .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
     .form-group input:focus { border-color: var(--yellow); outline: none; }
-    .form-group input[type="file"] { padding: 9px; background: #fafafa; cursor: pointer; }
     .header-admin { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .hidden { display: none !important; }
     .success-msg { color: green; background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
     .error-msg { color: red; background: #ffebee; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
-    
-    /* SYSTÈME D'ONGLETS */
     .admin-tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #ddd; overflow-x: auto; }
     .tab-btn { padding: 12px 25px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 1rem; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; }
-    .tab-btn:hover { color: #333; }
-    .tab-btn.active { color: var(--yellow, #d4af37); border-bottom-color: var(--yellow, #d4af37); }
+    .tab-btn.active { color: var(--yellow, #d4af37); border-bottom-color: var(--yellow, #d4af37); color: #333;}
     .tab-content { display: none; animation: fadeIn 0.3s ease; }
     .tab-content.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* LISTES DE GESTION */
     .admin-list { list-style: none; padding: 0; margin: 0; }
     .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-    .admin-list-item:last-child { border-bottom: none; }
     .admin-list-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
-    .action-btns button { border: none; background: #f4f4f4; cursor: pointer; border-radius: 5px; padding: 8px 12px; margin-left: 5px; font-size: 1.1rem; transition: 0.2s; }
+    .action-btns button { border: none; background: #f4f4f4; cursor: pointer; border-radius: 5px; padding: 8px 12px; margin-left: 5px; transition: 0.2s; }
     .action-btns button:hover { background: #e0e0e0; }
   </style>
 </head>
 <body>
 
   <main class="wrap admin-container">
-    
     <div id="login-screen" class="admin-card" style="max-width: 500px; margin: 50px auto;">
       <h1 style="text-align: center; margin-bottom: 30px;">Espace Privé</h1>
       <div id="login-error" class="error-msg"></div>
-      
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="ton@email.com" required>
-      </div>
-      <div class="form-group">
-        <label for="password">Mot de passe</label>
-        <input type="password" id="password" placeholder="••••••••" required>
-      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="email" required></div>
+      <div class="form-group"><label>Mot de passe</label><input type="password" id="password" required></div>
       <button id="btn-login" class="btn" style="width: 100%;">Se connecter</button>
       <a href="/" style="display: block; text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">Retour au site</a>
     </div>
 
     <div id="dashboard-screen" class="hidden">
-      
       <div class="header-admin">
         <h2>👋 Tableau de bord</h2>
         <button id="btn-logout" class="btn ghost outline" style="padding: 8px 15px; font-size: 0.8rem;">Déconnexion</button>
@@ -70,16 +54,14 @@
       <div class="admin-tabs">
         <button class="tab-btn active" data-target="tab-roles">🎬 Rôles</button>
         <button class="tab-btn" data-target="tab-photos">📸 Galerie Photo</button>
-        <button class="tab-btn" data-target="tab-videos">🎥 Vidéos (YouTube)</button>
+        <button class="tab-btn" data-target="tab-videos">🎥 Vidéos</button>
       </div>
 
       <div id="tab-roles" class="tab-content active">
         <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-          
           <div class="admin-card" style="flex: 1; min-width: 300px;">
             <h3 id="titre-form-role" style="margin-bottom: 20px;">Ajouter un Rôle</h3>
             <div id="role-success" class="success-msg">✅ Opération réussie !</div>
-            
             <form id="form-role">
               <div class="form-group"><label>Nom du Rôle</label><input type="text" id="role-titre" required></div>
               <div class="form-group"><label>Nom du Projet</label><input type="text" id="role-projet" required></div>
@@ -98,15 +80,14 @@
                 </div>
                 <div class="form-group" style="flex: 1;"><label>Année</label><input type="number" id="role-annee" value="2025" required></div>
               </div>
-              <div class="form-group"><label>Réalisateur (Optionnel)</label><input type="text" id="role-real"></div>
-              <div class="form-group"><label>Lien Vidéo / IMDb (Optionnel)</label><input type="url" id="role-lien"></div>
+              <div class="form-group"><label>Réalisateur</label><input type="text" id="role-real"></div>
+              <div class="form-group"><label>Lien Vidéo / IMDb</label><input type="url" id="role-lien"></div>
               <div style="display: flex; gap: 10px;">
-                <button type="submit" id="btn-submit-role" class="btn" style="flex: 1;">Publier ce rôle</button>
-                <button type="button" id="btn-cancel-edit" class="btn ghost hidden" style="background: #eee; color: #333;">Annuler</button>
+                <button type="submit" id="btn-submit-role" class="btn" style="flex: 1;">Publier</button>
+                <button type="button" id="btn-cancel-role" class="btn ghost hidden" style="background: #eee;">Annuler</button>
               </div>
             </form>
           </div>
-
           <div class="admin-card" style="flex: 1; min-width: 300px;">
             <h3 style="margin-bottom: 20px;">🛠 Gérer les Rôles</h3>
             <ul id="liste-roles" class="admin-list"><li style="padding: 10px; color: #666;">Chargement...</li></ul>
@@ -116,18 +97,25 @@
 
       <div id="tab-photos" class="tab-content">
         <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-          
           <div class="admin-card" style="flex: 1; min-width: 300px;">
-            <h3 style="margin-bottom: 20px;">Ajouter une Photo</h3>
+            <h3 id="titre-form-photo" style="margin-bottom: 20px;">Ajouter une Photo</h3>
             <div id="photo-success" class="success-msg">✅ Opération réussie !</div>
-            
             <form id="form-photo">
-              <div class="form-group"><label>Fichier Image (.jpg, .png)</label><input type="file" id="photo-file" accept="image/*" required></div>
-              <div class="form-group"><label>Légende (Optionnel)</label><input type="text" id="photo-caption"></div>
-              <button type="submit" id="btn-photo" class="btn" style="width: 100%;">Envoyer la photo</button>
+              <div class="form-group" id="box-photo-file"><label>Fichier Image (.jpg, .png)</label><input type="file" id="photo-file" accept="image/*" required></div>
+              
+              <div class="form-group"><label>Légende</label><input type="text" id="photo-caption"></div>
+              
+              <div class="form-group">
+                <label>Ordre d'affichage (Ex: 1 = en premier)</label>
+                <input type="number" id="photo-ordre" value="10" required>
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="btn-submit-photo" class="btn" style="flex: 1;">Envoyer</button>
+                <button type="button" id="btn-cancel-photo" class="btn ghost hidden" style="background: #eee;">Annuler</button>
+              </div>
             </form>
           </div>
-
           <div class="admin-card" style="flex: 1; min-width: 300px;">
             <h3 style="margin-bottom: 20px;">🛠 Gérer la Galerie</h3>
             <ul id="liste-photos" class="admin-list"><li style="padding: 10px; color: #666;">Chargement...</li></ul>
@@ -138,7 +126,6 @@
       <div id="tab-videos" class="tab-content">
         <div class="admin-card" style="text-align: center; padding: 60px 20px;">
           <h3 style="margin-bottom: 15px;">🚧 Espace Vidéos en construction</h3>
-          <p style="color: #666; max-width: 400px; margin: 0 auto;">C'est ici que nous brancherons le futur formulaire pour gérer ton carrousel de vidéos YouTube. Prépare tes liens !</p>
         </div>
       </div>
 
@@ -146,10 +133,8 @@
   </main>
 
   <script type="module">
-    // --- GESTION DES ONGLETS (Design) ---
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
@@ -159,13 +144,12 @@
       });
     });
 
-    // --- IMPORTS FIREBASE ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
-    // ⚠️ TES CLÉS SECRÈTES ICI
+    // ⚠️ TES CLÉS
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -181,8 +165,8 @@
     const storage = getStorage(app);
 
     let roleAEditerId = null;
+    let photoAEditerId = null;
 
-    // --- SÉCURITÉ ---
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById('login-screen').classList.add('hidden');
@@ -215,18 +199,14 @@
         const li = document.createElement('li');
         li.className = 'admin-list-item';
         li.innerHTML = `
-          <div><strong>${role.projet}</strong> (${role.annee})<br><small>${role.titre}</small></div>
-          <div class="action-btns">
-            <button class="btn-editer" title="Modifier">✏️</button>
-            <button class="btn-supprimer" title="Supprimer">🗑️</button>
-          </div>
+          <div><strong>${role.projet}</strong> (${role.annee})</div>
+          <div class="action-btns"><button class="btn-editer">✏️</button><button class="btn-supprimer">🗑️</button></div>
         `;
         li.querySelector('.btn-editer').addEventListener('click', () => {
           roleAEditerId = role.id;
           document.getElementById('titre-form-role').textContent = "Modifier le Rôle";
-          document.getElementById('btn-submit-role').textContent = "💾 Mettre à jour";
-          document.getElementById('btn-cancel-edit').classList.remove('hidden');
-          
+          document.getElementById('btn-submit-role').textContent = "Mettre à jour";
+          document.getElementById('btn-cancel-role').classList.remove('hidden');
           document.getElementById('role-titre').value = role.titre || '';
           document.getElementById('role-projet').value = role.projet || '';
           document.getElementById('role-type').value = role.type || 'Série TV';
@@ -235,22 +215,18 @@
           document.getElementById('role-lien').value = role.lien || '';
         });
         li.querySelector('.btn-supprimer').addEventListener('click', async () => {
-          if (confirm(`Effacer le rôle "${role.projet}" ?`)) {
-            await deleteDoc(doc(db, "role", role.id));
-            chargerListeRoles();
-          }
+          if (confirm(`Effacer le rôle ?`)) { await deleteDoc(doc(db, "role", role.id)); chargerListeRoles(); }
         });
         liste.appendChild(li);
       });
     }
 
-    document.getElementById('btn-cancel-edit').addEventListener('click', () => {
+    document.getElementById('btn-cancel-role').addEventListener('click', () => {
       roleAEditerId = null;
       document.getElementById('form-role').reset();
       document.getElementById('titre-form-role').textContent = "Ajouter un Rôle";
-      document.getElementById('btn-submit-role').textContent = "Publier ce rôle";
-      document.getElementById('btn-cancel-edit').classList.add('hidden');
-      document.getElementById('role-annee').value = new Date().getFullYear();
+      document.getElementById('btn-submit-role').textContent = "Publier";
+      document.getElementById('btn-cancel-role').classList.add('hidden');
     });
 
     document.getElementById('form-role').addEventListener('submit', async (e) => {
@@ -263,14 +239,12 @@
         realisateur: document.getElementById('role-real').value,
         lien: document.getElementById('role-lien').value
       };
-      try {
-        if (roleAEditerId) { await updateDoc(doc(db, "role", roleAEditerId), roleData); } 
-        else { await addDoc(collection(db, "role"), roleData); }
-        document.getElementById('role-success').style.display = 'block';
-        setTimeout(() => { document.getElementById('role-success').style.display = 'none'; }, 3000);
-        document.getElementById('btn-cancel-edit').click();
-        chargerListeRoles();
-      } catch (error) { alert("Erreur de sauvegarde."); }
+      if (roleAEditerId) { await updateDoc(doc(db, "role", roleAEditerId), roleData); } 
+      else { await addDoc(collection(db, "role"), roleData); }
+      document.getElementById('role-success').style.display = 'block';
+      setTimeout(() => { document.getElementById('role-success').style.display = 'none'; }, 3000);
+      document.getElementById('btn-cancel-role').click();
+      chargerListeRoles();
     });
 
     // --- MODULE PHOTOS ---
@@ -279,22 +253,41 @@
       const snap = await getDocs(collection(db, "galerie"));
       liste.innerHTML = '';
       
-      snap.forEach(documentSnapshot => {
-        const photo = documentSnapshot.data();
-        const id = documentSnapshot.id;
+      let photosTableau = [];
+      snap.forEach(doc => { photosTableau.push({ id: doc.id, ...doc.data() }); });
+      // On trie les photos par leur numéro d'ordre !
+      photosTableau.sort((a, b) => (a.ordre || 10) - (b.ordre || 10));
+
+      photosTableau.forEach(photo => {
         const li = document.createElement('li');
         li.className = 'admin-list-item';
         li.innerHTML = `
           <div style="display:flex; align-items:center;">
+            <span style="font-weight:bold; margin-right:15px; color:var(--yellow);">#${photo.ordre || 10}</span>
             <img src="${photo.url}" alt="Aperçu">
             <div><small>${photo.caption || 'Sans légende'}</small></div>
           </div>
-          <div class="action-btns"><button class="btn-supprimer" title="Supprimer">🗑️</button></div>
+          <div class="action-btns"><button class="btn-editer">✏️</button><button class="btn-supprimer">🗑️</button></div>
         `;
+
+        li.querySelector('.btn-editer').addEventListener('click', () => {
+          photoAEditerId = photo.id;
+          document.getElementById('titre-form-photo').textContent = "Modifier la Photo";
+          document.getElementById('btn-submit-photo').textContent = "💾 Mettre à jour";
+          document.getElementById('btn-cancel-photo').classList.remove('hidden');
+          
+          // On cache le bouton de fichier (on modifie juste le texte/ordre)
+          document.getElementById('box-photo-file').classList.add('hidden');
+          document.getElementById('photo-file').required = false;
+
+          document.getElementById('photo-caption').value = photo.caption || '';
+          document.getElementById('photo-ordre').value = photo.ordre || 10;
+        });
+
         li.querySelector('.btn-supprimer').addEventListener('click', async () => {
           if (confirm('Effacer définitivement cette photo ?')) {
             try {
-              await deleteDoc(doc(db, "galerie", id));
+              await deleteDoc(doc(db, "galerie", photo.id));
               const imageRef = ref(storage, photo.url);
               await deleteObject(imageRef);
             } catch (err) {}
@@ -305,25 +298,43 @@
       });
     }
 
+    document.getElementById('btn-cancel-photo').addEventListener('click', () => {
+      photoAEditerId = null;
+      document.getElementById('form-photo').reset();
+      document.getElementById('titre-form-photo').textContent = "Ajouter une Photo";
+      document.getElementById('btn-submit-photo').textContent = "Envoyer";
+      document.getElementById('btn-cancel-photo').classList.add('hidden');
+      document.getElementById('box-photo-file').classList.remove('hidden');
+      document.getElementById('photo-file').required = true;
+    });
+
     document.getElementById('form-photo').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const file = document.getElementById('photo-file').files[0];
       const caption = document.getElementById('photo-caption').value;
-      const btnPhoto = document.getElementById('btn-photo');
-      if (!file) return;
+      const ordre = Number(document.getElementById('photo-ordre').value);
+      const btnPhoto = document.getElementById('btn-submit-photo');
 
       try {
-        btnPhoto.textContent = "Téléchargement..."; btnPhoto.disabled = true;
-        const storageRef = ref(storage, 'galerie/' + Date.now() + '-' + file.name);
-        await uploadBytes(storageRef, file);
-        const urlPhoto = await getDownloadURL(storageRef);
-        await addDoc(collection(db, "galerie"), { url: urlPhoto, caption: caption });
+        if (photoAEditerId) {
+          // Si on modifie : on met juste à jour le texte et l'ordre
+          await updateDoc(doc(db, "galerie", photoAEditerId), { caption: caption, ordre: ordre });
+        } else {
+          // Si on ajoute : on upload le fichier
+          const file = document.getElementById('photo-file').files[0];
+          if (!file) return;
+          btnPhoto.textContent = "Téléchargement..."; btnPhoto.disabled = true;
+          const storageRef = ref(storage, 'galerie/' + Date.now() + '-' + file.name);
+          await uploadBytes(storageRef, file);
+          const urlPhoto = await getDownloadURL(storageRef);
+          await addDoc(collection(db, "galerie"), { url: urlPhoto, caption: caption, ordre: ordre });
+        }
+        
         document.getElementById('photo-success').style.display = 'block';
         setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; }, 3000);
-        document.getElementById('form-photo').reset();
+        document.getElementById('btn-cancel-photo').click();
         chargerListePhotos();
-      } catch (error) { alert("Erreur d'envoi."); } 
-      finally { btnPhoto.textContent = "Envoyer la photo"; btnPhoto.disabled = false; }
+      } catch (error) { alert("Erreur."); } 
+      finally { btnPhoto.textContent = "Envoyer"; btnPhoto.disabled = false; }
     });
 
   </script>
