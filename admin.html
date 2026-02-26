@@ -322,6 +322,20 @@
           // Si on ajoute : on upload le fichier
           const file = document.getElementById('photo-file').files[0];
           if (!file) return;
+
+          // ==========================================
+          // 🛑 BARRAGE DE SÉCURITÉ : LIMITE DE 2 MO
+          // ==========================================
+          const tailleMaxEnOctets = 2 * 1024 * 1024; // 2 Mégaoctets (Mo)
+          
+          if (file.size > tailleMaxEnOctets) {
+            // On calcule le poids réel pour l'afficher dans le message d'erreur
+            const poidsReel = (file.size / (1024 * 1024)).toFixed(1); 
+            alert(`⚠️ Fichier trop lourd ! Ta photo fait ${poidsReel} Mo.\n\nLa limite est de 2 Mo maximum pour garder ton site ultra-rapide.\nMerci de la compresser avant de l'envoyer.`);
+            return; // 🛑 On coupe le moteur ici, rien ne part vers Firebase !
+          }
+          // ==========================================
+
           btnPhoto.textContent = "Téléchargement..."; btnPhoto.disabled = true;
           const storageRef = ref(storage, 'galerie/' + Date.now() + '-' + file.name);
           await uploadBytes(storageRef, file);
@@ -340,3 +354,4 @@
   </script>
 </body>
 </html>
+
