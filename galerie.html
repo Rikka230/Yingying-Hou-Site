@@ -10,7 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
-    /* Style pour la barre de filtres */
+    /* =========================================
+       STYLES DES FILTRES ET ANIMATIONS
+    ========================================= */
     .gallery-filters {
       display: flex;
       flex-wrap: wrap;
@@ -24,16 +26,13 @@
       padding: 8px 20px !important;
       font-size: 0.9rem !important;
       cursor: pointer;
+      transition: all 0.3s ease;
     }
     
-    /* Animation fluide quand les photos apparaissent */
-    @keyframes fadeInScale {
-      0% { opacity: 0; transform: scale(0.95) translateY(10px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    
-    .gallery-item {
-      animation: fadeInScale 0.4s ease-out forwards;
+    /* Animation douce globale et blocage de la hauteur pour éviter la saccade */
+    #gallery {
+      transition: opacity 0.3s ease-in-out;
+      min-height: 60vh; 
     }
   </style>
 </head>
@@ -113,7 +112,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Variables pour gérer les filtres
     let toutesLesPhotos = []; 
     let photosAffichees = []; 
     let indexActuel = 0;
@@ -133,9 +131,7 @@
             toutesLesPhotos.push(doc.data());
           });
           
-          // Par défaut, on affiche tout
           afficherGrille('Tout');
-          
         } else {
           conteneurGalerie.innerHTML = "<p style='text-align:center;'>Aucune photo trouvée.</p>";
         }
@@ -145,57 +141,64 @@
       }
     }
 
-    // --- FONCTION DE FILTRAGE ---
+    // --- FONCTION DE FILTRAGE (AVEC FONDU ENCHAÎNÉ) ---
     function afficherGrille(categorieFiltre) {
-      conteneurGalerie.innerHTML = ""; 
+      // 1. On cache la grille en douceur
+      conteneurGalerie.style.opacity = '0';
       
-      if (categorieFiltre === 'Tout') {
-        photosAffichees = toutesLesPhotos;
-      } else {
-        // On ne garde que les photos qui ont la bonne catégorie
-        photosAffichees = toutesLesPhotos.filter(photo => photo.categorie === categorieFiltre);
-      }
+      // 2. On attend la fin de l'animation (300ms) pour changer le contenu en arrière-plan
+      setTimeout(() => {
+        conteneurGalerie.innerHTML = ""; 
+        
+        if (categorieFiltre === 'Tout') {
+          photosAffichees = toutesLesPhotos;
+        } else {
+          photosAffichees = toutesLesPhotos.filter(photo => photo.categorie === categorieFiltre);
+        }
 
-      if (photosAffichees.length === 0) {
-        conteneurGalerie.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1/-1; padding: 40px;">Aucune photo dans la catégorie "${categorieFiltre}".</p>`;
-        return;
-      }
+        if (photosAffichees.length === 0) {
+          conteneurGalerie.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1/-1; padding: 40px;">Aucune photo dans la catégorie "${categorieFiltre}".</p>`;
+        } else {
+          // On reconstruit la grille avec les photos filtrées
+          photosAffichees.forEach((data, index) => {
+            const item = document.createElement('a');
+            item.href = "#";
+            item.className = "gallery-item";
+            
+            item.innerHTML = `
+              <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
+              <div class="item-overlay"><span>Agrandir</span></div>
+            `;
+            
+            item.onclick = (e) => {
+              e.preventDefault();
+              afficherPhoto(index);
+            };
+            
+            conteneurGalerie.appendChild(item);
+          });
+        }
 
-      // On reconstruit la grille avec les photos filtrées
-      photosAffichees.forEach((data, index) => {
-        const item = document.createElement('a');
-        item.href = "#";
-        item.className = "gallery-item";
+        // 3. On réaffiche la grille avec les nouvelles photos en douceur
+        conteneurGalerie.style.opacity = '1';
         
-        item.innerHTML = `
-          <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
-          <div class="item-overlay"><span>Agrandir</span></div>
-        `;
-        
-        // Au clic, on ouvre la lightbox en lui donnant le NOUVEL index (celui de la liste filtrée)
-        item.onclick = (e) => {
-          e.preventDefault();
-          afficherPhoto(index);
-        };
-        
-        conteneurGalerie.appendChild(item);
-      });
+      }, 300);
     }
 
     // --- GESTION DES BOUTONS DE LA BARRE DE FILTRES ---
     const boutonsFiltres = document.querySelectorAll('.filter-btn');
     boutonsFiltres.forEach(btn => {
       btn.addEventListener('click', () => {
-        // 1. On retire l'état "actif" (jaune plein) de tous les boutons
+        // On retire l'état "actif" (jaune) de tous les boutons
         boutonsFiltres.forEach(f => {
           f.classList.remove('btn');
           f.classList.add('btn', 'outline');
         });
         
-        // 2. On met l'état "actif" uniquement sur le bouton cliqué
+        // On met l'état "actif" uniquement sur le bouton cliqué
         btn.classList.remove('outline');
         
-        // 3. On déclenche le filtrage
+        // On lance le filtrage
         const categorie = btn.getAttribute('data-filter');
         afficherGrille(categorie);
       });
@@ -213,7 +216,7 @@
     lightbox.querySelector('.lb-next').onclick = () => afficherPhoto((indexActuel + 1) % photosAffichees.length);
     lightbox.querySelector('.lb-prev').onclick = () => afficherPhoto((indexActuel - 1 + photosAffichees.length) % photosAffichees.length);
 
-    // Lancer le chargement au démarrage
+    // Démarrage du script
     chargerGalerie();
   </script>
   <script src="/js/main.js" defer></script>
