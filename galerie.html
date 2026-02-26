@@ -80,8 +80,7 @@
         const querySnapshot = await getDocs(collection(db, "galerie"));
         const conteneurGalerie = document.getElementById('gallery');
         
-        let photos = [];
-        querySnapshot.forEach((doc) => photos.push(doc.data()));
+        photos.sort((a, b) => (a.ordre || 10) - (b.ordre || 10));
 
         if (photos.length > 0) {
           conteneurGalerie.innerHTML = ''; 
