@@ -3,37 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <title>Galerie photo — Yingying HOU</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Galerie officielle de photos de Yingying HOU. Photos de studio, tournages et portraits HD." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
-    /* =========================================
-       STYLES DES FILTRES ET ANIMATIONS
-    ========================================= */
-    .gallery-filters {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      margin: 30px auto 10px;
-      max-width: 900px;
-    }
-    
-    .filter-btn {
-      padding: 8px 20px !important;
-      font-size: 0.9rem !important;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    /* Animation douce globale et blocage de la hauteur */
-    #gallery {
-      transition: opacity 0.3s ease-in-out;
-      min-height: 60vh; 
-    }
+    .gallery-filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 30px auto 10px; max-width: 900px; }
+    .filter-btn { padding: 8px 20px !important; font-size: 0.9rem !important; cursor: pointer; transition: all 0.3s ease; }
+    #gallery { transition: opacity 0.3s ease-in-out; min-height: 60vh; }
   </style>
 </head>
 <body>
@@ -44,7 +23,6 @@
   <header class="site-header" role="banner">
     <div class="wrap" style="display: flex; justify-content: space-between; align-items: center;">
       <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      
       <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
         <ul>
           <li><a href="/">Accueil</a></li>
@@ -53,10 +31,8 @@
           <li><a href="contact.html">Contact / Booking</a></li>
         </ul>
       </nav>
-
       <div class="header-right">
-        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème">
-          </button>
+        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème"></button>
         <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
       </div>
     </div>
@@ -67,7 +43,6 @@
       <div class="wrap">
         <h1>Galerie Photo</h1>
         <p class="kicker">Portraits studio, photos de tournage et presse.</p>
-        
         <div class="gallery-filters" id="filters-container">
           <button class="btn filter-btn" data-filter="Tout">Tout</button>
           <button class="btn outline filter-btn" data-filter="Portrait">Portrait</button>
@@ -82,19 +57,9 @@
 
     <section class="wrap pad" style="padding-top: 20px;">
       <div class="gallery-grid" id="gallery">
-        <p style="text-align:center; color:#888; grid-column: 1/-1;">Chargement de la galerie...</p>
+        <p style="text-align:center; color:#888;">Chargement de la galerie...</p>
       </div>
     </section>
-
-    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
-      <button class="lb-close" aria-label="Fermer">✕</button>
-      <button class="lb-prev" aria-label="Précédent">‹</button>
-      <figure class="lb-figure">
-        <img id="lb-image" src="" alt="">
-        <figcaption id="lb-caption"></figcaption>
-      </figure>
-      <button class="lb-next" aria-label="Suivant">›</button>
-    </div>
   </main>
 
   <footer class="site-footer">
@@ -103,6 +68,16 @@
       <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
     </div>
   </footer>
+
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <button class="lb-close" aria-label="Fermer">✕</button>
+    <button class="lb-prev" aria-label="Précédent">‹</button>
+    <figure class="lb-figure">
+      <img id="lb-image" src="" alt="">
+      <figcaption id="lb-caption"></figcaption>
+    </figure>
+    <button class="lb-next" aria-label="Suivant">›</button>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -120,11 +95,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- VARIABLES GLOBALES ---
     let toutesLesPhotos = []; 
     let photosAffichees = []; 
     let indexActuel = 0;
-    let timerFiltre = null; // LE FAMEUX CHRONO ANTI-SACCADES !
+    let timerFiltre = null;
 
     const conteneurGalerie = document.getElementById('gallery');
     const lightbox = document.getElementById('lightbox');
@@ -135,109 +109,60 @@
       try {
         const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
         const snapshot = await getDocs(q);
-        
         if (!snapshot.empty) {
-          snapshot.forEach((doc) => {
-            toutesLesPhotos.push(doc.data());
-          });
-          
+          snapshot.forEach((doc) => { toutesLesPhotos.push(doc.data()); });
           afficherGrille('Tout');
-        } else {
-          conteneurGalerie.innerHTML = "<p style='text-align:center;'>Aucune photo trouvée.</p>";
         }
-      } catch (erreur) {
-        console.error("Erreur Firestore :", erreur);
-        conteneurGalerie.innerHTML = "<p style='text-align:center; color:red;'>Erreur de chargement de la galerie.</p>";
-      }
+      } catch (erreur) { console.error(erreur); }
     }
 
-    // --- FONCTION DE FILTRAGE (ANTI-SACCADES) ---
     function afficherGrille(categorieFiltre) {
-      // 1. Annulation si clic rapide
       clearTimeout(timerFiltre);
-      
-      // 2. Blocage de la hauteur pour ne pas faire sauter le footer
-      const hauteurActuelle = conteneurGalerie.offsetHeight;
-      if (hauteurActuelle > 100) {
-        conteneurGalerie.style.minHeight = hauteurActuelle + 'px';
-      }
-
-      // 3. Fondu vers l'invisible
       conteneurGalerie.style.opacity = '0';
-      
-      // 4. Attente de la fin du fondu pour changer les images
       timerFiltre = setTimeout(() => {
         conteneurGalerie.innerHTML = ""; 
+        photosAffichees = (categorieFiltre === 'Tout') ? toutesLesPhotos : toutesLesPhotos.filter(p => p.categorie === categorieFiltre);
         
-        if (categorieFiltre === 'Tout') {
-          photosAffichees = toutesLesPhotos;
-        } else {
-          photosAffichees = toutesLesPhotos.filter(photo => photo.categorie === categorieFiltre);
-        }
-
-        if (photosAffichees.length === 0) {
-          conteneurGalerie.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1/-1; padding: 40px;">Aucune photo dans la catégorie "${categorieFiltre}".</p>`;
-        } else {
-          // Reconstitution de la grille
-          photosAffichees.forEach((data, index) => {
-            const item = document.createElement('a');
-            item.href = "#";
-            item.className = "gallery-item";
-            
-            item.innerHTML = `
-              <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
-              <div class="item-overlay"><span>Agrandir</span></div>
-            `;
-            
-            item.onclick = (e) => {
-              e.preventDefault();
-              afficherPhoto(index);
-            };
-            
-            conteneurGalerie.appendChild(item);
-          });
-        }
-
-        // 5. Réapparition de la grille
+        photosAffichees.forEach((data, index) => {
+          const item = document.createElement('a');
+          item.href = "#";
+          item.className = "gallery-item";
+          item.innerHTML = `<img src="${data.url}" alt="${data.caption || ''}" loading="lazy"><div class="item-overlay"><span>Agrandir</span></div>`;
+          item.onclick = (e) => { e.preventDefault(); afficherPhoto(index); };
+          conteneurGalerie.appendChild(item);
+        });
         conteneurGalerie.style.opacity = '1';
-        
-        // 6. On libère la hauteur une fois tout affiché
-        setTimeout(() => {
-          conteneurGalerie.style.minHeight = '60vh'; 
-        }, 350);
-        
       }, 300);
     }
 
-    // --- GESTION DES BOUTONS DE LA BARRE DE FILTRES ---
     const boutonsFiltres = document.querySelectorAll('.filter-btn');
     boutonsFiltres.forEach(btn => {
       btn.addEventListener('click', () => {
-        boutonsFiltres.forEach(f => {
-          f.classList.remove('btn');
-          f.classList.add('btn', 'outline');
-        });
-        
+        boutonsFiltres.forEach(f => { f.classList.remove('btn'); f.classList.add('btn', 'outline'); });
         btn.classList.remove('outline');
-        
-        const categorie = btn.getAttribute('data-filter');
-        afficherGrille(categorie);
+        afficherGrille(btn.getAttribute('data-filter'));
       });
     });
 
-    // --- GESTION DE LA LIGHTBOX ---
+    // --- GESTION DE LA LIGHTBOX (CORRIGÉE) ---
     function afficherPhoto(index) {
       indexActuel = index;
       lbImage.src = photosAffichees[index].url;
       lbCaption.textContent = photosAffichees[index].caption || "";
       lightbox.setAttribute('aria-hidden', 'false');
+      // FIX : On fige le scroll du site derrière
+      document.body.style.overflow = 'hidden'; 
     }
 
-    lightbox.querySelector('.lb-close').onclick = () => lightbox.setAttribute('aria-hidden', 'true');
+    lightbox.querySelector('.lb-close').onclick = () => {
+      lightbox.setAttribute('aria-hidden', 'true');
+      // FIX : On redonne le scroll au site
+      document.body.style.overflow = ''; 
+    };
+    
     lightbox.querySelector('.lb-next').onclick = () => afficherPhoto((indexActuel + 1) % photosAffichees.length);
     lightbox.querySelector('.lb-prev').onclick = () => afficherPhoto((indexActuel - 1 + photosAffichees.length) % photosAffichees.length);
 
-    // Démarrage du script
     chargerGalerie();
   </script>
   <script src="/js/main.js" defer></script>
