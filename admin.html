@@ -127,6 +127,7 @@
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
+    // ⚠️ TES CLÉS
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -158,7 +159,11 @@
       const e = document.getElementById('email').value;
       const p = document.getElementById('password').value;
       try { await signInWithEmailAndPassword(auth, e, p); } 
-      catch { document.getElementById('login-error').textContent = "Identifiants erronés."; document.getElementById('login-error').style.display = 'block'; }
+      catch { 
+        const err = document.getElementById('login-error');
+        err.textContent = "Identifiants erronés."; 
+        err.style.display = 'block'; 
+      }
     });
 
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
@@ -174,6 +179,26 @@
       }
     });
 
+    // --- FONCTIONS DE RESET DES FORMULAIRES ---
+    function resetRoleForm() {
+      editRoleId = null;
+      document.getElementById('form-role').reset();
+      document.getElementById('role-title').textContent = "Ajouter un Rôle";
+      document.getElementById('btn-role-submit').textContent = "Publier";
+      document.getElementById('btn-role-cancel').classList.add('hidden');
+      document.getElementById('role-annee').value = new Date().getFullYear();
+    }
+
+    function resetPhotoForm() {
+      editPhotoId = null;
+      document.getElementById('form-photo').reset();
+      document.getElementById('photo-title').textContent = "Ajouter une Photo";
+      document.getElementById('btn-photo-submit').textContent = "Envoyer";
+      document.getElementById('btn-photo-cancel').classList.add('hidden');
+      document.getElementById('box-file').classList.remove('hidden');
+      loadPhotos(); // Pour recalculer le prochain numéro d'ordre
+    }
+
     // --- GESTION DES RÔLES ---
     async function loadRoles() {
       const q = query(collection(db, "role"), orderBy("annee", "desc"));
@@ -186,30 +211,36 @@
         li.className = "admin-list-item";
         li.innerHTML = `<div><strong>${data.projet}</strong> (${data.annee})</div>
                         <div class="action-btns">
-                          <button onclick="window.editRole('${d.id}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">✏️</button>
-                          <button onclick="window.deleteRole('${d.id}')">🗑️</button>
+                          <button class="edit-btn">✏️</button>
+                          <button class="delete-btn">🗑️</button>
                         </div>`;
+        
+        li.querySelector('.edit-btn').onclick = () => {
+          editRoleId = d.id;
+          document.getElementById('role-title').textContent = "Modifier le Rôle";
+          document.getElementById('btn-role-cancel').classList.remove('hidden');
+          document.getElementById('role-projet').value = data.projet;
+          document.getElementById('role-titre').value = data.titre;
+          document.getElementById('role-type').value = data.type;
+          document.getElementById('role-annee').value = data.annee;
+          document.getElementById('role-real').value = data.realisateur || '';
+          document.getElementById('role-lien').value = data.lien || '';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        li.querySelector('.delete-btn').onclick = async () => {
+          if (confirm("Supprimer ce rôle ?")) { 
+            await deleteDoc(doc(db, "role", d.id)); 
+            loadRoles(); 
+          }
+        };
         list.appendChild(li);
       });
     }
 
-    window.editRole = (id, data) => {
-      editRoleId = id;
-      document.getElementById('role-title').textContent = "Modifier le Rôle";
-      document.getElementById('btn-role-cancel').classList.remove('hidden');
-      document.getElementById('role-projet').value = data.projet;
-      document.getElementById('role-titre').value = data.titre;
-      document.getElementById('role-type').value = data.type;
-      document.getElementById('role-annee').value = data.annee;
-      document.getElementById('role-real').value = data.realisateur || '';
-      document.getElementById('role-lien').value = data.lien || '';
-      window.scrollTo(0, 0);
-    };
-
-    window.deleteRole = async (id) => { if (confirm("Supprimer ?")) { await deleteDoc(doc(db, "role", id)); loadRoles(); } };
-
     document.getElementById('form-role').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = document.getElementById('btn-role-submit');
       const data = {
         projet: document.getElementById('role-projet').value,
         titre: document.getElementById('role-titre').value,
@@ -218,10 +249,18 @@
         realisateur: document.getElementById('role-real').value,
         lien: document.getElementById('role-lien').value
       };
-      if (editRoleId) await updateDoc(doc(db, "role", editRoleId), data);
-      else await addDoc(collection(db, "role"), data);
-      document.getElementById('role-success').style.display = 'block';
-      setTimeout(() => location.reload(), 1000);
+
+      try {
+        btn.disabled = true;
+        if (editRoleId) await updateDoc(doc(db, "role", editRoleId), data);
+        else await addDoc(collection(db, "role"), data);
+        
+        document.getElementById('role-success').style.display = 'block';
+        setTimeout(() => { document.getElementById('role-success').style.display = 'none'; }, 3000);
+        resetRoleForm();
+        loadRoles();
+      } catch (err) { alert("Erreur sauvegarde rôle"); }
+      finally { btn.disabled = false; }
     });
 
     // --- GESTION DES PHOTOS ---
@@ -231,38 +270,44 @@
       const list = document.getElementById('list-photos');
       list.innerHTML = "";
       let maxOrdre = 0;
+      
+      const photos = [];
       snap.forEach(d => {
         const data = d.data();
+        photos.push({id: d.id, ...data});
         if (data.ordre > maxOrdre) maxOrdre = data.ordre;
+      });
+
+      photos.forEach(photo => {
         const li = document.createElement('li');
         li.className = "admin-list-item";
-        li.innerHTML = `<div><img src="${data.url}"> #${data.ordre}</div>
+        li.innerHTML = `<div><img src="${photo.url}"> #${photo.ordre}</div>
                         <div class="action-btns">
-                          <button onclick="window.editPhoto('${d.id}', '${data.caption || ''}', ${data.ordre})">✏️</button>
-                          <button onclick="window.deletePhoto('${d.id}', '${data.url}')">🗑️</button>
+                          <button class="edit-btn">✏️</button>
+                          <button class="delete-btn">🗑️</button>
                         </div>`;
+        
+        li.querySelector('.edit-btn').onclick = () => {
+          editPhotoId = photo.id;
+          document.getElementById('photo-title').textContent = "Modifier Légende/Ordre";
+          document.getElementById('box-file').classList.add('hidden');
+          document.getElementById('btn-photo-cancel').classList.remove('hidden');
+          document.getElementById('photo-caption').value = photo.caption || '';
+          document.getElementById('photo-ordre').value = photo.ordre;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        li.querySelector('.delete-btn').onclick = async () => {
+          if (confirm("Supprimer cette photo ?")) {
+            await deleteDoc(doc(db, "galerie", photo.id));
+            try { await deleteObject(ref(storage, photo.url)); } catch(e) {}
+            loadPhotos();
+          }
+        };
         list.appendChild(li);
       });
       if (!editPhotoId) document.getElementById('photo-ordre').value = maxOrdre + 1;
     }
-
-    window.editPhoto = (id, caption, ordre) => {
-      editPhotoId = id;
-      document.getElementById('photo-title').textContent = "Modifier Légende/Ordre";
-      document.getElementById('box-file').classList.add('hidden');
-      document.getElementById('btn-photo-cancel').classList.remove('hidden');
-      document.getElementById('photo-caption').value = caption;
-      document.getElementById('photo-ordre').value = ordre;
-      window.scrollTo(0, 0);
-    };
-
-    window.deletePhoto = async (id, url) => {
-      if (confirm("Supprimer la photo ?")) {
-        await deleteDoc(doc(db, "galerie", id));
-        try { await deleteObject(ref(storage, url)); } catch(e) {}
-        loadPhotos();
-      }
-    };
 
     document.getElementById('form-photo').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -273,10 +318,14 @@
 
       try {
         btn.disabled = true;
+        btn.textContent = "Patientez...";
+
         // Décalage automatique
         const snap = await getDocs(collection(db, "galerie"));
         const photos = []; snap.forEach(d => photos.push({id: d.id, ...d.data()}));
-        if (photos.some(p => p.ordre === ordreSaisi)) {
+        
+        // On ne décale que si on ajoute ou si on change l'ordre pour un index existant
+        if (photos.some(p => p.ordre === ordreSaisi && p.id !== editPhotoId)) {
           const up = photos.filter(p => p.ordre >= ordreSaisi).map(p => updateDoc(doc(db, "galerie", p.id), {ordre: p.ordre + 1}));
           await Promise.all(up);
         }
@@ -291,14 +340,22 @@
           const url = await getDownloadURL(sRef);
           await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreSaisi });
         }
+
         document.getElementById('photo-success').style.display = 'block';
-        setTimeout(() => location.reload(), 1000);
-      } catch (err) { alert(err.message); btn.disabled = false; }
+        setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; }, 3000);
+        resetPhotoForm();
+      } catch (err) { alert(err.message); }
+      finally { 
+        btn.disabled = false; 
+        btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; 
+      }
     });
 
-    document.getElementById('btn-role-cancel').onclick = () => location.reload();
-    document.getElementById('btn-photo-cancel').onclick = () => location.reload();
+    // Boutons annuler
+    document.getElementById('btn-role-cancel').onclick = resetRoleForm;
+    document.getElementById('btn-photo-cancel').onclick = resetPhotoForm;
 
   </script>
 </body>
 </html>
+
