@@ -29,7 +29,7 @@
       transition: all 0.3s ease;
     }
     
-    /* Animation douce globale et blocage de la hauteur pour éviter la saccade */
+    /* Animation douce globale et blocage de la hauteur */
     #gallery {
       transition: opacity 0.3s ease-in-out;
       min-height: 60vh; 
@@ -112,10 +112,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // --- VARIABLES GLOBALES ---
     let toutesLesPhotos = []; 
     let photosAffichees = []; 
     let indexActuel = 0;
-    let timerFiltre = null;
+    let timerFiltre = null; // LE FAMEUX CHRONO ANTI-SACCADES !
 
     const conteneurGalerie = document.getElementById('gallery');
     const lightbox = document.getElementById('lightbox');
@@ -144,19 +145,19 @@
 
     // --- FONCTION DE FILTRAGE (ANTI-SACCADES) ---
     function afficherGrille(categorieFiltre) {
-      // 1. On annule l'animation précédente si l'utilisateur clique très vite
+      // 1. Annulation si clic rapide
       clearTimeout(timerFiltre);
       
-      // 2. On "gèle" la hauteur actuelle pour empêcher le pied de page de sauter
+      // 2. Blocage de la hauteur pour ne pas faire sauter le footer
       const hauteurActuelle = conteneurGalerie.offsetHeight;
       if (hauteurActuelle > 100) {
         conteneurGalerie.style.minHeight = hauteurActuelle + 'px';
       }
 
-      // 3. On lance le fondu vers l'invisible
+      // 3. Fondu vers l'invisible
       conteneurGalerie.style.opacity = '0';
       
-      // 4. On attend que ce soit invisible (300ms) pour vider et remplir
+      // 4. Attente de la fin du fondu pour changer les images
       timerFiltre = setTimeout(() => {
         conteneurGalerie.innerHTML = ""; 
         
@@ -169,7 +170,7 @@
         if (photosAffichees.length === 0) {
           conteneurGalerie.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1/-1; padding: 40px;">Aucune photo dans la catégorie "${categorieFiltre}".</p>`;
         } else {
-          // On reconstruit la grille avec les photos
+          // Reconstitution de la grille
           photosAffichees.forEach((data, index) => {
             const item = document.createElement('a');
             item.href = "#";
@@ -189,16 +190,32 @@
           });
         }
 
-        // 5. On réaffiche la grille remplie
+        // 5. Réapparition de la grille
         conteneurGalerie.style.opacity = '1';
         
-        // 6. On rend sa liberté à la hauteur une fois la nouvelle grille bien en place
+        // 6. On libère la hauteur une fois tout affiché
         setTimeout(() => {
-          conteneurGalerie.style.minHeight = '60vh'; // Retour à la valeur CSS de base
+          conteneurGalerie.style.minHeight = '60vh'; 
         }, 350);
         
-      }, 300); // 300ms correspond au "transition: opacity 0.3s" de ton CSS
+      }, 300);
     }
+
+    // --- GESTION DES BOUTONS DE LA BARRE DE FILTRES ---
+    const boutonsFiltres = document.querySelectorAll('.filter-btn');
+    boutonsFiltres.forEach(btn => {
+      btn.addEventListener('click', () => {
+        boutonsFiltres.forEach(f => {
+          f.classList.remove('btn');
+          f.classList.add('btn', 'outline');
+        });
+        
+        btn.classList.remove('outline');
+        
+        const categorie = btn.getAttribute('data-filter');
+        afficherGrille(categorie);
+      });
+    });
 
     // --- GESTION DE LA LIGHTBOX ---
     function afficherPhoto(index) {
