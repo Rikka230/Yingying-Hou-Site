@@ -4,16 +4,22 @@
   <meta charset="utf-8" />
   <title>Filmographie — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Filmographie complète de Yingying HOU : longs métrages, courts, séries TV, théâtre et voix." />
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
   
+  <a class="skip" href="#main">Aller au contenu</a>
+  
   <header class="site-header" role="banner">
     <div class="wrap" style="display: flex; justify-content: space-between; align-items: center;">
       <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      <nav id="nav" class="site-nav">
+      
+      <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
         <ul>
           <li><a href="/">Accueil</a></li>
           <li><a href="filmographie.html">Filmographie</a></li>
@@ -21,6 +27,7 @@
           <li><a href="contact.html">Contact / Booking</a></li>
         </ul>
       </nav>
+
       <div class="header-right">
         <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème"></button>
         <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
@@ -44,6 +51,7 @@
             <option value="Long métrage">Long métrage</option>
             <option value="Court métrage">Court métrage</option>
             <option value="Série TV">Série TV</option>
+            <option value="Réalisation">Réalisation</option>
             <option value="Pub">Pub</option>
             <option value="Théâtre">Théâtre</option>
             <option value="Voix">Voix</option>
@@ -55,6 +63,7 @@
             <option value="year-desc" selected>Année ↓</option>
             <option value="year-asc">Année ↑</option>
             <option value="title-asc">Titre A→Z</option>
+            <option value="title-desc">Titre Z→A</option>
           </select>
         </label>
       </div>
@@ -64,7 +73,7 @@
           <thead>
             <tr>
               <th>Année</th>
-              <th>Titre</th>
+              <th>Projet / Titre</th>
               <th>Rôle</th>
               <th>Réalisateur</th>
               <th>Catégorie</th>
@@ -78,10 +87,21 @@
     </section>
   </main>
 
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© <span id="year"></span> Yingying HOU. Powered by NOCX WEB. Tous droits réservés.</p>
+      <nav>
+        <a href="/legal.html">Mentions légales</a>
+        <a href="/privacy.html">Confidentialité</a>
+      </nav>
+    </div>
+  </footer>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // Ta configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -105,23 +125,26 @@
         const sortBtn = document.getElementById('sort-by');
 
         function afficherTableau() {
-          tbody.innerHTML = '';
+          tbody.innerHTML = ''; // Vide le tableau
           let rolesFiltres = [...roles];
 
-          // 1. Filtrage
-          if (filterCat.value !== 'all') {
-            rolesFiltres = rolesFiltres.filter(r => r.type === filterCat.value);
+          // 1. Filtrage par catégorie
+          const categorieChoisie = filterCat.value;
+          if (categorieChoisie !== 'all') {
+            rolesFiltres = rolesFiltres.filter(role => role.type === categorieChoisie);
           }
 
-          // 2. Tri
+          // 2. Logique de Tri complète
           rolesFiltres.sort((a, b) => {
-            if (sortBtn.value === 'year-desc') return (b.annee || 0) - (a.annee || 0);
-            if (sortBtn.value === 'year-asc') return (a.annee || 0) - (b.annee || 0);
-            if (sortBtn.value === 'title-asc') return (a.projet || '').localeCompare(b.projet || '');
+            const tri = sortBtn.value;
+            if (tri === 'year-desc') return (Number(b.annee) || 0) - (Number(a.annee) || 0);
+            if (tri === 'year-asc') return (Number(a.annee) || 0) - (Number(b.annee) || 0);
+            if (tri === 'title-asc') return (a.projet || '').localeCompare(b.projet || '');
+            if (tri === 'title-desc') return (b.projet || '').localeCompare(a.projet || ''); // Tri Z-A
             return 0;
           });
 
-          // 3. Affichage avec DATA-LABEL pour le mobile
+          // 3. Affichage des lignes avec les étiquettes pour le mobile
           rolesFiltres.forEach(role => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -136,14 +159,23 @@
           });
         }
 
+        // Écouteurs de changements sur les menus de tri/filtre
         filterCat.addEventListener('change', afficherTableau);
         sortBtn.addEventListener('change', afficherTableau);
-        afficherTableau();
 
-      } catch (e) { console.error("Erreur Firebase:", e); }
+        // Lancement initial
+        if (roles.length > 0) {
+          afficherTableau();
+        }
+
+      } catch (erreur) {
+        console.error("Erreur Firebase :", erreur);
+      }
     }
+    
     chargerFilmographie();
   </script>
-  <script src="js/main.js" defer></script>
+  
+  <script src="/js/main.js" defer></script>
 </body>
 </html>
