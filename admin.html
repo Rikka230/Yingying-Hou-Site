@@ -50,7 +50,10 @@
 <body>
 
   <main class="admin-container">
-    <section id="login-screen" class="admin-card">
+    <div id="loading-screen" style="text-align: center; padding-top: 15vh;">
+      <p style="color: #888; font-weight: 600; font-size: 1.1rem;">Vérification de l'accès sécurisé...</p>
+    </div>
+    <section id="login-screen" class="admin-card hidden">
       <h1>Espace Privé</h1>
       <div id="login-error" class="error-msg" style="color:red; margin-bottom:15px; display:none;">Identifiants incorrects.</div>
       <div class="form-group"><label>Email</label><input type="email" id="email"></div>
@@ -232,6 +235,9 @@
     document.getElementById('btn-logout').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
+      const loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen) loadingScreen.style.display = 'none';
+
       if (user) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('dashboard-screen').classList.remove('hidden');
@@ -538,3 +544,4 @@
   </script>
 </body>
 </html>
+
