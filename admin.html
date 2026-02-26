@@ -308,50 +308,135 @@
       document.getElementById('photo-file').required = true;
     });
 
+    // --- NOUVELLE FONCTION DE SOUMISSION AVEC DÉCALAGE AUTOMATIQUE ---
     document.getElementById('form-photo').addEventListener('submit', async (e) => {
       e.preventDefault();
       const caption = document.getElementById('photo-caption').value;
-      const ordre = Number(document.getElementById('photo-ordre').value);
+      const ordreSaisi = Number(document.getElementById('photo-ordre').value);
       const btnPhoto = document.getElementById('btn-submit-photo');
 
       try {
+        btnPhoto.disabled = true;
+        btnPhoto.textContent = "Traitement...";
+
+        // 1. GESTION DU DÉCALAGE (SHIFT)
+        // On récupère toutes les photos existantes pour vérifier l'ordre
+        const snap = await getDocs(collection(db, "galerie"));
+        let photosExistantes = [];
+        snap.forEach(d => photosExistantes.push({ id: d.id, ...d.data() }));
+
+        // Si le numéro choisi est déjà pris, on décale tout le reste de +1
+        const ordreExiste = photosExistantes.some(p => p.ordre === ordreSaisi);
+        
+        if (ordreExiste) {
+          const misesAJour = photosExistantes
+            .filter(p => p.ordre >= ordreSaisi && p.id !== photoAEditerId)
+            .map(p => updateDoc(doc(db, "galerie", p.id), { ordre: p.ordre + 1 }));
+          
+          await Promise.all(misesAJour); // On attend que tout soit décalé
+        }
+
+        // 2. ENREGISTREMENT DE LA PHOTO
         if (photoAEditerId) {
-          // Si on modifie : on met juste à jour le texte et l'ordre
-          await updateDoc(doc(db, "galerie", photoAEditerId), { caption: caption, ordre: ordre });
+          // MODE ÉDITION
+          await updateDoc(doc(db, "galerie", photoAEditerId), { 
+            caption: caption, 
+            ordre: ordreSaisi 
+          });
         } else {
-          // Si on ajoute : on upload le fichier
+          // MODE AJOUT (Vérification taille + Upload)
           const file = document.getElementById('photo-file').files[0];
           if (!file) return;
 
-          // ==========================================
-          // 🛑 BARRAGE DE SÉCURITÉ : LIMITE DE 2 MO
-          // ==========================================
-          const tailleMaxEnOctets = 2 * 1024 * 1024; // 2 Mégaoctets (Mo)
-          
-          if (file.size > tailleMaxEnOctets) {
-            // On calcule le poids réel pour l'afficher dans le message d'erreur
-            const poidsReel = (file.size / (1024 * 1024)).toFixed(1); 
-            alert(`⚠️ Fichier trop lourd ! Ta photo fait ${poidsReel} Mo.\n\nLa limite est de 2 Mo maximum pour garder ton site ultra-rapide.\nMerci de la compresser avant de l'envoyer.`);
-            return; // 🛑 On coupe le moteur ici, rien ne part vers Firebase !
+          if (file.size > 2 * 1024 * 1024) {
+            alert("Fichier trop lourd (max 2Mo)");
+            btnPhoto.disabled = false;
+            btnPhoto.textContent = "Envoyer";
+            return;
           }
-          // ==========================================
 
-          btnPhoto.textContent = "Téléchargement..."; btnPhoto.disabled = true;
           const storageRef = ref(storage, 'galerie/' + Date.now() + '-' + file.name);
           await uploadBytes(storageRef, file);
           const urlPhoto = await getDownloadURL(storageRef);
-          await addDoc(collection(db, "galerie"), { url: urlPhoto, caption: caption, ordre: ordre });
+          
+          await addDoc(collection(db, "galerie"), { 
+            url: urlPhoto, 
+            caption: caption, 
+            ordre: ordreSaisi 
+          });
         }
         
         document.getElementById('photo-success').style.display = 'block';
         setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; }, 3000);
         document.getElementById('btn-cancel-photo').click();
-        chargerListePhotos();
-      } catch (error) { alert("Erreur."); } 
-      finally { btnPhoto.textContent = "Envoyer"; btnPhoto.disabled = false; }
+        chargerListePhotos(); // Cette fonction va aussi mettre à jour le prochain numéro par défaut
+
+      } catch (error) {
+        console.error(error);
+        alert("Erreur lors de l'opération.");
+      } finally {
+        btnPhoto.disabled = false;
+        btnPhoto.textContent = "Envoyer";
+      }
     });
 
+    // --- MISE À JOUR DU NUMÉRO PAR DÉFAUT ---
+    // Modifie ta fonction chargerListePhotos() pour qu'elle calcule le prochain numéro
+    async function chargerListePhotos() {
+      const liste = document.getElementById('liste-photos');
+      const snap = await getDocs(collection(db, "galerie"));
+      liste.innerHTML = '';
+      
+      let photosTableau = [];
+      snap.forEach(doc => { photosTableau.push({ id: doc.id, ...doc.data() }); });
+      photosTableau.sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
+
+      // On calcule le prochain numéro (Max + 1)
+      const dernierOrdre = photosTableau.length > 0 ? photosTableau[photosTableau.length - 1].ordre : 0;
+      if (!photoAEditerId) {
+        document.getElementById('photo-ordre').value = dernierOrdre + 1;
+      }
+
+      photosTableau.forEach(photo => {
+        const li = document.createElement('li');
+        li.className = 'admin-list-item';
+        li.innerHTML = `
+          <div style="display:flex; align-items:center;">
+            <span style="font-weight:bold; margin-right:15px; color:#d4af37;">#${photo.ordre}</span>
+            <img src="${photo.url}" alt="Aperçu">
+            <div><small>${photo.caption || 'Sans légende'}</small></div>
+          </div>
+          <div class="action-btns">
+            <button class="btn-editer">✏️</button>
+            <button class="btn-supprimer">🗑️</button>
+          </div>
+        `;
+        
+        // ... (garde tes event listeners btn-editer et btn-supprimer ici)
+        li.querySelector('.btn-editer').addEventListener('click', () => {
+          photoAEditerId = photo.id;
+          document.getElementById('titre-form-photo').textContent = "Modifier la Photo";
+          document.getElementById('btn-submit-photo').textContent = "💾 Mettre à jour";
+          document.getElementById('btn-cancel-photo').classList.remove('hidden');
+          document.getElementById('box-photo-file').classList.add('hidden');
+          document.getElementById('photo-file').required = false;
+          document.getElementById('photo-caption').value = photo.caption || '';
+          document.getElementById('photo-ordre').value = photo.ordre;
+        });
+
+        li.querySelector('.btn-supprimer').addEventListener('click', async () => {
+          if (confirm('Supprimer cette photo ?')) {
+            await deleteDoc(doc(db, "galerie", photo.id));
+            try { await deleteObject(ref(storage, photo.url)); } catch(e) {}
+            chargerListePhotos();
+          }
+        });
+
+        liste.appendChild(li);
+      });
+    }
   </script>
 </body>
 </html>
+
 
