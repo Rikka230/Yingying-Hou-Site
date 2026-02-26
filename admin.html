@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Administration — Yingying HOU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    body { background-color: #f4f4f4; }
+    .admin-container { max-width: 1000px; margin: 50px auto; }
+    .admin-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+    .form-group input:focus { border-color: var(--yellow); outline: none; }
+    .form-group input[type="file"] { padding: 9px; background: #fafafa; cursor: pointer; }
+    .header-admin { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .hidden { display: none !important; }
+    .success-msg { color: green; background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    .error-msg { color: red; background: #ffebee; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    
+    /* Styles pour les listes de gestion */
+    .admin-list { list-style: none; padding: 0; margin: 0; }
+    .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+    .admin-list-item:last-child { border-bottom: none; }
+    .admin-list-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
+    .action-btns button { border: none; background: #f4f4f4; cursor: pointer; border-radius: 5px; padding: 8px 12px; margin-left: 5px; font-size: 1.1rem; transition: 0.2s; }
+    .action-btns button:hover { background: #e0e0e0; }
+  </style>
+</head>
+<body>
+
+  <main class="wrap admin-container">
+    
+    <div id="login-screen" class="admin-card" style="max-width: 500px; margin: 50px auto;">
+      <h1 style="text-align: center; margin-bottom: 30px;">Espace Privé</h1>
+      <div id="login-error" class="error-msg"></div>
+      
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="ton@email.com" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+      <button id="btn-login" class="btn" style="width: 100%;">Se connecter</button>
+      <a href="/" style="display: block; text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">Retour au site</a>
+    </div>
+
+    <div id="dashboard-screen" class="hidden">
+      <div class="header-admin">
+        <h2>👋 Tableau de bord</h2>
+        <button id="btn-logout" class="btn ghost outline" style="padding: 8px 15px; font-size: 0.8rem;">Déconnexion</button>
+      </div>
+
+      <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+        
+        <div class="admin-card" style="flex: 1; min-width: 300px;">
+          <h3 id="titre-form-role" style="margin-bottom: 20px; border-bottom: 2px solid var(--yellow); display: inline-block; padding-bottom: 5px;">Ajouter un Rôle</h3>
+          <div id="role-success" class="success-msg">✅ Opération réussie !</div>
+          
+          <form id="form-role">
+            <div class="form-group">
+              <label>Nom du Rôle</label>
+              <input type="text" id="role-titre" required>
+            </div>
+            <div class="form-group">
+              <label>Nom du Projet</label>
+              <input type="text" id="role-projet" required>
+            </div>
+            <div style="display: flex; gap: 15px;">
+              <div class="form-group" style="flex: 1;">
+                <label>Catégorie</label>
+                <select id="role-type" required>
+                  <option value="Série TV">Série TV</option>
+                  <option value="Court métrage">Court métrage</option>
+                  <option value="Long métrage">Long métrage</option>
+                  <option value="Pub">Pub</option>
+                  <option value="Théâtre">Théâtre</option>
+                  <option value="Voix">Voix</option>
+                  <option value="Réalisation">Réalisation</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Année</label>
+                <input type="number" id="role-annee" value="2025" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Réalisateur (Optionnel)</label>
+              <input type="text" id="role-real">
+            </div>
+            <div class="form-group">
+              <label>Lien Vidéo / IMDb (Optionnel)</label>
+              <input type="url" id="role-lien">
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button type="submit" id="btn-submit-role" class="btn" style="flex: 1;">Publier ce rôle</button>
+              <button type="button" id="btn-cancel-edit" class="btn ghost hidden" style="background: #eee; color: #333;">Annuler</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="admin-card" style="flex: 1; min-width: 300px;">
+          <h3 style="margin-bottom: 20px; border-bottom: 2px solid var(--yellow); display: inline-block; padding-bottom: 5px;">Ajouter une Photo</h3>
+          <div id="photo-success" class="success-msg">✅ Opération réussie !</div>
+          
+          <form id="form-photo">
+            <div class="form-group">
+              <label>Fichier Image (.jpg, .png)</label>
+              <input type="file" id="photo-file" accept="image/*" required>
+            </div>
+            <div class="form-group">
+              <label>Légende (Optionnel)</label>
+              <input type="text" id="photo-caption">
+            </div>
+            <button type="submit" id="btn-photo" class="btn" style="width: 100%;">Envoyer la photo</button>
+          </form>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">
+        
+        <div class="admin-card" style="flex: 1; min-width: 300px; padding: 20px;">
+          <h3 style="margin-bottom: 15px;">🛠 Gérer les Rôles</h3>
+          <ul id="liste-roles" class="admin-list">
+            <li style="padding: 10px; color: #666;">Chargement des rôles...</li>
+          </ul>
+        </div>
+
+        <div class="admin-card" style="flex: 1; min-width: 300px; padding: 20px;">
+          <h3 style="margin-bottom: 15px;">🛠 Gérer la Galerie</h3>
+          <ul id="liste-photos" class="admin-list">
+            <li style="padding: 10px; color: #666;">Chargement des photos...</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    // Ajout de doc, updateDoc, deleteDoc et getDocs !
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    // Ajout de deleteObject pour effacer les images !
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+    // ⚠️ METS TES CLÉS ICI
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+      authDomain: "kukyying-f1c95.firebaseapp.com",
+      projectId: "kukyying-f1c95",
+      storageBucket: "kukyying-f1c95.firebasestorage.app",
+      messagingSenderId: "681899915263",
+      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // Variables globales d'état
+    let roleAEditerId = null; // Mémorise le rôle qu'on est en train de modifier
+
+    // --- SÉCURITÉ ---
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('dashboard-screen').classList.remove('hidden');
+        // Quand on est connecté, on charge automatiquement les listes !
+        chargerListeRoles();
+        chargerListePhotos();
+      } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('dashboard-screen').classList.add('hidden');
+      }
+    });
+
+    document.getElementById('btn-login').addEventListener('click', () => {
+      const e = document.getElementById('email').value;
+      const p = document.getElementById('password').value;
+      signInWithEmailAndPassword(auth, e, p).catch(() => { document.getElementById('login-error').style.display = 'block'; });
+    });
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+    // ==========================================
+    // MODULE RÔLES (AJOUT / MODIFICATION / SUPPRESSION)
+    // ==========================================
+
+    // 1. Afficher les rôles dans la liste
+    async function chargerListeRoles() {
+      const liste = document.getElementById('liste-roles');
+      const snap = await getDocs(collection(db, "role"));
+      liste.innerHTML = '';
+      
+      let rolesTableau = [];
+      snap.forEach(doc => { rolesTableau.push({ id: doc.id, ...doc.data() }); });
+      rolesTableau.sort((a, b) => (b.annee || 0) - (a.annee || 0)); // Tri par année
+
+      rolesTableau.forEach(role => {
+        const li = document.createElement('li');
+        li.className = 'admin-list-item';
+        li.innerHTML = `
+          <div><strong>${role.projet}</strong> (${role.annee})<br><small>${role.titre}</small></div>
+          <div class="action-btns">
+            <button class="btn-editer" title="Modifier">✏️</button>
+            <button class="btn-supprimer" title="Supprimer">🗑️</button>
+          </div>
+        `;
+
+        // Action : Clic sur Editer
+        li.querySelector('.btn-editer').addEventListener('click', () => {
+          roleAEditerId = role.id; // On mémorise l'ID
+          document.getElementById('titre-form-role').textContent = "Modifier le Rôle";
+          document.getElementById('btn-submit-role').textContent = "💾 Mettre à jour";
+          document.getElementById('btn-cancel-edit').classList.remove('hidden');
+          
+          // On remplit le formulaire
+          document.getElementById('role-titre').value = role.titre || '';
+          document.getElementById('role-projet').value = role.projet || '';
+          document.getElementById('role-type').value = role.type || 'Série TV';
+          document.getElementById('role-annee').value = role.annee || '';
+          document.getElementById('role-real').value = role.realisateur || '';
+          document.getElementById('role-lien').value = role.lien || '';
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' }); // Remonte en haut
+        });
+
+        // Action : Clic sur Supprimer
+        li.querySelector('.btn-supprimer').addEventListener('click', async () => {
+          if (confirm(`Es-tu sûr de vouloir effacer le rôle "${role.projet}" ?`)) {
+            await deleteDoc(doc(db, "role", role.id));
+            chargerListeRoles(); // On rafraîchit la liste
+          }
+        });
+
+        liste.appendChild(li);
+      });
+    }
+
+    // 2. Bouton "Annuler la modification"
+    document.getElementById('btn-cancel-edit').addEventListener('click', () => {
+      roleAEditerId = null;
+      document.getElementById('form-role').reset();
+      document.getElementById('titre-form-role').textContent = "Ajouter un Rôle";
+      document.getElementById('btn-submit-role').textContent = "Publier ce rôle";
+      document.getElementById('btn-cancel-edit').classList.add('hidden');
+      document.getElementById('role-annee').value = new Date().getFullYear();
+    });
+
+    // 3. Soumettre le formulaire (Ajout OU Modification)
+    document.getElementById('form-role').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const roleData = {
+        titre: document.getElementById('role-titre').value,
+        projet: document.getElementById('role-projet').value,
+        type: document.getElementById('role-type').value,
+        annee: Number(document.getElementById('role-annee').value),
+        realisateur: document.getElementById('role-real').value,
+        lien: document.getElementById('role-lien').value
+      };
+
+      try {
+        if (roleAEditerId) {
+          // MODIFICATION
+          await updateDoc(doc(db, "role", roleAEditerId), roleData);
+        } else {
+          // AJOUT NORMAL
+          await addDoc(collection(db, "role"), roleData);
+        }
+
+        document.getElementById('role-success').style.display = 'block';
+        setTimeout(() => { document.getElementById('role-success').style.display = 'none'; }, 3000);
+        
+        document.getElementById('btn-cancel-edit').click(); // Réinitialise l'interface
+        chargerListeRoles(); // Met à jour la liste en direct
+
+      } catch (error) { alert("Erreur lors de la sauvegarde."); }
+    });
+
+    // ==========================================
+    // MODULE PHOTOS (AJOUT / SUPPRESSION)
+    // ==========================================
+
+    // 1. Afficher les photos dans la liste
+    async function chargerListePhotos() {
+      const liste = document.getElementById('liste-photos');
+      const snap = await getDocs(collection(db, "galerie"));
+      liste.innerHTML = '';
+      
+      snap.forEach(documentSnapshot => {
+        const photo = documentSnapshot.data();
+        const id = documentSnapshot.id;
+        
+        const li = document.createElement('li');
+        li.className = 'admin-list-item';
+        li.innerHTML = `
+          <div style="display:flex; align-items:center;">
+            <img src="${photo.url}" alt="Aperçu">
+            <div><small>${photo.caption || 'Sans légende'}</small></div>
+          </div>
+          <div class="action-btns">
+            <button class="btn-supprimer" title="Supprimer définitivement">🗑️</button>
+          </div>
+        `;
+
+        // Action : Supprimer une photo (Base de données + Storage)
+        li.querySelector('.btn-supprimer').addEventListener('click', async () => {
+          if (confirm('Attention : Effacer définitivement cette photo du site ?')) {
+            try {
+              // A. On efface le texte de la base de données
+              await deleteDoc(doc(db, "galerie", id));
+              // B. On efface le gros fichier du Storage
+              const imageRef = ref(storage, photo.url);
+              await deleteObject(imageRef);
+            } catch (err) { console.log("L'image était peut-être déjà absente du storage."); }
+            
+            chargerListePhotos(); // On rafraîchit la liste
+          }
+        });
+
+        liste.appendChild(li);
+      });
+    }
+
+    // 2. Ajouter une photo (identique à avant, mais met à jour la liste)
+    document.getElementById('form-photo').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = document.getElementById('photo-file').files[0];
+      const caption = document.getElementById('photo-caption').value;
+      const btnPhoto = document.getElementById('btn-photo');
+      if (!file) return;
+
+      try {
+        btnPhoto.textContent = "Téléchargement..."; btnPhoto.disabled = true;
+        const storageRef = ref(storage, 'galerie/' + Date.now() + '-' + file.name);
+        await uploadBytes(storageRef, file);
+        const urlPhoto = await getDownloadURL(storageRef);
+        
+        await addDoc(collection(db, "galerie"), { url: urlPhoto, caption: caption });
+        
+        document.getElementById('photo-success').style.display = 'block';
+        setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; }, 3000);
+        document.getElementById('form-photo').reset();
+        
+        chargerListePhotos(); // Met à jour la liste des photos en direct !
+
+      } catch (error) { alert("Erreur d'envoi."); } 
+      finally { btnPhoto.textContent = "Envoyer la photo"; btnPhoto.disabled = false; }
+    });
+
+  </script>
+</body>
+</html>

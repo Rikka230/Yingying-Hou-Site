@@ -39,9 +39,9 @@
   <main id="main">
     <section class="hero">
       <picture>
-        <source media="(max-width: 700px)" srcset="PHOTO/banniere V3.jpg" />
+        <source media="(max-width: 700px)" srcset="PHOTO/banniere-mobile.jpg" />
         
-        <img src="PHOTO/banniere V3.jpg" alt="Portrait de l'actrice Yingying HOU" />
+        <img src="PHOTO/banniere V2.jpg" alt="Portrait de l'actrice Yingying HOU" />
       </picture>
       <div class="hero-copy">
         <h1>Yingying HOU — <span class="accent">Actrice</span></h1>
@@ -71,29 +71,11 @@
         </article>
 
         <article class="bento-card bento-roles roles-highlight">
-          <h2>Rôles récents</h2>
-          <div id="role-tabs">
-            
-            <ul class="badges role-page active">
-              <li>💖 Assistante Star — <b>GLAMSQUAD</b> (Série TV 2025)</li>
-              <li>💖 Ying (Mère) — <b>MÉTÉORES</b> (Court-métrage 2025)</li>
-              <li>💖 Rôle Principal — <b>Pub ORANGE-Samsung</b> (2025)</li>
-              <li>💖 Femme Chinoise — <b>Kotowari</b> (Film 2024)</li>
-              <li>💖 Kim — <b>Plus Belle La Vie</b> (Série 2022)</li>
-            </ul>
-            
-            <ul class="badges role-page">
-              <li>💖 Nadia — <b>Mère Indigne</b> (Série 2023)</li>
-              <li>💖 Serveuse — <b>5-Cent Life</b> (Film 2018)</li>
-              <li>💖 La Maman — <b>Je suis une lessive</b> (Court 2017)</li>
-            </ul>
-
-            <div class="role-pagination">
-              <button class="role-tab-btn active">1</button>
-              <button class="role-tab-btn">2</button>
-            </div>
-          </div>
-        </article>
+  <h2>Rôles récents</h2>
+  <div id="role-tabs">
+    <p style="padding: 20px; color: var(--text); opacity: 0.7;">Chargement des rôles...</p>
+  </div>
+</article>
 
         <article class="bento-card bento-youtube">
           <h2>Apparitions & Extraits</h2>
@@ -174,8 +156,104 @@
       </nav>
     </div>
   </footer>
+  <script type="module">
+    console.log("▶️ ÉTAPE 1 : Démarrage du script...");
 
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    console.log("▶️ ÉTAPE 2 : Outils importés avec succès.");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+      authDomain: "kukyying-f1c95.firebaseapp.com",
+      projectId: "kukyying-f1c95",
+      storageBucket: "kukyying-f1c95.firebasestorage.app",
+      messagingSenderId: "681899915263",
+      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca",
+      measurementId: "G-7F34MBVKPN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    console.log("▶️ ÉTAPE 3 : Firebase est connecté.");
+
+    async function chargerRole() {
+      console.log("▶️ ÉTAPE 4 : On lance la recherche dans la collection 'role'...");
+      try {
+        const querySnapshot = await getDocs(collection(db, "role"));
+        console.log("▶️ ÉTAPE 5 : Réponse de Firebase reçue !");
+        
+        let roles = []; 
+        querySnapshot.forEach((doc) => roles.push(doc.data()));
+        console.log(`▶️ ÉTAPE 6 : ${roles.length} rôle(s) trouvé(s) dans la base.`);
+
+        roles.sort((a, b) => (b.annee || 0) - (a.annee || 0));
+
+        const conteneurOnglets = document.getElementById('role-tabs');
+        
+        if (roles.length > 0) {
+          conteneurOnglets.innerHTML = ''; 
+          console.log("▶️ ÉTAPE 7 : Ancien contenu effacé.");
+        } else {
+          console.log("⚠️ La base est vide, on garde l'ancien contenu pour ne pas avoir de trou.");
+          return; // On arrête là si c'est vide
+        }
+
+        const taillePage = 5;
+        const nombrePages = Math.ceil(roles.length / taillePage);
+
+        for (let i = 0; i < nombrePages; i++) {
+          const ul = document.createElement('ul');
+          ul.className = i === 0 ? 'badges role-page active' : 'badges role-page';
+          
+          const rolesDeLaPage = roles.slice(i * taillePage, (i + 1) * taillePage);
+          
+          rolesDeLaPage.forEach(unRole => {
+            const li = document.createElement('li');
+            li.innerHTML = `💖 ${unRole.titre} — <b>${unRole.projet}</b> (${unRole.type} ${unRole.annee || ''})`;
+            ul.appendChild(li);
+          });
+          
+          conteneurOnglets.appendChild(ul);
+        }
+
+        if (nombrePages > 1) {
+          const paginationDiv = document.createElement('div');
+          paginationDiv.className = 'role-pagination';
+          
+          for (let i = 0; i < nombrePages; i++) {
+            const btn = document.createElement('button');
+            btn.className = i === 0 ? 'role-tab-btn active' : 'role-tab-btn';
+            btn.textContent = i + 1;
+            paginationDiv.appendChild(btn);
+          }
+          conteneurOnglets.appendChild(paginationDiv);
+
+          const btns = paginationDiv.querySelectorAll('.role-tab-btn');
+          const pages = conteneurOnglets.querySelectorAll('.role-page');
+          
+          btns.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+              btns.forEach(b => b.classList.remove('active'));
+              pages.forEach(p => p.classList.remove('active'));
+              btn.classList.add('active');
+              pages[index].classList.add('active');
+            });
+          });
+        }
+
+        console.log("✅ ÉTAPE FINALE : Rôles injectés avec succès !");
+
+      } catch (erreur) {
+        console.error("❌ ERREUR FATALE :", erreur);
+      }
+    }
+    
+    chargerRole();
+  </script>
+  
   <script src="js/main.js" defer></script>
+
   <div class="scroll-hint left-hint" aria-hidden="true">
    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5 5 5-5"/></svg>
    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="chevron-bottom"><path d="m7 11 5 5 5-5"/></svg>
@@ -185,6 +263,7 @@
    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5 5 5-5"/></svg>
    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="chevron-bottom"><path d="m7 11 5 5 5-5"/></svg>
   </div>
+
   <div class="scroll-hint-mobile" aria-hidden="true">
     <div class="mouse-icon">
       <div class="wheel"></div>
@@ -194,7 +273,5 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-bottom-mobile"><path d="m7 13 5 5 5-5"/></svg>
     </div>
   </div>
-</body>
-</html>
 </body>
 </html>
