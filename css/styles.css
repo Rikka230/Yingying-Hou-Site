@@ -6,7 +6,6 @@
 html,body{height:100%}
 body {
   margin: 0; 
-  /* On active la nouvelle typographie ici : */
   font: 16px/1.6 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   color: var(--text); 
   background: var(--bg); 
@@ -40,11 +39,11 @@ a.link{color:#1a66ff}
 
 .btn{display:inline-block;background:var(--yellow);color:var(--yellow-ink);padding:10px 16px;border-radius:12px;border:2px solid var(--yellow);font-weight:700;transition:all .2s ease}
 .btn:hover {
-  transform: translateY(-2px); /* Le bouton se soulève */
-  box-shadow: 0 8px 20px rgba(255,193,7,.3); /* L'ombre jaune s'étend */
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,193,7,.3);
 }
 .btn:active {
-  transform: translateY(1px); /* Effet d'enfoncement physique au clic */
+  transform: translateY(1px);
 }
 .btn.ghost{background:#fff;color:var(--text);border-color:var(--line)}
 .btn.outline{background:transparent;border:2px solid var(--text);color:var(--text)}
@@ -58,19 +57,11 @@ a.link{color:#1a66ff}
 .split{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 .info .kv { list-style: none; padding: 0; margin: 0; }
 .info .kv li { 
-  display: flex; 
-  justify-content: space-between; 
-  gap: 16px; /* FIX : Force un bel espace de 16 pixels entre la gauche et la droite */
-  border-bottom: 1px dashed var(--line); 
-  padding: 12px 0; 
+  display: flex; justify-content: space-between; gap: 16px; 
+  border-bottom: 1px dashed var(--line); padding: 12px 0; 
 }
-.info .kv span { 
-  color: var(--muted); 
-  flex-shrink: 0; /* FIX : Empêche le mot de gauche (ex: "Langues") d'être écrasé */
-}
-.info .kv b { 
-  text-align: right; /* FIX : Pousse le texte joliment vers la droite */
-}
+.info .kv span { color: var(--muted); flex-shrink: 0; }
+.info .kv b { text-align: right; }
 
 /* TABLEAU FILMOGRAPHIE */
 .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--shadow); }
@@ -93,283 +84,94 @@ a.link{color:#1a66ff}
 /* =========================================
    GALERIE MODERNE (Masonry & Overlay)
 ========================================= */
-.gallery-grid {
-  column-count: 3; /* 3 colonnes sur PC */
-  column-gap: 20px;
-  padding: 20px 0;
-}
-
+.gallery-grid { column-count: 3; column-gap: 20px; padding: 20px 0; }
 .gallery-item {
-  display: block;
-  position: relative;
-  margin-bottom: 20px;
-  border-radius: 20px;
-  overflow: hidden;
-  break-inside: avoid; /* Empêche l'image de se couper entre deux colonnes */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  display: block; position: relative; margin-bottom: 20px; border-radius: 20px; overflow: hidden; break-inside: avoid;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+.gallery-item img { width: 100%; height: auto; display: block; transition: transform 0.6s ease; }
 
-.gallery-item img {
-  width: 100%;
-  height: auto;
-  display: block;
-  transition: transform 0.6s ease;
-}
-
-/* L'effet au survol */
 .item-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 193, 7, 0.2); /* Voile jaune très léger */
-  backdrop-filter: blur(4px); /* Flou artistique */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  position: absolute; inset: 0; background: rgba(255, 193, 7, 0.2); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
 }
+.item-overlay span { background: #fff; color: var(--text); padding: 10px 20px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; transform: translateY(20px); transition: transform 0.3s ease; }
 
-.item-overlay span {
-  background: #fff;
-  color: var(--text);
-  padding: 10px 20px;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transform: translateY(20px);
-  transition: transform 0.3s ease;
-}
-
-.gallery-item:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-}
-
-.gallery-item:hover img {
-  transform: scale(1.05);
-}
-
-.gallery-item:hover .item-overlay {
-  opacity: 1;
-}
-
-.gallery-item:hover .item-overlay span {
-  transform: translateY(0);
-}
+.gallery-item:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+.gallery-item:hover img { transform: scale(1.05); }
+.gallery-item:hover .item-overlay { opacity: 1; }
+.gallery-item:hover .item-overlay span { transform: translateY(0); }
 
 /* =========================================
-   FIX LIGHTBOX (Boutons et Positionnement)
+   FIX LIGHTBOX (CLOUÉE À L'ÉCRAN)
 ========================================= */
 .lightbox {
-  position: fixed !important; /* FIX : Force la position peu importe le défilement */
-  inset: 0; /* Prend toute la place */
-  background: rgba(255, 255, 255, 0.95); /* Fond blanc translucide */
+  position: fixed !important; 
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(255, 255, 255, 0.95); 
   backdrop-filter: blur(15px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999 !important; /* FIX : Assure qu'elle passe au-dessus de tout */
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  overflow: auto; /* FIX : Permet le zoom fluide sur mobile */
-  -webkit-overflow-scrolling: touch;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 99999 !important; /* Passe au-dessus de tout le reste */
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
 }
+.lightbox:not([aria-hidden="true"]) { opacity: 1; pointer-events: auto; }
 
-.lightbox:not([aria-hidden="true"]) {
-  opacity: 1;
-  pointer-events: auto;
-}
+.lb-figure { position: relative; max-width: 90vw; max-height: 85vh; display: flex; flex-direction: column; align-items: center; }
+.lb-figure img { max-width: 100%; max-height: 80vh; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.15); border: 8px solid #fff; }
 
-/* On place la figure (l'image) au centre */
-.lb-figure {
-  position: relative;
-  max-width: 90vw;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.lb-figure img {
-  max-width: 100%;
-  max-height: 80vh;
-  border-radius: 20px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
-  border: 8px solid #fff;
-}
-
-/* Positionnement des boutons */
 .lb-close, .lb-prev, .lb-next {
-  position: absolute; /* Ils se positionnent par rapport à l'écran */
-  background: #fff !important;
-  color: #111 !important;
-  border: none !important;
-  width: 50px;
-  height: 50px;
-  border-radius: 50% !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-  transition: all 0.2s ease;
-  z-index: 10000;
-  font-size: 24px;
+  position: absolute; background: #fff !important; color: #111 !important; border: none !important;
+  width: 50px; height: 50px; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transition: all 0.2s ease; z-index: 10000; font-size: 24px;
 }
+.lb-close { top: 30px; right: 30px; }
+.lb-prev { left: 30px; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 30px; top: 50%; transform: translateY(-50%); }
 
-.lb-close {
-  top: 30px;
-  right: 30px;
-}
+.lb-close:hover, .lb-prev:hover, .lb-next:hover { background: var(--yellow) !important; transform: scale(1.1); }
 
-.lb-prev {
-  left: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.lb-next {
-  right: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.lb-close:hover, .lb-prev:hover, .lb-next:hover {
-  background: var(--yellow) !important;
-  transform: scale(1.1);
-}
-
-/* Sur mobile on écarte un peu moins les flèches */
 @media (max-width: 700px) {
   .lb-prev { left: 10px; }
   .lb-next { right: 10px; }
   .lb-close { top: 20px; right: 20px; }
 }
 
-.lb-figure img {
-  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
-  border-radius: 20px;
-  border: 8px solid #fff;
-}
+.lb-figure figcaption { color: var(--text) !important; font-weight: 600; margin-top: 20px; font-size: 1.1rem; }
 
-.lb-figure figcaption {
-  color: var(--text) !important;
-  font-weight: 600;
-  margin-top: 20px;
-  font-size: 1.1rem;
-}
-
-.lb-prev, .lb-next, .lb-close {
-  background: #fff !important;
-  color: var(--text) !important;
-  border: none !important;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
-  width: 50px;
-  height: 50px;
-  border-radius: 50% !important;
-  font-size: 24px !important;
-}
-
-/* Responsive */
+/* Responsive Galerie */
 @media (max-width: 900px) { .gallery-grid { column-count: 2; } }
 @media (max-width: 500px) { .gallery-grid { column-count: 1; } }
 
 /* BENTO GRID ACCUEIL */
 .bento-grid { display: grid; grid-template-columns: 1.8fr 1fr; grid-auto-rows: minmax(auto, auto); gap: 20px; }
 .bento-card { 
-  background: var(--card); 
-  border: none; /* On supprime la bordure stricte */
-  border-radius: 20px; 
-  padding: 24px; 
-  box-shadow: 0 8px 30px rgba(17,19,24,.04); /* Ombre beaucoup plus douce et diffuse */
-  display: flex; 
-  flex-direction: column; 
-  min-width: 0; 
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Prépare l'animation */
+  background: var(--card); border: none; border-radius: 20px; padding: 24px; 
+  box-shadow: 0 8px 30px rgba(17,19,24,.04); display: flex; flex-direction: column; min-width: 0; transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-/* L'effet Premium : la carte se soulève au survol sur PC */
-@media (hover: hover) {
-  .bento-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(17,19,24,.08);
-  }
-}
+@media (hover: hover) { .bento-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(17,19,24,.08); } }
 .bento-card h2 { margin-top: 0; margin-bottom: 16px; font-size: 1.4rem; border-bottom: none; }
 .bento-showreel { grid-column: 1 / 2; grid-row: 1 / 2; }
 .bento-roles { grid-column: 2 / 3; grid-row: 1 / 3; }
 .bento-youtube { grid-column: 1 / 2; grid-row: 2 / 3; }
 .bento-awards { grid-column: 1 / 3; grid-row: 3 / 4; }
 
-/* ONGLETS INTELLIGENTS (RÔLES & RÉCOMPENSES) - VERSION PREMIUM */
-.roles-highlight { 
-  background: linear-gradient(135deg, #fffcf2, #fff9e6); /* Fond crème très doux */
-  /* On a supprimé la bordure jaune ici ! */
-}
-.roles-highlight h2 { color: var(--text); } /* Titre sombre pour l'élégance */
-
+/* ONGLETS INTELLIGENTS */
+.roles-highlight { background: linear-gradient(135deg, #fffcf2, #fff9e6); }
+.roles-highlight h2 { color: var(--text); }
 .bento-roles, .bento-awards { display: flex; flex-direction: column; }
 #role-tabs, #award-tabs { display: flex; flex-direction: column; flex-grow: 1; }
 
-.role-page { 
-  display: none; 
-  flex-direction: column; 
-  justify-content: flex-start;
-  gap: 12px; 
-  margin: 0; padding: 0; 
-  animation: fadeIn 0.4s ease; 
-}
+.role-page { display: none; flex-direction: column; justify-content: flex-start; gap: 12px; margin: 0; padding: 0; animation: fadeIn 0.4s ease; }
 .role-page.active { display: flex; }
-
-/* Design épuré des bulles de rôles */
-.role-page li { 
-  background: #ffffff; 
-  border: 1px solid rgba(0,0,0,0.03); /* Bordure quasi invisible */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02); /* Ombre de séparation très légère */
-  border-radius: 12px; 
-  padding: 12px 16px; 
-  font-size: 0.95rem; 
-  line-height: 1.4; 
-  transition: transform 0.2s ease, box-shadow 0.2s ease; 
-}
-
-/* Animation fluide : le rôle glisse vers la droite au survol */
-.role-page li:hover { 
-  transform: translateX(6px); 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-/* On applique la même structure aux deux boîtes */
-.bento-roles, .bento-awards { display: flex; flex-direction: column; }
-#role-tabs, #award-tabs { display: flex; flex-direction: column; flex-grow: 1; }
-
-.role-page { 
-  display: none; 
-  flex-direction: column; 
-  justify-content: flex-start;
-  gap: 12px; 
-  margin: 0; padding: 0; 
-  animation: fadeIn 0.4s ease; 
-}
-.role-page.active { display: flex; }
-.role-page li { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 12px; padding: 10px 16px; font-size: 0.95rem; line-height: 1.4; transition: transform 0.2s ease, background 0.2s ease; }
-.role-page li:hover { transform: translateX(4px); background: #fff; }
-
-.role-pagination { 
-  display: flex; 
-  justify-content: center; 
-  gap: 10px; 
-  margin-top: auto; /* Pousse les numéros tout en bas */
-  padding-top: 15px; 
-}
+.role-page li { background: #ffffff; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 10px rgba(0,0,0,0.02); border-radius: 12px; padding: 12px 16px; font-size: 0.95rem; line-height: 1.4; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.role-page li:hover { transform: translateX(6px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.role-pagination { display: flex; justify-content: center; gap: 10px; margin-top: auto; padding-top: 15px; }
 .role-tab-btn { background: transparent; border: 2px solid rgba(255, 193, 7, 0.4); color: #333; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
 .role-tab-btn:hover { border-color: var(--yellow); }
 .role-tab-btn.active { background: var(--yellow); color: var(--yellow-ink); border-color: var(--yellow); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* SLIDER YOUTUBE (AVEC FLÈCHES) */
+/* SLIDER YOUTUBE */
 .slider-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
 .yt-slider-container { display: flex; gap: 16px; width: 100%; overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .yt-slider-container::-webkit-scrollbar { display: none; }
@@ -422,541 +224,170 @@ a.link{color:#1a66ff}
   .prev-btn { left: -10px; width: 36px; height: 36px; font-size: 22px; }
   .next-btn { right: -10px; width: 36px; height: 36px; font-size: 22px; }
   .yt-item { flex: 0 0 100%; }
+  
   /* --- Correction Filmographie Mobile --- */
-.table thead { display: none; } /* On cache l'en-tête classique */
-
-.table-wrap { border: 0; background: transparent; box-shadow: none; }
-
-.table tbody tr {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg) !important;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow);
+  .table thead { display: none; }
+  .table-wrap { border: 0; background: transparent; box-shadow: none; }
+  .table tbody tr { display: flex; flex-direction: column; background: var(--bg) !important; border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .table tbody td { border: 0; padding: 8px 0; display: flex; align-items: flex-start; justify-content: flex-start; }
+  .table tbody td::before { content: attr(data-label) " : "; min-width: 120px; color: var(--muted); font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
+  .table tbody td:nth-child(1)::before, .table tbody td:nth-child(2)::before { display: none; }
+  .table tbody td:nth-child(2) { font-size: 1.4rem; font-weight: 800; margin-top: -5px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); margin-bottom: 10px; color: var(--text); }
+  .table tbody td:nth-child(1) { font-weight: 700; color: var(--muted); font-size: 0.9rem; padding-bottom: 0; }
+  .table tbody td:nth-child(5) { margin-top: 10px; padding: 6px 12px; background: rgba(255, 193, 7, 0.15) !important; border-radius: 8px; display: inline-flex; align-self: flex-start; font-weight: 700; font-size: 0.85rem; }
+  .table tbody td:nth-child(5)::before { display: none; }
+  .table tbody td:last-child { justify-content: flex-end; margin-top: -38px; }
+  .table tbody td:last-child::before { display: none; }
 }
 
-.table tbody td {
-  border: 0;
-  padding: 8px 0;
-  display: flex;
-  align-items: flex-start; /* Aligne le texte en haut si plusieurs lignes */
-  justify-content: flex-start;
-}
-
-/* Génère l'étiquette à gauche à partir du data-label */
-.table tbody td::before {
-  content: attr(data-label) " : ";
-  min-width: 120px; /* Espace fixe pour les noms de colonnes */
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-
-/* Masquage des étiquettes inutiles pour le Titre et l'Année pour garder la hiérarchie */
-.table tbody td:nth-child(1)::before,
-.table tbody td:nth-child(2)::before { display: none; }
-
-/* Style du Titre (2ème colonne) */
-.table tbody td:nth-child(2) {
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin-top: -5px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed var(--line);
-  margin-bottom: 10px;
-  color: var(--text);
-}
-
-/* Style de l'Année (1ère colonne) */
-.table tbody td:nth-child(1) {
-  font-weight: 700;
-  color: var(--muted);
-  font-size: 0.9rem;
-  padding-bottom: 0;
-}
-
-/* Style de la Catégorie (5ème colonne) */
-.table tbody td:nth-child(5) {
-  margin-top: 10px;
-  padding: 6px 12px;
-  background: rgba(255, 193, 7, 0.15) !important;
-  border-radius: 8px;
-  display: inline-flex;
-  align-self: flex-start;
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-.table tbody td:nth-child(5)::before { display: none; }
-
-/* Bouton Voir tout en bas à droite */
-.table tbody td:last-child {
-  justify-content: flex-end;
-  margin-top: -38px; /* Remonte au niveau de la catégorie */
-}
-.table tbody td:last-child::before { display: none; }
 @media (max-width: 520px) { .gallery { column-count: 2; } }
 @media (max-width: 360px) { .gallery { column-count: 1; } }
 
 /* =========================================
    CORRECTIONS ERGONOMIE MOBILE & DESIGN
 ========================================= */
+.short { margin-bottom: 16px; line-height: 1.6; }
+.info { background: var(--card); padding: 24px; border-radius: 16px; border: 1px solid var(--line); }
 
-/* 1. Aération de la Biographie (PC & Mobile) */
-.short {
-  margin-bottom: 16px; /* Donne de l'air entre chaque phrase */
-  line-height: 1.6;
-}
-.info {
-  background: var(--card); /* Fait ressortir le bloc Infos Pro */
-  padding: 24px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-}
-
-/* 2. Réglages spécifiques aux téléphones */
 @media (max-width: 700px) {
-  
-  /* --- La Bannière (Hero) --- */
-  .hero picture, .hero img {
-    height: 280px !important; /* Force une vraie hauteur pour voir les visages */
-    object-fit: cover !important; 
-    object-position: center top !important;
-  }
+  .hero picture, .hero img { height: 280px !important; object-fit: cover !important; object-position: center top !important; }
   .hero-copy {
-  background: var(--bg) !important; /* Utilise la variable blanche par défaut */
-  backdrop-filter: none !important; /* Supprime le flou */
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.06);
-  padding: 40px 48px !important;
-  transform: translateY(-60px);
-  transition: transform 0.3s ease;
-}
-  
-  /* --- Les Onglets (Rôles & Récompenses) --- */
-  .role-pagination {
-    padding-top: 20px !important;
-    margin-top: 20px !important;
-    border-top: 1px dashed rgba(0, 0, 0, 0.15); /* Ligne séparatrice pour structurer */
-    gap: 16px !important; /* Plus d'espace entre les boutons */
+    margin-top: -40px !important; 
+    background: var(--bg) !important; /* OPAQUE */
+    backdrop-filter: none !important; /* OPAQUE */
+    border-radius: 24px 24px 0 0; position: relative; z-index: 2; padding-top: 30px !important;
   }
-  .role-tab-btn {
-    width: 44px !important; /* Boutons plus grands, parfaits pour le tactile */
-    height: 44px !important;
-    font-size: 1.1rem !important;
-    border-radius: 12px !important;
-  }
+  .role-pagination { padding-top: 20px !important; margin-top: 20px !important; border-top: 1px dashed rgba(0, 0, 0, 0.15); gap: 16px !important; }
+  .role-tab-btn { width: 44px !important; height: 44px !important; font-size: 1.1rem !important; border-radius: 12px !important; }
 }
 
-/* 3. Aération spéciale "Infos Pro" sur petit écran */
 @media (max-width: 560px) {
-  .info .kv li {
-    display: flex;
-    flex-direction: column; /* Place le titre "Langues" AU-DESSUS du texte, plus à côté */
-    gap: 4px;
-    padding: 12px 0;
-  }
-  .info .kv span {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--muted);
-  }
-  .info .kv b {
-    font-size: 1.05rem;
-  }
+  .info .kv li { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; }
+  .info .kv span { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .info .kv b { font-size: 1.05rem; }
 }
 
-/* =========================================
-   CORRECTIONS ERGONOMIE MOBILE (Boutons, Marges, Bio)
-========================================= */
 @media (max-width: 700px) {
-  
-  /* 1. Boutons (CTA) empilés et larges pour le tactile */
-  .cta {
-    display: flex;
-    flex-direction: column; /* Empile de haut en bas */
-    gap: 12px;
-    width: 100%;
-  }
-  .cta .btn {
-    width: 100%; /* Prend toute la largeur */
-    text-align: center;
-  }
-
-  /* 2. Marges intérieures de la boîte d'accueil (pour que le texte ne touche pas le bord) */
+  .cta { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .cta .btn { width: 100%; text-align: center; }
   .hero-copy {
-    padding: 30px 24px 20px 24px !important;
-    width: calc(100% - 20px); /* Laisse un peu de décor autour de la carte blanche */
-    margin: -40px auto 0 !important;
-    border-radius: 24px; /* Arrondi complet sur mobile */
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.08); /* Jolie ombre portée */
-    background: var(--bg) !important; /* FIX : OPAQUE */
-    backdrop-filter: none !important; /* FIX : OPAQUE */
+    padding: 30px 24px 20px 24px !important; width: calc(100% - 20px); margin: -40px auto 0 !important;
+    border-radius: 24px; box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
+    background: var(--bg) !important; backdrop-filter: none !important;
   }
-
-  /* 3. Réduction des grands espaces vides (comme au-dessus de la Bio) */
-  .pad {
-    padding: 30px 0 !important; /* Divise le vide par presque deux */
-  }
-
-  /* 4. Forcer la marge latérale globale (sécurité anti-bords touchés) */
-  .wrap {
-    padding: 0 24px !important;
-  }
-  
-  /* Aération de la liste de Rôles sur mobile */
-  .role-page li {
-    padding: 14px 16px;
-    margin-bottom: 4px;
-  }
+  .pad { padding: 30px 0 !important; }
+  .wrap { padding: 0 24px !important; }
+  .role-page li { padding: 14px 16px; margin-bottom: 4px; }
 }
 
-/* =========================================
-   COMPORTEMENT HYBRIDE (PC vs Mobile) 
-========================================= */
 @media (min-width: 701px) {
-  /* Sur Grand Écran (PC / Tablette large) */
-  
-  #role-tabs, #award-tabs {
-    gap: 12px; /* Lie visuellement la liste 1 et la liste 2 */
-  }
-  
-  .role-page {
-    display: flex !important; /* Force l'affichage de TOUS les rôles d'un coup */
-  }
-  
-  .role-pagination {
-    display: none !important; /* Cache les boutons 1, 2, 3 qui ne servent plus */
-  }
+  #role-tabs, #award-tabs { gap: 12px; }
+  .role-page { display: flex !important; }
+  .role-pagination { display: none !important; }
 }
 
 /* =========================================
    MODERNISATION DU HAUT DE PAGE (HERO)
 ========================================= */
-
-/* 1. La carte blanche devient "Premium" avec un effet verre dépoli */
 .hero-copy {
   background: var(--bg) !important; /* FIX : OPAQUE */
   backdrop-filter: none !important; /* FIX : OPAQUE */
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 24px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.06);
-  padding: 40px 48px !important;
-  transform: translateY(-60px); /* Remonte un peu plus sur l'image */
-  transition: transform 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06); padding: 40px 48px !important;
+  transform: translateY(-60px); transition: transform 0.3s ease;
 }
+.hero h1 { background: transparent; padding: 0; box-shadow: none; font-size: clamp(32px, 5vw, 48px); letter-spacing: -0.5px; }
+.accent { background: linear-gradient(135deg, #FFC107, #FF9800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding: 0; font-weight: 800; }
+.lead { font-size: 1.15rem; line-height: 1.7; color: #555; margin-bottom: 24px; max-width: 800px; }
+.btn { border-radius: 50px !important; padding: 12px 24px !important; font-size: 0.95rem; letter-spacing: 0.3px; text-transform: uppercase; font-weight: 800; }
+.cta { gap: 16px; margin-top: 16px; }
 
-/* 2. Le mot "Actrice" en dégradé de texte élégant (plus de gros bloc jaune) */
-.hero h1 {
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
-  font-size: clamp(32px, 5vw, 48px);
-  letter-spacing: -0.5px;
-}
-.accent {
-  background: linear-gradient(135deg, #FFC107, #FF9800);
-  -webkit-background-clip: text; /* Le dégradé se met DANS le texte */
-  -webkit-text-fill-color: transparent;
-  padding: 0;
-  font-weight: 800;
-}
-
-/* 3. Le texte de présentation plus lisible et aéré */
-.lead {
-  font-size: 1.15rem;
-  line-height: 1.7;
-  color: #555;
-  margin-bottom: 24px;
-  max-width: 800px;
-}
-
-/* 4. Les boutons en forme de "Pilule" ultra-modernes */
-.btn {
-  border-radius: 50px !important; /* Arrondi total */
-  padding: 12px 24px !important;
-  font-size: 0.95rem;
-  letter-spacing: 0.3px;
-  text-transform: uppercase; /* Donne un côté très pro */
-  font-weight: 800;
-}
-.cta {
-  gap: 16px;
-  margin-top: 16px;
-}
-
-/* Ajustements pour que ça reste parfait sur téléphone */
 @media (max-width: 700px) {
-  .hero-copy {
-    padding: 32px 24px !important;
-    transform: translateY(-40px);
-    border-radius: 24px;
-  }
-  .accent {
-    display: inline-block; /* Sécurité pour le rendu mobile */
-  }
-  .btn {
-    padding: 14px 24px !important; /* Boutons légèrement plus hauts pour le doigt */
-  }
+  .hero-copy { padding: 32px 24px !important; transform: translateY(-40px); border-radius: 24px; }
+  .accent { display: inline-block; }
+  .btn { padding: 14px 24px !important; }
 }
 
 /* =========================================
    INDICATEURS DE SCROLL ANIMÉS
 ========================================= */
 .scroll-hint {
-  position: fixed; /* Reste toujours au même endroit sur l'écran */
-  bottom: 40px; /* Distance du bas */
-  z-index: 90; /* Passe au-dessus du contenu mais sous les modales */
-  color: var(--yellow); /* Ta couleur jaune */
-  display: flex;
-  flex-direction: column; /* Empile les deux chevrons verticalement */
-  align-items: center;
-  pointer-events: none; /* Laisse passer les clics au travers (important !) */
-  opacity: 0.8;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  /* L'animation de rebond */
-  animation: bounceHint 2.5s ease-in-out infinite;
+  position: fixed; bottom: 40px; z-index: 90; color: var(--yellow);
+  display: flex; flex-direction: column; align-items: center; pointer-events: none; opacity: 0.8;
+  transition: opacity 0.3s ease, transform 0.3s ease; animation: bounceHint 2.5s ease-in-out infinite;
 }
-
-/* Positionnement gauche / droite */
 .left-hint { left: 30px; }
 .right-hint { right: 30px; }
-
-/* Réglage des icônes SVG */
-.scroll-hint svg {
-  display: block;
-  /* Les angles sont nets grâce à stroke-linecap="round" et stroke-linejoin="round" dans le HTML */
-}
-
-/* Astuce pour l'effet "double flèche" : on remonte celle du bas */
-.chevron-bottom {
-  margin-top: -18px; /* Chevauchement pour un look compact */
-  opacity: 0.6; /* La deuxième flèche est légèrement plus transparente pour le style */
-}
-
-/* Définition de l'animation de rebond */
+.scroll-hint svg { display: block; }
+.chevron-bottom { margin-top: -18px; opacity: 0.6; }
 @keyframes bounceHint {
   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); } /* Monte */
-  60% { transform: translateY(-5px); } /* Petit rebond */
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
 }
-
-/* Sur mobile, on les cache car l'espace est précieux et le scroll est naturel */
-@media (max-width: 700px) {
-  .scroll-hint { display: none; }
-}
-
-/* Classe utilitaire pour les cacher via JS quand on est en bas */
-.scroll-hint.hidden {
-  opacity: 0;
-  transform: translateY(20px); /* Petit effet de sortie vers le bas */
-}
+@media (max-width: 700px) { .scroll-hint { display: none; } }
+.scroll-hint.hidden { opacity: 0; transform: translateY(20px); }
 
 /* =========================================
    INDICATEUR DE SCROLL MOBILE
 ========================================= */
 .scroll-hint-mobile {
-  display: none; /* Caché par défaut (PC) */
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 90;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  pointer-events: none;
-  background: rgba(255, 255, 255, 0.6); /* Effet verre dépoli léger */
-  backdrop-filter: blur(4px);
-  padding: 8px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 90;
+  flex-direction: column; align-items: center; gap: 4px; pointer-events: none; background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px); padding: 8px 12px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
-
-@media (max-width: 700px) {
-  .scroll-hint-mobile {
-    display: flex; /* Apparaît uniquement sur mobile */
-  }
-}
-
-.double-chevron-mobile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: var(--yellow);
-  animation: bounceMobile 2s infinite;
-}
-
-.chevron-bottom-mobile {
-  margin-top: -16px;
-  opacity: 0.5;
-}
-
-/* Animation douce pour ne pas distraire */
-@keyframes bounceMobile {
-  0%, 100% { transform: translateY(0); opacity: 0.8; }
-  50% { transform: translateY(6px); opacity: 1; }
-}
-
-/* Cache l'indicateur quand on scrolle */
-.scroll-hint-mobile.hidden {
-  opacity: 0;
-  transform: translateX(-50%) translateY(20px);
-}
+@media (max-width: 700px) { .scroll-hint-mobile { display: flex; } }
+.double-chevron-mobile { display: flex; flex-direction: column; align-items: center; color: var(--yellow); animation: bounceMobile 2s infinite; }
+.chevron-bottom-mobile { margin-top: -16px; opacity: 0.5; }
+@keyframes bounceMobile { 0%, 100% { transform: translateY(0); opacity: 0.8; } 50% { transform: translateY(6px); opacity: 1; } }
+.scroll-hint-mobile.hidden { opacity: 0; transform: translateX(-50%) translateY(20px); }
 
 /* =========================================
    ZONE DRAG & DROP PREMIUM (ADMIN)
 ========================================= */
 .drop-zone {
-  width: 100%;
-  min-height: 220px; /* Zone bien haute */
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  border: 2px dashed var(--yellow);
-  border-radius: var(--radius);
-  background: rgba(255, 193, 7, 0.03); /* Teinte jaune très légère */
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  position: relative;
-  margin-top: 10px;
+  width: 100%; min-height: 220px; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; border: 2px dashed var(--yellow); border-radius: var(--radius); background: rgba(255, 193, 7, 0.03);
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); position: relative; margin-top: 10px;
 }
+.drop-zone:hover, .drop-zone--over { background: rgba(255, 193, 7, 0.08); border-style: solid; transform: translateY(-2px); box-shadow: var(--shadow); }
+.drop-zone__prompt { color: var(--muted); font-weight: 600; font-size: 1.1rem; line-height: 1.4; }
+.drop-zone__prompt span { display: block; font-size: 0.85rem; margin-top: 8px; opacity: 0.7; }
+.drop-zone__input { display: none; }
+.drop-zone__thumb { width: 120px; height: 120px; border-radius: 12px; overflow: hidden; background-color: #eee; background-size: cover; background-position: center; margin-bottom: 15px; border: 3px solid #fff; box-shadow: var(--shadow); }
 
-/* Effet au survol ou quand un fichier est au-dessus */
-.drop-zone:hover, .drop-zone--over {
-  background: rgba(255, 193, 7, 0.08);
-  border-style: solid;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 15px; padding: 10px 0; }
+.page-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: 600; transition: 0.2s; }
+.page-btn.active { background: #d4af37; color: #fff; border-color: #d4af37; }
 
-.drop-zone__prompt {
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 1.1rem;
-  line-height: 1.4;
-}
+.admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 15px; }
+.admin-header-btns { display: flex; gap: 10px; }
 
-.drop-zone__prompt span {
-  display: block;
-  font-size: 0.85rem;
-  margin-top: 8px;
-  opacity: 0.7;
-}
-
-/* Cache l'input natif moche */
-.drop-zone__input {
-  display: none;
-}
-
-/* Aperçu de l'image sélectionnée */
-.drop-zone__thumb {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #eee;
-  background-size: cover;
-  background-position: center;
-  margin-bottom: 15px;
-  border: 3px solid #fff;
-  box-shadow: var(--shadow);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 15px;
-  padding: 10px 0;
-}
-.page-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background: #fff;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-.page-btn.active {
-  background: #d4af37;
-  color: #fff;
-  border-color: #d4af37;
-}
-
-/* --- En-tête Admin Responsive --- */
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  gap: 15px;
-}
-.admin-header-btns {
-  display: flex; gap: 10px;
-}
-
-/* Sur mobile (écrans de moins de 600px) */
 @media (max-width: 600px) {
-  .admin-header {
-    flex-direction: column; /* On empile de haut en bas */
-    align-items: flex-start; /* On aligne à gauche */
-  }
-  .admin-header-btns {
-    width: 100%; /* Les boutons prennent toute la largeur */
-  }
-  .admin-header-btns .btn {
-    flex: 1; /* Chaque bouton prend 50% de la place */
-    text-align: center;
-    padding: 10px;
-    font-size: 0.85rem; /* Texte un peu plus petit */
-  }
+  .admin-header { flex-direction: column; align-items: flex-start; }
+  .admin-header-btns { width: 100%; }
+  .admin-header-btns .btn { flex: 1; text-align: center; padding: 10px; font-size: 0.85rem; }
 }
 
 /* =========================================
-   TRANSITIONS DE PAGE FLUIDES
+   TRANSITIONS DE PAGE FLUIDES (RÉPARÉ)
 ========================================= */
-/* Animation d'entrée quand la page charge */
-body {
-  animation: pageLoad 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-}
+body { animation: pageLoad 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
 
 @keyframes pageLoad {
-  0% { opacity: 0; transform: translateY(15px); }
-  100% { opacity: 1; transform: none; } /* FIX MAJEUR : C'est ce 'transform: none' qui permet à la photo de rester figée sur l'écran */
+  0% { opacity: 0; }
+  100% { opacity: 1; } /* FIX MAJEUR : On enlève le "transform" qui cassait la Lightbox ! */
 }
 
-/* Animation de sortie quand on clique sur un lien */
-body.page-exit {
-  opacity: 0;
-  transform: translateY(-15px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: none; /* Empêche de recliquer pendant l'animation */
-}
+body.page-exit { opacity: 0; transform: translateY(-15px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
 
 /* =========================================
-   DARK MODE & BOUTON MODERNE
+   DARK MODE & BOUTON MODERNE (RESTAURÉ)
 ========================================= */
-/* Le positionnement du bloc à droite */
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-left: auto; /* Pousse le bloc tout à droite */
-}
+.header-right { display: flex; align-items: center; gap: 15px; margin-left: auto; }
 
-/* Le bouton minimaliste */
+/* --- FIX : Le bouton retrouve tout son style --- */
 .theme-toggle-modern {
   background: transparent;
   border: 1px solid rgba(136, 136, 136, 0.4);
@@ -977,143 +408,30 @@ body.page-exit {
 
 body.dark-mode .theme-toggle-modern {
   border-color: rgba(255, 255, 255, 0.2);
-  color: var(--yellow); /* Le soleil devient jaune */
+  color: var(--yellow) !important; 
 }
+/* ------------------------------------------------ */
 
-/* Les couleurs globales */
-body.dark-mode {
-  --bg: #0d0f14;
-  --text: #f0f2f5;
-  --muted: #8b95a5;
-  --card: #161922;
-  --line: #262a35;
-  --shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-
-body.dark-mode .site-header { background: rgba(13, 15, 20, 0.85); }
-body.dark-mode .hero-copy { 
-  background: var(--card) !important; 
-  border-color: rgba(255, 255, 255, 0.05); 
-  backdrop-filter: none !important; /* FIX : OPAQUE */
-}
+body.dark-mode { --bg: #0d0f14; --text: #f0f2f5; --muted: #8b95a5; --card: #161922; --line: #262a35; --shadow: 0 8px 30px rgba(0,0,0,0.4); }
+body.dark-mode .site-header { background: rgba(13, 15, 20, 0.85) !important; }
+body.dark-mode .hero-copy { background: var(--card) !important; border-color: rgba(255, 255, 255, 0.05); backdrop-filter: none !important; }
 body.dark-mode .roles-highlight { background: linear-gradient(135deg, #161922, #1c202a); }
 
-/* --- CORRECTIONS DES BUGS VISUELS --- */
-/* 1. Bouton "Réserver" (Ghost) - Fix fond blanc */
-body.dark-mode .btn.ghost {
-  background: transparent !important;
-  border: 1px solid var(--text) !important;
-  color: var(--text) !important;
-}
-body.dark-mode .btn.ghost:hover {
-  background: var(--text) !important;
-  color: var(--bg) !important;
-}
-
-/* 2. Tableau Filmographie - Fix lignes blanches */
-body.dark-mode table,
-body.dark-mode .table,
-body.dark-mode table tbody tr,
-body.dark-mode .table tbody tr,
-body.dark-mode table td {
-  background-color: transparent !important;
-  background: transparent !important;
-  color: var(--text) !important;
-  border-color: var(--line) !important;
-}
-body.dark-mode table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* =========================================
-   DARK MODE (MODE SOMBRE) - LE PATCH ULTIME
-========================================= */
-body.dark-mode {
-  --bg: #0d0f14;
-  --text: #f0f2f5;
-  --muted: #8b95a5;
-  --card: #161922;
-  --line: #262a35;
-  --shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-
-/* 1. En-tête, Footer et Hero */
-body.dark-mode .site-header { background: rgba(13, 15, 20, 0.85) !important; }
-body.dark-mode .hero-copy { 
-  background: var(--card) !important; 
-  border-color: rgba(255,255,255,0.05); 
-  backdrop-filter: none !important; /* FIX : OPAQUE */
-}
+body.dark-mode .btn.ghost { background: transparent !important; border: 1px solid var(--text) !important; color: var(--text) !important; }
+body.dark-mode .btn.ghost:hover { background: var(--text) !important; color: var(--bg) !important; }
+body.dark-mode table, body.dark-mode .table, body.dark-mode table tbody tr, body.dark-mode .table tbody tr, body.dark-mode table td { background-color: transparent !important; background: transparent !important; color: var(--text) !important; border-color: var(--line) !important; }
+body.dark-mode table tbody tr:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
 body.dark-mode .site-footer { background: var(--bg) !important; color: var(--muted) !important; border-color: var(--line) !important; }
 body.dark-mode .site-footer a { color: var(--muted) !important; }
 
-/* 2. Bouton "Réserver" (Ghost) - Force le fond transparent */
-body.dark-mode .btn.ghost {
-  background: transparent !important;
-  background-image: none !important;
-  color: var(--text) !important;
-  border: 1px solid var(--line) !important;
-}
-body.dark-mode .btn.ghost:hover {
-  background: var(--text) !important;
-  color: var(--bg) !important;
-}
+body.dark-mode .slider-btn { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; }
+body.dark-mode .slider-btn:hover { background: var(--yellow) !important; color: var(--yellow-ink) !important; }
 
-/* 3. FLÈCHES CARROUSEL YOUTUBE (Fix) */
-body.dark-mode .slider-btn {
-  background: var(--card) !important;
-  color: var(--text) !important;
-  border-color: var(--line) !important;
-}
-body.dark-mode .slider-btn:hover {
-  background: var(--yellow) !important;
-  color: var(--yellow-ink) !important;
-}
+body.dark-mode .form-card, body.dark-mode .agent-card { background: var(--card) !important; border-color: var(--line) !important; color: var(--text) !important; }
+body.dark-mode .field input, body.dark-mode .field textarea { background: var(--bg) !important; color: var(--text) !important; border-color: var(--line) !important; }
+body.dark-mode .field label { background: var(--card) !important; color: var(--muted) !important; }
+body.dark-mode .field input:focus + label, body.dark-mode .field textarea:focus + label { color: var(--yellow) !important; }
 
-/* 4. PAGE CONTACT (Fix Dégradés) */
-body.dark-mode .form-card,
-body.dark-mode .agent-card {
-  background: var(--card) !important; /* Tue le linear-gradient */
-  border-color: var(--line) !important;
-  color: var(--text) !important;
-}
-body.dark-mode .field input,
-body.dark-mode .field textarea {
-  background: var(--bg) !important;
-  color: var(--text) !important;
-  border-color: var(--line) !important;
-}
-body.dark-mode .field label {
-  background: var(--card) !important; /* Fond du label qui remonte */
-  color: var(--muted) !important;
-}
-body.dark-mode .field input:focus + label, 
-body.dark-mode .field textarea:focus + label {
-  color: var(--yellow) !important;
-}
+body.dark-mode .badges li, body.dark-mode .role-page li, body.dark-mode .roles-highlight, body.dark-mode aside { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; }
 
-/* 5. TABLEAUX ET BADGES (Fix) */
-body.dark-mode .table, body.dark-mode table,
-body.dark-mode th, body.dark-mode td, body.dark-mode tr {
-  background: var(--card) !important;
-  color: var(--text) !important;
-  border-color: var(--line) !important;
-}
-body.dark-mode table tbody tr:hover, body.dark-mode .table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-body.dark-mode .badges li, body.dark-mode .role-page li,
-body.dark-mode .roles-highlight, body.dark-mode aside {
-  background: var(--card) !important;
-  color: var(--text) !important;
-  border-color: var(--line) !important;
-}
-
-/* 6. SÉCURITÉ FORCE BRUTE */
-body.dark-mode [style*="background: white"],
-body.dark-mode [style*="background-color: white"],
-body.dark-mode [style*="background: #fff"],
-body.dark-mode [style*="background-color: #fff"] {
-  background: var(--card) !important;
-  color: var(--text) !important;
-}
+body.dark-mode [style*="background: white"], body.dark-mode [style*="background-color: white"], body.dark-mode [style*="background: #fff"], body.dark-mode [style*="background-color: #fff"] { background: var(--card) !important; color: var(--text) !important; }
