@@ -75,129 +75,71 @@
 
       <div class="table-wrap">
         <table class="table" id="filmography">
-  <thead>
-    <tr>
-  <td data-label="Année">2025</td>
-  <td data-label="Titre">Principal Resto Chinois</td>
-  <td data-label="Rôle">Pub Orange Samsung</td>
-  <td data-label="Réalisateur">ORANGE</td>
-  <td data-label="Catégorie">Pub</td>
-  <td><a href="#" class="btn-voir">Voir</a></td>
-</tr>
-  </thead>
-  <tbody>
-    </tbody>
-</table>
+          <thead>
+            <tr>
+              <th>Année</th>
+              <th>Projet / Titre</th>
+              <th>Rôle</th>
+              <th>Réalisateur</th>
+              <th>Catégorie</th>
+              <th>Lien</th>
+            </tr>
+          </thead>
+          <tbody>
+            </tbody>
+        </table>
       </div>
 
-      <dialog id="detailDialog" aria-label="Détail de l'œuvre" style="padding: 20px; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 500px;">
-        <button class="dialog-close" aria-label="Fermer" style="float: right; border: none; background: none; font-size: 1.5rem; cursor: pointer;">×</button>
-        <div class="dialog-body">
-          <img id="detailPoster" alt="Affiche" style="width: 100%; border-radius: 4px; margin-bottom: 15px; display: none;"/>
-          <div>
-            <h2 id="detailTitle" style="margin-bottom: 10px;"></h2>
-            <p id="detailSynopsis" style="margin-bottom: 15px;"></p>
-            <p><a id="detailImdb" class="btn" href="#" target="_blank" rel="noopener" style="display: none;">Voir sur IMDb</a></p>
-          </div>
-        </div>
-      </dialog>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="wrap">
-      <p>© <span id="year"></span> Yingying HOU. Powered by NOCX WEB. Tous droits réservés</p>
-      <nav>
-        <a href="/legal.html">Mentions légales</a>
-        <a href="/privacy.html">Confidentialité</a>
-      </nav>
-    </div>
-  </footer>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
-      authDomain: "kukyying-f1c95.firebaseapp.com",
-      projectId: "kukyying-f1c95",
-      storageBucket: "kukyying-f1c95.firebasestorage.app",
-      messagingSenderId: "681899915263",
-      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+      <script type="module">
+    // ... (garder ton import et config firebase identiques) ...
 
     async function chargerFilmographie() {
       try {
         const querySnapshot = await getDocs(collection(db, "role"));
         let roles = [];
         querySnapshot.forEach((doc) => roles.push(doc.data()));
-
         const tbody = document.querySelector('#filmography tbody');
         
-        // 1. On "débranche" les anciens filtres de main.js pour éviter les conflits
-        const ancienFiltre = document.getElementById('filter-category');
-        const nouveauFiltre = ancienFiltre.cloneNode(true);
-        ancienFiltre.parentNode.replaceChild(nouveauFiltre, ancienFiltre);
+        // Nettoyage des filtres pour éviter les doublons
+        const nouveauFiltre = document.getElementById('filter-category');
+        const nouveauTri = document.getElementById('sort-by');
 
-        const ancienTri = document.getElementById('sort-by');
-        const nouveauTri = ancienTri.cloneNode(true);
-        ancienTri.parentNode.replaceChild(nouveauTri, ancienTri);
-
-        // 2. La fonction magique qui affiche et trie en même temps
         function afficherTableau() {
-          tbody.innerHTML = ''; // On vide le tableau
-
+          tbody.innerHTML = '';
           const categorieChoisie = nouveauFiltre.value;
           const triChoisi = nouveauTri.value;
 
-          // Étape A : On filtre par catégorie
           let rolesFiltres = roles;
           if (categorieChoisie !== 'all') {
             rolesFiltres = roles.filter(role => role.type === categorieChoisie);
           }
 
-          // Étape B : On trie selon le choix
           rolesFiltres.sort((a, b) => {
             if (triChoisi === 'year-desc') return (b.annee || 0) - (a.annee || 0);
             if (triChoisi === 'year-asc') return (a.annee || 0) - (b.annee || 0);
-            if (triChoisi === 'title-asc') return (a.projet || '').localeCompare(b.projet || '');
-            if (triChoisi === 'title-desc') return (b.projet || '').localeCompare(a.projet || '');
             return 0;
           });
 
-          // Étape C : On crée les lignes
           rolesFiltres.forEach(role => {
             const tr = document.createElement('tr');
+            // ICI : On ajoute les data-label pour que le mobile fonctionne !
             tr.innerHTML = `
-              <td>${role.annee || ''}</td>
-              <td>${role.projet || ''}</td>
-              <td>${role.titre || ''}</td>
-              <td>${role.realisateur || '-'}</td>
-              <td>${role.type || ''}</td>
-              <td><a class="link" href="${role.lien || '#'}" target="_blank">Voir</a></td>
+              <td data-label="Année">${role.annee || ''}</td>
+              <td data-label="Titre">${role.projet || ''}</td>
+              <td data-label="Rôle">${role.titre || ''}</td>
+              <td data-label="Réalisateur">${role.realisateur || '-'}</td>
+              <td data-label="Catégorie">${role.type || ''}</td>
+              <td data-label="Lien"><a class="link" href="${role.lien || '#'}" target="_blank">Voir</a></td>
             `;
             tbody.appendChild(tr);
           });
         }
 
-        // 3. On branche nos nouveaux menus déroulants pour qu'ils réagissent au clic !
         nouveauFiltre.addEventListener('change', afficherTableau);
         nouveauTri.addEventListener('change', afficherTableau);
-
-        // 4. On lance l'affichage une première fois au chargement
-        if (roles.length > 0) {
-          afficherTableau();
-          console.log("✅ Filmographie et filtres connectés avec succès !");
-        }
-
-      } catch (erreur) {
-        console.error("❌ Erreur :", erreur);
-      }
+        afficherTableau();
+      } catch (erreur) { console.error(erreur); }
     }
-    
     chargerFilmographie();
   </script>
   <script src="js/main.js" defer></script>
