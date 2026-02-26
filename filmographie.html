@@ -4,26 +4,16 @@
   <meta charset="utf-8" />
   <title>Filmographie — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Filmographie complète de Yingying HOU : longs métrages, courts, séries TV, théâtre et voix." />
-  <link rel="canonical" href="https://www.example.com/filmographie.html" />
-  <meta property="og:title" content="Filmographie — Yingying HOU" />
-  <meta property="og:description" content="Sélection d'œuvres, rôles, années, réalisateurs et formats." />
-  <meta property="og:type" content="profile" />
-  <meta property="og:image" content="https://www.example.com/img/og.jpg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
-  <a class="skip" href="#main">Aller au contenu</a>
   
   <header class="site-header" role="banner">
     <div class="wrap" style="display: flex; justify-content: space-between; align-items: center;">
       <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      
-      <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
+      <nav id="nav" class="site-nav">
         <ul>
           <li><a href="/">Accueil</a></li>
           <li><a href="filmographie.html">Filmographie</a></li>
@@ -31,10 +21,8 @@
           <li><a href="contact.html">Contact / Booking</a></li>
         </ul>
       </nav>
-
       <div class="header-right">
-        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème">
-          </button>
+        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème"></button>
         <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
       </div>
     </div>
@@ -56,10 +44,7 @@
             <option value="Long métrage">Long métrage</option>
             <option value="Court métrage">Court métrage</option>
             <option value="Série TV">Série TV</option>
-            <option value="Réalisation">Réalisation</option>
             <option value="Pub">Pub</option>
-            <option value="Théâtre">Théâtre</option>
-            <option value="Voix">Voix</option>
           </select>
         </label>
         
@@ -67,8 +52,6 @@
           <select id="sort-by" autocomplete="off">
             <option value="year-desc" selected>Année ↓</option>
             <option value="year-asc">Année ↑</option>
-            <option value="title-asc">Titre A→Z</option>
-            <option value="title-desc">Titre Z→A</option>
           </select>
         </label>
       </div>
@@ -78,7 +61,7 @@
           <thead>
             <tr>
               <th>Année</th>
-              <th>Projet / Titre</th>
+              <th>Titre</th>
               <th>Rôle</th>
               <th>Réalisateur</th>
               <th>Catégorie</th>
@@ -89,56 +72,67 @@
             </tbody>
         </table>
       </div>
+    </section>
+  </main>
 
-      <script type="module">
-    // ... (garder ton import et config firebase identiques) ...
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+      authDomain: "kukyying-f1c95.firebaseapp.com",
+      projectId: "kukyying-f1c95",
+      storageBucket: "kukyying-f1c95.firebasestorage.app",
+      messagingSenderId: "681899915263",
+      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     async function chargerFilmographie() {
       try {
         const querySnapshot = await getDocs(collection(db, "role"));
         let roles = [];
         querySnapshot.forEach((doc) => roles.push(doc.data()));
+
         const tbody = document.querySelector('#filmography tbody');
-        
-        // Nettoyage des filtres pour éviter les doublons
-        const nouveauFiltre = document.getElementById('filter-category');
-        const nouveauTri = document.getElementById('sort-by');
+        const filterCat = document.getElementById('filter-category');
+        const sortBtn = document.getElementById('sort-by');
 
         function afficherTableau() {
           tbody.innerHTML = '';
-          const categorieChoisie = nouveauFiltre.value;
-          const triChoisi = nouveauTri.value;
+          let rolesFiltres = [...roles];
 
-          let rolesFiltres = roles;
-          if (categorieChoisie !== 'all') {
-            rolesFiltres = roles.filter(role => role.type === categorieChoisie);
+          if (filterCat.value !== 'all') {
+            rolesFiltres = rolesFiltres.filter(r => r.type === filterCat.value);
           }
 
           rolesFiltres.sort((a, b) => {
-            if (triChoisi === 'year-desc') return (b.annee || 0) - (a.annee || 0);
-            if (triChoisi === 'year-asc') return (a.annee || 0) - (b.annee || 0);
-            return 0;
+            return (sortBtn.value === 'year-desc') ? (b.annee - a.annee) : (a.annee - b.annee);
           });
 
           rolesFiltres.forEach(role => {
             const tr = document.createElement('tr');
-            // ICI : On ajoute les data-label pour que le mobile fonctionne !
+            // AJOUT DES DATA-LABEL POUR LE MOBILE
             tr.innerHTML = `
               <td data-label="Année">${role.annee || ''}</td>
               <td data-label="Titre">${role.projet || ''}</td>
               <td data-label="Rôle">${role.titre || ''}</td>
               <td data-label="Réalisateur">${role.realisateur || '-'}</td>
               <td data-label="Catégorie">${role.type || ''}</td>
-              <td data-label="Lien"><a class="link" href="${role.lien || '#'}" target="_blank">Voir</a></td>
+              <td data-label="Lien"><a class="btn" href="${role.lien || '#'}" target="_blank">Voir</a></td>
             `;
             tbody.appendChild(tr);
           });
         }
 
-        nouveauFiltre.addEventListener('change', afficherTableau);
-        nouveauTri.addEventListener('change', afficherTableau);
+        filterCat.addEventListener('change', afficherTableau);
+        sortBtn.addEventListener('change', afficherTableau);
         afficherTableau();
-      } catch (erreur) { console.error(erreur); }
+
+      } catch (e) { console.error("Erreur Firebase:", e); }
     }
     chargerFilmographie();
   </script>
