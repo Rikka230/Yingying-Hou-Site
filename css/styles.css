@@ -162,17 +162,19 @@ a.link{color:#1a66ff}
    FIX LIGHTBOX (Boutons et Positionnement)
 ========================================= */
 .lightbox {
-  position: fixed; /* Reste fixe sur l'écran */
+  position: fixed !important; /* FIX : Force la position peu importe le défilement */
   inset: 0; /* Prend toute la place */
-  background: rgba(255, 255, 255, 0.9); /* Fond blanc translucide */
+  background: rgba(255, 255, 255, 0.95); /* Fond blanc translucide */
   backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999 !important; /* FIX : Assure qu'elle passe au-dessus de tout */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  overflow: auto; /* FIX : Permet le zoom fluide sur mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 .lightbox:not([aria-hidden="true"]) {
@@ -420,23 +422,82 @@ a.link{color:#1a66ff}
   .prev-btn { left: -10px; width: 36px; height: 36px; font-size: 22px; }
   .next-btn { right: -10px; width: 36px; height: 36px; font-size: 22px; }
   .yt-item { flex: 0 0 100%; }
-  /* Filmographie Mobile */
-  .table thead { display: none; }
-  .table-wrap { border: 0; background: transparent; box-shadow: none; }
-  .table tbody tr { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
-  .table tbody td { border: 0; padding: 6px 0; display: flex; align-items: center; }
-  .table tbody td::before { content: attr(data-label) " : "; min-width: 105px; color: var(--muted); font-weight: 600; font-size: 0.85rem; }
-  .table tbody td:nth-child(1) { order: 1; padding-bottom: 0; color: var(--muted); font-weight: 700; font-size: 0.9rem; }
-  .table tbody td:nth-child(1)::before { display: none; }
-  .table tbody td:nth-child(2) { order: 2; padding-top: 0; font-size: 1.25rem; font-weight: 800; border-bottom: 1px dashed var(--line); margin-bottom: 10px; padding-bottom: 10px; }
-  .table tbody td:nth-child(2)::before { display: none; }
-  .table tbody td:nth-child(3) { order: 3; }
-  .table tbody td:nth-child(4) { order: 4; }
-  .table tbody td:nth-child(5) { order: 5; margin-top: 12px; display: inline-block; background: rgba(255,193,7,.15); color: var(--yellow-ink); padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; align-self: flex-start; }
-  .table tbody td:nth-child(5)::before { display: none; }
-  .table tbody td:last-child { order: 6; justify-content: flex-end; margin-top: -34px; }
-  .table tbody td:last-child::before { display: none; }
+  /* --- Correction Filmographie Mobile --- */
+.table thead { display: none; } /* On cache l'en-tête classique */
+
+.table-wrap { border: 0; background: transparent; box-shadow: none; }
+
+.table tbody tr {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg) !important;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
 }
+
+.table tbody td {
+  border: 0;
+  padding: 8px 0;
+  display: flex;
+  align-items: flex-start; /* Aligne le texte en haut si plusieurs lignes */
+  justify-content: flex-start;
+}
+
+/* Génère l'étiquette à gauche à partir du data-label */
+.table tbody td::before {
+  content: attr(data-label) " : ";
+  min-width: 120px; /* Espace fixe pour les noms de colonnes */
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* Masquage des étiquettes inutiles pour le Titre et l'Année pour garder la hiérarchie */
+.table tbody td:nth-child(1)::before,
+.table tbody td:nth-child(2)::before { display: none; }
+
+/* Style du Titre (2ème colonne) */
+.table tbody td:nth-child(2) {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-top: -5px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+/* Style de l'Année (1ère colonne) */
+.table tbody td:nth-child(1) {
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding-bottom: 0;
+}
+
+/* Style de la Catégorie (5ème colonne) */
+.table tbody td:nth-child(5) {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: rgba(255, 193, 7, 0.15) !important;
+  border-radius: 8px;
+  display: inline-flex;
+  align-self: flex-start;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.table tbody td:nth-child(5)::before { display: none; }
+
+/* Bouton Voir tout en bas à droite */
+.table tbody td:last-child {
+  justify-content: flex-end;
+  margin-top: -38px; /* Remonte au niveau de la catégorie */
+}
+.table tbody td:last-child::before { display: none; }
 @media (max-width: 520px) { .gallery { column-count: 2; } }
 @media (max-width: 360px) { .gallery { column-count: 1; } }
 
@@ -466,14 +527,15 @@ a.link{color:#1a66ff}
     object-position: center top !important;
   }
   .hero-copy {
-    margin-top: -40px !important; /* Fait légèrement chevaucher le texte sur l'image */
-    background: var(--bg) !important; /* FIX : OPAQUE */
-    border-radius: 24px 24px 0 0; /* ... avec des bords arrondis pour un effet "carte" élégant */
-    position: relative;
-    z-index: 2;
-    padding-top: 30px !important;
-    backdrop-filter: none !important; /* FIX : OPAQUE */
-  }
+  background: var(--bg) !important; /* Utilise la variable blanche par défaut */
+  backdrop-filter: none !important; /* Supprime le flou */
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+  padding: 40px 48px !important;
+  transform: translateY(-60px);
+  transition: transform 0.3s ease;
+}
   
   /* --- Les Onglets (Rôles & Récompenses) --- */
   .role-pagination {
@@ -872,7 +934,7 @@ body {
 
 @keyframes pageLoad {
   0% { opacity: 0; transform: translateY(15px); }
-  100% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: none; } /* FIX MAJEUR : C'est ce 'transform: none' qui permet à la photo de rester figée sur l'écran */
 }
 
 /* Animation de sortie quand on clique sur un lien */
