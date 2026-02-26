@@ -400,35 +400,38 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// DARK MODE (MODE SOMBRE)
+// DARK MODE - VERSION MODERNE & CORRIGÉE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  const themeToggle = document.getElementById('theme-toggle');
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
   
-  if (themeToggle) {
-    // 1. Vérifier si l'utilisateur avait déjà choisi le mode sombre avant,
-    // ou si son système (Windows/Mac/iOS) est configuré en sombre par défaut.
+  if (themeToggleBtn) {
+    // 1. On lit UNIQUEMENT le choix sauvegardé (On ne force plus le sombre via l'OS)
     const currentTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (currentTheme === 'dark' || (!currentTheme && prefersDark)) {
+    
+    // Le site est en clair par défaut, on n'ajoute la classe que si "dark" est sauvegardé
+    if (currentTheme === 'dark') {
       document.body.classList.add('dark-mode');
-      themeToggle.textContent = '☀️'; // On affiche le soleil pour revenir en mode clair
     }
 
-    // 2. Action au clic sur le bouton
-    themeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      
+    // 2. Fonction pour injecter la belle icône SVG
+    const updateIcon = () => {
       if (document.body.classList.contains('dark-mode')) {
-        localStorage.setItem('theme', 'dark'); // On sauvegarde le choix
-        themeToggle.textContent = '☀️';
-        themeToggle.setAttribute('aria-label', 'Passer en mode clair');
+        // Icône SOLEIL (Minimaliste)
+        themeToggleBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
       } else {
-        localStorage.setItem('theme', 'light');
-        themeToggle.textContent = '🌙';
-        themeToggle.setAttribute('aria-label', 'Passer en mode sombre');
+        // Icône LUNE (Minimaliste)
+        themeToggleBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
       }
+    };
+
+    updateIcon(); // On met l'icône dès le chargement
+
+    // 3. Action au clic : Bascule et Sauvegarde
+    themeToggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      updateIcon();
     });
   }
 });
