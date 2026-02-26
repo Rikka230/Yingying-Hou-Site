@@ -956,3 +956,92 @@ body.dark-mode table td {
 body.dark-mode table tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
+
+/* =========================================
+   DARK MODE (MODE SOMBRE) - LE PATCH COMPLET
+========================================= */
+body.dark-mode {
+  --bg: #0d0f14;
+  --text: #f0f2f5;
+  --muted: #8b95a5;
+  --card: #161922;
+  --line: #262a35;
+  --shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+/* 1. En-tête et Hero */
+body.dark-mode .site-header { background: rgba(13, 15, 20, 0.85) !important; }
+body.dark-mode .hero-copy { background: rgba(22, 25, 34, 0.85) !important; border: 1px solid rgba(255, 255, 255, 0.05); }
+
+/* 2. Bouton "Réserver" (Ghost) - Fix fond blanc */
+body.dark-mode .btn.ghost {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+}
+body.dark-mode .btn.ghost:hover {
+  background: var(--text) !important;
+  color: var(--bg) !important;
+}
+
+/* 3. Tableaux (Filmographie) - Fix lignes blanches */
+body.dark-mode .table,
+body.dark-mode table,
+body.dark-mode th,
+body.dark-mode td,
+body.dark-mode tr {
+  background-color: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+body.dark-mode table tbody tr:hover,
+body.dark-mode .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 4. Rôles et Badges - Fix fond gris */
+body.dark-mode .badges li,
+body.dark-mode .role-page li,
+body.dark-mode .roles-highlight {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+/* 5. Page Contact (Formulaires) - Fix fond blanc */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+}
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: var(--muted) !important;
+}
+body.dark-mode .contact-card,
+body.dark-mode .info,
+body.dark-mode aside {
+  background-color: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* 6. Footer (Pied de page) - Fix fond blanc */
+body.dark-mode .site-footer {
+  background-color: var(--bg) !important;
+  color: var(--muted) !important;
+  border-top: 1px solid var(--line) !important;
+}
+body.dark-mode .site-footer a {
+  color: var(--muted) !important;
+}
+
+/* 7. FORCE BRUTE : Blocs blancs en ligne restants */
+body.dark-mode [style*="background: white"],
+body.dark-mode [style*="background-color: white"],
+body.dark-mode [style*="background: #fff"],
+body.dark-mode [style*="background-color: #fff"] {
+  background-color: var(--card) !important;
+  color: var(--text) !important;
+}
