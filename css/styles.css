@@ -162,21 +162,17 @@ a.link{color:#1a66ff}
    FIX LIGHTBOX (Boutons et Positionnement)
 ========================================= */
 .lightbox {
-  position: fixed !important; /* Force la position fixe par rapport à l'écran */
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(255, 255, 255, 0.95);
+  position: fixed; /* Reste fixe sur l'écran */
+  inset: 0; /* Prend toute la place */
+  background: rgba(255, 255, 255, 0.9); /* Fond blanc translucide */
   backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99999; /* Passe au-dessus de tout */
+  z-index: 9999;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  overflow: hidden; /* Empêche tout défilement interne bizarre */
 }
 
 .lightbox:not([aria-hidden="true"]) {
