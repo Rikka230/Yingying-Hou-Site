@@ -12,60 +12,104 @@
     body { background-color: #f4f4f4; color: #333; font-family: 'Plus Jakarta Sans', sans-serif; }
     .admin-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
     .admin-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
+    
+    /* Login */
     #login-screen { max-width: 450px; margin: 80px auto; text-align: center; }
-    .admin-tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; }
-    .tab-btn { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 700; color: #888; border-bottom: 3px solid transparent; transition: 0.3s; }
+    
+    /* Onglets */
+    .admin-tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; overflow-x: auto; }
+    .tab-btn { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 700; color: #888; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; }
     .tab-btn.active { color: #d4af37; border-bottom-color: #d4af37; }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+    /* Formulaires & Drag and Drop */
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
-    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; box-sizing: border-box; }
     
-    /* Style Drag & Drop */
-    .drop-zone { width: 100%; min-height: 200px; padding: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px dashed #d4af37; border-radius: 15px; background: #fffcf5; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
+    .drop-zone { width: 100%; min-height: 180px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px dashed #d4af37; border-radius: 15px; background: #fffcf5; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
     .drop-zone--over { background: #fdf6e3; border-style: solid; }
-    .drop-zone__prompt { color: #888; font-weight: 500; }
+    .drop-zone__prompt { color: #888; font-weight: 500; font-size: 0.9rem; }
     .drop-zone__input { display: none; }
-    .drop-zone__thumb { width: 100px; height: 100px; border-radius: 10px; background-size: cover; background-position: center; margin-bottom: 10px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    
+    .drop-zone__thumb { width: 80px; height: 80px; border-radius: 10px; background-size: cover; background-position: center; margin-bottom: 10px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    /* Listes */
     .admin-list { list-style: none; padding: 0; }
     .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-    .admin-list-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
-    .action-btns button { border: none; background: #f0f0f0; cursor: pointer; border-radius: 8px; padding: 8px 12px; margin-left: 5px; }
+    .admin-list-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
+    .action-btns button { border: none; background: #f0f0f0; cursor: pointer; border-radius: 8px; padding: 8px 12px; margin-left: 5px; font-size: 1.1rem; }
+
     .hidden { display: none !important; }
-    .success-msg { color: #2e7d32; background: #e8f5e9; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: none; }
+    .success-msg { color: #2e7d32; background: #e8f5e9; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: none; font-weight: 600; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
   <main class="admin-container">
+    
     <section id="login-screen" class="admin-card">
-      <h1>Yingying Admin</h1>
+      <h1>Espace Privé</h1>
+      <div id="login-error" class="error-msg" style="color:red; margin-bottom:15px; display:none;">Identifiants incorrects.</div>
       <div class="form-group"><label>Email</label><input type="email" id="email"></div>
       <div class="form-group"><label>Mot de passe</label><input type="password" id="password"></div>
       <button id="btn-login" class="btn" style="width: 100%;">Se connecter</button>
+      <a href="/" style="display: block; margin-top: 20px; font-size: 0.9rem; color: #888; text-decoration: none;">← Retour au site</a>
     </section>
 
     <section id="dashboard-screen" class="hidden">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-        <h2>Gestion du site</h2>
-        <button id="btn-logout" class="btn outline ghost">Déconnexion</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2>Bonjour Yingying</h2>
+        <button id="btn-logout" class="btn ghost outline">Déconnexion</button>
       </div>
 
       <nav class="admin-tabs">
-        <button class="tab-btn active" data-target="tab-photos">📸 Galerie</button>
-        <button class="tab-btn" data-target="tab-roles">🎬 Rôles</button>
+        <button class="tab-btn active" data-target="tab-roles">🎬 Rôles</button>
+        <button class="tab-btn" data-target="tab-photos">📸 Galerie</button>
+        <button class="tab-btn" data-target="tab-videos">🎥 Vidéos</button>
       </nav>
 
-      <div id="tab-photos" class="tab-content active">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+      <div id="tab-roles" class="tab-content active">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          <div class="admin-card">
+            <h3 id="role-title">Ajouter un Rôle</h3>
+            <div id="role-success" class="success-msg">✅ Rôle enregistré !</div>
+            <form id="form-role">
+              <div class="form-group"><label>Projet</label><input type="text" id="role-projet" required></div>
+              <div class="form-group"><label>Rôle</label><input type="text" id="role-titre" required></div>
+              <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex:2;"><label>Catégorie</label>
+                  <select id="role-type">
+                    <option value="Série TV">Série TV</option>
+                    <option value="Court métrage">Court métrage</option>
+                    <option value="Long métrage">Long métrage</option>
+                    <option value="Pub">Pub</option>
+                    <option value="Réalisation">Réalisation</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex:1;"><label>Année</label><input type="number" id="role-annee" value="2025"></div>
+              </div>
+              <div class="form-group"><label>Réalisateur</label><input type="text" id="role-real"></div>
+              <div class="form-group"><label>Lien IMDb/Vidéo</label><input type="url" id="role-lien"></div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="btn-role-submit" class="btn" style="flex:1;">Publier</button>
+                <button type="button" id="btn-role-cancel" class="btn hidden" style="background:#eee; color:#333;">Annuler</button>
+              </div>
+            </form>
+          </div>
+          <div class="admin-card"><h3>Liste des Rôles</h3><ul id="list-roles" class="admin-list"></ul></div>
+        </div>
+      </div>
+
+      <div id="tab-photos" class="tab-content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
           <div class="admin-card">
             <h3 id="photo-title">Ajouter une Photo</h3>
-            <div id="photo-success" class="success-msg">✅ Enregistré !</div>
+            <div id="photo-success" class="success-msg">✅ Galerie mise à jour !</div>
             <form id="form-photo">
-              <div class="form-group" id="box-file">
+              <div id="box-file" class="form-group">
+                <label>Image (Max 2Mo)</label>
                 <div class="drop-zone" id="drop-zone">
                   <div class="drop-zone__thumb hidden" id="thumb-preview"></div>
                   <span class="drop-zone__prompt" id="drop-prompt">📸 Glissez une photo ou cliquez</span>
@@ -73,21 +117,24 @@
                 </div>
               </div>
               <div class="form-group"><label>Légende</label><input type="text" id="photo-caption"></div>
-              <div class="form-group"><label>Position (Ordre)</label><input type="number" id="photo-ordre"></div>
-              <button type="submit" id="btn-photo-submit" class="btn" style="width:100%;">Envoyer</button>
-              <button type="button" id="btn-photo-cancel" class="btn hidden" style="width:100%; background:#eee; margin-top:10px;">Annuler</button>
+              <div class="form-group"><label>Ordre d'affichage</label><input type="number" id="photo-ordre"></div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="btn-photo-submit" class="btn" style="flex:1;">Envoyer</button>
+                <button type="button" id="btn-photo-cancel" class="btn hidden" style="background:#eee; color:#333;">Annuler</button>
+              </div>
             </form>
           </div>
-          <div class="admin-card">
-            <h3>Photos actuelles</h3>
-            <ul id="list-photos" class="admin-list"></ul>
-          </div>
+          <div class="admin-card"><h3>Gérer la Galerie</h3><ul id="list-photos" class="admin-list"></ul></div>
         </div>
       </div>
 
-      <div id="tab-roles" class="tab-content">
-        <div class="admin-card"><h3>Gestion des Rôles</h3><p>Code de gestion des rôles ici...</p></div>
+      <div id="tab-videos" class="tab-content">
+        <div class="admin-card" style="text-align: center; padding: 50px;">
+          <h3>🎥 Prochainement : Vidéos</h3>
+          <p style="color: #666;">Ici, nous ajouterons la gestion de votre carrousel YouTube.</p>
+        </div>
       </div>
+
     </section>
   </main>
 
@@ -111,13 +158,24 @@
     const auth = getAuth(app);
     const storage = getStorage(app);
 
+    let editRoleId = null;
     let editPhotoId = null;
 
-    // --- AUTHENTIFICATION ---
+    // --- NAVIGATION TABS ---
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.target).classList.add('active');
+      });
+    });
+
+    // --- CONNEXION ---
     document.getElementById('btn-login').onclick = async () => {
       const e = document.getElementById('email').value;
       const p = document.getElementById('password').value;
-      try { await signInWithEmailAndPassword(auth, e, p); } catch(err) { alert("Erreur de connexion"); }
+      try { await signInWithEmailAndPassword(auth, e, p); } 
+      catch { document.getElementById('login-error').style.display = 'block'; }
     };
     document.getElementById('btn-logout').onclick = () => signOut(auth);
 
@@ -125,40 +183,26 @@
       if (user) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('dashboard-screen').classList.remove('hidden');
-        loadPhotos();
+        loadRoles(); loadPhotos();
       } else {
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('dashboard-screen').classList.add('hidden');
       }
     });
 
-    // --- ONGLETS ---
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.target).classList.add('active');
-      };
-    });
-
-    // --- DRAG & DROP LOGIQUE ---
+    // --- DRAG & DROP ---
     const dropZone = document.getElementById("drop-zone");
     const fileInput = document.getElementById("photo-file");
     const thumbPreview = document.getElementById("thumb-preview");
-
     dropZone.onclick = () => fileInput.click();
     dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("drop-zone--over"); };
     dropZone.ondragleave = () => dropZone.classList.remove("drop-zone--over");
     dropZone.ondrop = (e) => {
       e.preventDefault();
       dropZone.classList.remove("drop-zone--over");
-      if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-        showPreview(e.dataTransfer.files[0]);
-      }
+      if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; showPreview(e.dataTransfer.files[0]); }
     };
     fileInput.onchange = () => { if(fileInput.files.length) showPreview(fileInput.files[0]); };
-
     function showPreview(file) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -169,16 +213,64 @@
       reader.readAsDataURL(file);
     }
 
-    // --- GESTION PHOTOS ---
-    async function compactPhotos() {
+    // --- GESTION DES RÔLES ---
+    async function loadRoles() {
+      const q = query(collection(db, "role"), orderBy("annee", "desc"));
+      const snap = await getDocs(q);
+      const list = document.getElementById('list-roles');
+      list.innerHTML = "";
+      snap.forEach(d => {
+        const data = d.data();
+        const li = document.createElement('li');
+        li.className = "admin-list-item";
+        li.innerHTML = `<div><strong>${data.projet}</strong> (${data.annee})</div>
+                        <div class="action-btns"><button class="ed-r">✏️</button><button class="del-r">🗑️</button></div>`;
+        li.querySelector('.ed-r').onclick = () => {
+          editRoleId = d.id;
+          document.getElementById('role-title').textContent = "Modifier Rôle";
+          document.getElementById('btn-role-cancel').classList.remove('hidden');
+          document.getElementById('role-projet').value = data.projet;
+          document.getElementById('role-titre').value = data.titre;
+          document.getElementById('role-type').value = data.type;
+          document.getElementById('role-annee').value = data.annee;
+          document.getElementById('role-real').value = data.realisateur || '';
+          document.getElementById('role-lien').value = data.lien || '';
+          window.scrollTo({top:0, behavior:'smooth'});
+        };
+        li.querySelector('.del-r').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"role",d.id)); loadRoles(); } };
+        list.appendChild(li);
+      });
+    }
+    document.getElementById('form-role').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-role-submit');
+      const data = {
+        projet: document.getElementById('role-projet').value,
+        titre: document.getElementById('role-titre').value,
+        type: document.getElementById('role-type').value,
+        annee: Number(document.getElementById('role-annee').value),
+        realisateur: document.getElementById('role-real').value,
+        lien: document.getElementById('role-lien').value
+      };
+      try {
+        btn.disabled = true;
+        if (editRoleId) await updateDoc(doc(db, "role", editRoleId), data);
+        else await addDoc(collection(db, "role"), data);
+        document.getElementById('role-success').style.display = 'block';
+        setTimeout(() => { document.getElementById('role-success').style.display = 'none'; resetR(); loadRoles(); }, 1500);
+      } finally { btn.disabled = false; }
+    };
+    function resetR() { editRoleId = null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
+    document.getElementById('btn-role-cancel').onclick = resetR;
+
+    // --- GESTION DES PHOTOS + COMPACTAGE ---
+    async function compactP() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
       const batch = writeBatch(db);
-      let i = 1;
-      snap.forEach(d => { batch.update(doc(db, "galerie", d.id), { ordre: i }); i++; });
+      let i = 1; snap.forEach(d => { batch.update(doc(db, "galerie", d.id), { ordre: i }); i++; });
       await batch.commit();
     }
-
     async function loadPhotos() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
@@ -189,10 +281,8 @@
         const data = d.data(); if(data.ordre > maxO) maxO = data.ordre;
         const li = document.createElement('li');
         li.className = "admin-list-item";
-        li.innerHTML = `
-          <div style="display:flex; align-items:center;"><img src="${data.url}"> <strong>#${data.ordre}</strong></div>
-          <div class="action-btns"><button class="ed-p">✏️</button><button class="del-p">🗑️</button></div>`;
-        
+        li.innerHTML = `<div><img src="${data.url}"> #${data.ordre}</div>
+                        <div class="action-btns"><button class="ed-p">✏️</button><button class="del-p">🗑️</button></div>`;
         li.querySelector('.ed-p').onclick = () => {
           editPhotoId = d.id;
           document.getElementById('photo-title').textContent = "Modifier Photo";
@@ -200,55 +290,37 @@
           document.getElementById('btn-photo-cancel').classList.remove('hidden');
           document.getElementById('photo-caption').value = data.caption || '';
           document.getElementById('photo-ordre').value = data.ordre;
+          window.scrollTo({top:0, behavior:'smooth'});
         };
-        li.querySelector('.del-p').onclick = async () => {
-          if(confirm("Supprimer?")){
-            await deleteDoc(doc(db,"galerie",d.id));
-            try { await deleteObject(ref(storage, data.url)); } catch(e){}
-            await compactPhotos(); loadPhotos();
-          }
-        };
+        li.querySelector('.del-p').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"galerie",d.id)); try{await deleteObject(ref(storage,data.url));}catch(e){} await compactP(); loadPhotos(); } };
         list.appendChild(li);
       });
-      if(!editPhotoId) document.getElementById('photo-ordre').value = maxO + 1;
+      if (!editPhotoId) document.getElementById('photo-ordre').value = maxO + 1;
     }
-
     document.getElementById('form-photo').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('btn-photo-submit');
       const file = fileInput.files[0];
       const caption = document.getElementById('photo-caption').value;
       const ordreS = Number(document.getElementById('photo-ordre').value);
-
       try {
         btn.disabled = true; btn.textContent = "Patience...";
-        if(editPhotoId) {
-          await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + 0.5 });
-        } else {
-          if(!file) throw new Error("Image manquante");
+        if(editPhotoId) { await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + 0.5 }); } 
+        else {
+          if(!file) return; if(file.size > 2*1024*1024) throw new Error("Max 2Mo");
           const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`);
           await uploadBytes(sRef, file);
           const url = await getDownloadURL(sRef);
           await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
         }
-        await compactPhotos();
+        await compactP();
         document.getElementById('photo-success').style.display = 'block';
         setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; resetP(); }, 1500);
-      } catch(err) { alert(err.message); }
-      finally { btn.disabled = false; btn.textContent = "Envoyer"; }
+      } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; }
     };
-
-    function resetP() {
-      editPhotoId = null;
-      document.getElementById('form-photo').reset();
-      thumbPreview.classList.add("hidden");
-      document.getElementById("drop-prompt").textContent = "📸 Glissez une photo ou cliquez";
-      document.getElementById('box-file').classList.remove('hidden');
-      document.getElementById('btn-photo-cancel').classList.add('hidden');
-      document.getElementById('photo-title').textContent = "Ajouter une Photo";
-      loadPhotos();
-    }
+    function resetP() { editPhotoId = null; document.getElementById('form-photo').reset(); thumbPreview.classList.add("hidden"); document.getElementById("drop-prompt").textContent = "📸 Glissez une photo ou cliquez"; document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent = "Ajouter une Photo"; loadPhotos(); }
     document.getElementById('btn-photo-cancel').onclick = resetP;
+
   </script>
 </body>
 </html>
