@@ -880,3 +880,71 @@ body.page-exit {
   transition: opacity 0.35s ease, transform 0.35s ease;
   pointer-events: none; /* Empêche de recliquer pendant l'animation */
 }
+
+/* =========================================
+   DARK MODE (MODE SOMBRE)
+========================================= */
+/* On remplace les couleurs principales */
+body.dark-mode {
+  --bg: #0d0f14;         /* Fond noir très profond mais pas pur */
+  --text: #f0f2f5;       /* Texte blanc cassé pour ne pas agresser l'œil */
+  --muted: #8b95a5;      /* Gris clair pour les textes secondaires */
+  --card: #161922;       /* Fond des cartes légèrement plus clair que le fond */
+  --line: #262a35;       /* Lignes de séparation discrètes */
+  --yellow: #FFC107;     /* On garde ton beau jaune ! */
+  --yellow-ink: #0d0f14; /* Le texte sur les boutons jaunes devient noir */
+  --shadow: 0 8px 30px rgba(0,0,0,0.4); /* Ombres plus intenses pour détacher les cartes */
+}
+
+/* Ajustements spécifiques pour le Dark Mode (verre dépoli, dégradés...) */
+body.dark-mode .site-header {
+  background: rgba(13, 15, 20, 0.85);
+}
+body.dark-mode .hero-copy {
+  background: rgba(22, 25, 34, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+body.dark-mode .roles-highlight {
+  background: linear-gradient(135deg, #161922, #1c202a); /* Retire le fond crème */
+}
+body.dark-mode .role-page li {
+  background: var(--card);
+  border-color: rgba(255, 193, 7, 0.2);
+}
+body.dark-mode .table thead th {
+  background: var(--bg);
+  color: var(--muted);
+}
+body.dark-mode .table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Le style du petit bouton de bascule 🌙/☀️ */
+.theme-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: transform 0.3s ease, background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px; /* L'écarte un peu du menu sur mobile */
+}
+.theme-toggle:hover {
+  background: var(--card);
+  transform: scale(1.1);
+}
+
+/* Ajustement de l'ordre sur mobile pour le header */
+@media (max-width: 700px) {
+  .theme-toggle {
+    margin-left: auto;
+    margin-right: 10px;
+  }
+  .nav-toggle {
+    margin-left: 0;
+  }
+}
