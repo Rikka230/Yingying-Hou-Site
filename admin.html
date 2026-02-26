@@ -267,26 +267,54 @@
       const btn = document.getElementById('btn-photo-submit');
 
       try {
+        // 1. On bloque le bouton pour éviter les doubles clics
         btn.disabled = true;
+        btn.textContent = "Enregistrement...";
+
+        // 2. Logique de modification ou d'ajout
         if(editPhotoId) {
-          await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + 0.5 });
+          // On utilise un chiffre temporaire (+0.5) pour permettre le tri sans conflit d'ID unique
+          await updateDoc(doc(db, "galerie", editPhotoId), { 
+            caption: caption, 
+            ordre: ordreS + 0.5 
+          });
         } else {
-          if(!file) return;
-          if(file.size > 2*1024*1024) throw new Error("Max 2Mo");
+          if(!file) {
+            alert("Merci de choisir une image.");
+            btn.disabled = false;
+            btn.textContent = "Envoyer";
+            return;
+          }
+          if(file.size > 2*1024*1024) throw new Error("Fichier trop lourd (Max 2Mo)");
+          
           const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`);
           await uploadBytes(sRef, file);
           const url = await getDownloadURL(sRef);
-          await addDoc(collection(db,"galerie"), {url, caption, ordre: ordreS - 0.5});
+          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
         }
-        await compactP();
-        document.getElementById('photo-success').style.display='block';
-        setTimeout(()=>{ document.getElementById('photo-success').style.display='none'; resetP(); loadPhotos(); }, 1500);
-      } catch(err) { alert(err.message); btn.disabled = false; }
-    };
 
+        // 3. On compacte tout (1, 2, 3...)
+        await compactP();
+
+        // 4. Succès et Reset complet
+        document.getElementById('photo-success').style.display = 'block';
+        
+        // On attend un peu pour que l'utilisateur voie le message vert
+        setTimeout(() => {
+          document.getElementById('photo-success').style.display = 'none';
+          resetP(); // Cette fonction va recharger la liste et débloquer le bouton
+        }, 1000);
+
+      } catch(err) {
+        alert("Erreur : " + err.message);
+        btn.disabled = false;
+        btn.textContent = "Envoyer";
+      }
+    };
     function resetP() { editPhotoId=null; document.getElementById('form-photo').reset(); document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent="Ajouter une Photo"; loadPhotos(); }
     document.getElementById('btn-photo-cancel').onclick = resetP;
 
   </script>
 </body>
 </html>
+
