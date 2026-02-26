@@ -283,13 +283,33 @@
         lien: document.getElementById('role-lien').value
       };
       try {
-        btn.disabled = true;
-        if(editRoleId) await updateDoc(doc(db,"role",editRoleId), data);
-        else await addDoc(collection(db,"role"), data);
-        document.getElementById('role-success').style.display='block';
-        setTimeout(()=> { document.getElementById('role-success').style.display='none'; resetR(); loadRoles(); }, 1500);
-      } finally { btn.disabled = false; }
-    };
+        btn.disabled = true; btn.textContent = "Patience...";
+
+        if(editPhotoId) {
+          // 🧠 LOGIQUE INTELLIGENTE :
+          // Si le nouveau numéro est plus PETIT que l'ancien, on met -0.5 pour passer DEVANT.
+          // Si le nouveau numéro est plus GRAND, on met +0.5 pour passer DERRIÈRE.
+          const snapActuel = await getDocs(collection(db, "galerie"));
+          let photoActuelle = null;
+          snapActuel.forEach(d => { if(d.id === editPhotoId) photoActuelle = d.data(); });
+          
+          const ajustement = (ordreS < photoActuelle.ordre) ? -0.5 : 0.5;
+          
+          await updateDoc(doc(db, "galerie", editPhotoId), { 
+            caption, 
+            ordre: ordreS + ajustement 
+          });
+        } else {
+          // ... (Le reste du code pour l'ajout reste identique avec +0.5)
+          if(!file) return; if(file.size > 2*1024*1024) throw new Error("Fichier trop lourd (Max 2Mo)");
+          const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`);
+          await uploadBytes(sRef, file);
+          const url = await getDownloadURL(sRef);
+          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
+        }
+
+        await compactP();
+        // ... (Reste du code de succès)
     function resetR() { editRoleId=null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
     document.getElementById('btn-role-cancel').onclick = resetR;
 
@@ -371,3 +391,4 @@
   </script>
 </body>
 </html>
+
