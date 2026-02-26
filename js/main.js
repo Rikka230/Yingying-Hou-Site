@@ -363,3 +363,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { passive: true });
 })();
+
+// ==========================================
+// TRANSITIONS DE PAGE FLUIDES
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  // On cible tous les liens du site (qui finissent par .html ou qui pointent vers l'accueil /)
+  const liensInternes = document.querySelectorAll('a[href$=".html"], a[href="/"]');
+  
+  liensInternes.forEach(lien => {
+    lien.addEventListener('click', function(e) {
+      // On ignore les clics avec CTRL/CMD, les liens externes, les téléchargements (PDF) et les ancres (#)
+      if (
+        this.target === '_blank' || 
+        e.ctrlKey || 
+        e.metaKey || 
+        this.href.includes('.pdf') ||
+        this.href.includes('#')
+      ) return;
+      
+      // On vérifie qu'on reste bien sur le même site
+      if (this.hostname === window.location.hostname) {
+        e.preventDefault(); // On bloque le changement de page brutal
+        const destination = this.href;
+        
+        // On lance l'animation de sortie
+        document.body.classList.add('page-exit');
+        
+        // On attend la fin de l'animation (350ms) avant de charger la vraie page
+        setTimeout(() => {
+          window.location.href = destination;
+        }, 350);
+      }
+    });
+  });
+});
