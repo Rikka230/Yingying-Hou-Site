@@ -298,21 +298,47 @@
       renderPagination(photos.length, photoParPage, photoPageActuelle, 'photo-pagination', (p) => { photoPageActuelle = p; loadPhotos(); });
       if(!editPhotoId) document.getElementById('photo-ordre').value = lastO + 1;
     }
+    // --- ENVOI DE LA PHOTO (AVEC COMPRESSION) ---
     document.getElementById('form-photo').onsubmit = async (e) => {
-      e.preventDefault(); const btn = document.getElementById('btn-photo-submit'), file = fileInput.files[0], caption = document.getElementById('photo-caption').value, ordreS = Number(document.getElementById('photo-ordre').value);
+      e.preventDefault();
+      const btn = document.getElementById('btn-photo-submit');
+      const file = fileInput.files[0];
+      const caption = document.getElementById('photo-caption').value;
+      const ordreS = Number(document.getElementById('photo-ordre').value);
+      
       try {
-        btn.disabled = true; btn.textContent = "Patience...";
+        btn.disabled = true; 
+        
         if(editPhotoId) {
-          const snap = await getDocs(collection(db, "galerie")); let current = null; snap.forEach(d => { if(d.id === editPhotoId) current = d.data(); });
+          btn.textContent = "Mise à jour...";
+          const snap = await getDocs(collection(db, "galerie")); 
+          let current = null; snap.forEach(d => { if(d.id === editPhotoId) current = d.data(); });
           const adj = (ordreS < current.ordre) ? -0.5 : 0.5;
           await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + adj });
         } else {
-          if(!file) throw new Error("Image?"); if(file.size > 2*1024*1024) throw new Error("2Mo Max");
-          const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`); await uploadBytes(sRef, file);
-          const url = await getDownloadURL(sRef); await addDoc(collection(db,"galerie"), { url, caption, ordre: ordreS + 0.5 });
+          if(!file) throw new Error("Veuillez sélectionner une image.");
+          
+          btn.textContent = "Compression en cours...";
+          // 🚀 C'est ici que la magie opère ! Plus de limite de 2Mo.
+          const compressedFile = await compresserImage(file, 1920, 0.82); 
+          
+          btn.textContent = "Envoi sécurisé...";
+          const sRef = ref(storage, `galerie/${Date.now()}_${compressedFile.name}`); 
+          await uploadBytes(sRef, compressedFile);
+          const url = await getDownloadURL(sRef); 
+          
+          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
         }
-        await compactP(); document.getElementById('photo-success').style.display='block'; setTimeout(() => { document.getElementById('photo-success').style.display='none'; resetP(); }, 1500);
-      } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; }
+        
+        await compactP(); 
+        document.getElementById('photo-success').style.display='block';
+        setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; resetP(); loadPhotos(); }, 1500);
+      } catch(err) { 
+        alert(err.message); 
+      } finally { 
+        btn.disabled = false; 
+        btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; 
+      }
     };
     function resetP() { editPhotoId = null; document.getElementById('form-photo').reset(); thumbPreview.classList.add("hidden"); dropPrompt.textContent = "📸 Glissez une photo ou cliquez"; document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent = "Ajouter une Photo"; loadPhotos(); }
     document.getElementById('btn-photo-cancel').onclick = resetP;
@@ -438,9 +464,51 @@
       loadVideos();
     }
     document.getElementById('btn-video-cancel').onclick = resetV;
+
+    // ==========================================
+    // --- COMPRESSION D'IMAGE AUTOMATIQUE ---
+    // ==========================================
+    function compresserImage(file, maxWidth = 1920, quality = 0.8) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Redimensionnement proportionnel si l'image est trop grande
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Conversion en fichier JPEG allégé
+            canvas.toBlob((blob) => {
+              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(newFile);
+            }, 'image/jpeg', quality);
+          };
+          img.onerror = error => reject(error);
+        };
+        reader.onerror = error => reject(error);
+      });
+    }
   </script>
 </body>
 </html>
+
 
 
 
