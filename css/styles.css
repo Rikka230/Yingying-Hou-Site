@@ -466,13 +466,15 @@ a.link{color:#1a66ff}
     object-position: center top !important;
   }
   .hero-copy {
-    margin-top: -40px !important; /* Fait légèrement chevaucher le texte sur l'image */
-    background: var(--bg); /* Crée un fond blanc plein... */
-    border-radius: 24px 24px 0 0; /* ... avec des bords arrondis pour un effet "carte" élégant */
-    position: relative;
-    z-index: 2;
-    padding-top: 30px !important;
-  }
+  background: var(--bg) !important; /* Utilise la variable blanche par défaut */
+  backdrop-filter: none !important; /* Supprime le flou */
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+  padding: 40px 48px !important;
+  transform: translateY(-60px);
+  transition: transform 0.3s ease;
+}
   
   /* --- Les Onglets (Rôles & Récompenses) --- */
   .role-pagination {
@@ -927,7 +929,10 @@ body.dark-mode {
 }
 
 body.dark-mode .site-header { background: rgba(13, 15, 20, 0.85); }
-body.dark-mode .hero-copy { background: rgba(22, 25, 34, 0.85) !important; border: 1px solid rgba(255, 255, 255, 0.05); }
+body.dark-mode .hero-copy { 
+  background: var(--card) !important; 
+  border-color: rgba(255, 255, 255, 0.05); 
+}
 body.dark-mode .roles-highlight { background: linear-gradient(135deg, #161922, #1c202a); }
 
 /* --- CORRECTIONS DES BUGS VISUELS --- */
