@@ -398,3 +398,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// ==========================================
+// DARK MODE (MODE SOMBRE)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  if (themeToggle) {
+    // 1. Vérifier si l'utilisateur avait déjà choisi le mode sombre avant,
+    // ou si son système (Windows/Mac/iOS) est configuré en sombre par défaut.
+    const currentTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (currentTheme === 'dark' || (!currentTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+      themeToggle.textContent = '☀️'; // On affiche le soleil pour revenir en mode clair
+    }
+
+    // 2. Action au clic sur le bouton
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      
+      if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark'); // On sauvegarde le choix
+        themeToggle.textContent = '☀️';
+        themeToggle.setAttribute('aria-label', 'Passer en mode clair');
+      } else {
+        localStorage.setItem('theme', 'light');
+        themeToggle.textContent = '🌙';
+        themeToggle.setAttribute('aria-label', 'Passer en mode sombre');
+      }
+    });
+  }
+});
