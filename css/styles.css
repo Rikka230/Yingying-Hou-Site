@@ -829,3 +829,33 @@ a.link{color:#1a66ff}
   color: #fff;
   border-color: #d4af37;
 }
+
+/* --- En-tête Admin Responsive --- */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 15px;
+}
+.admin-header-btns {
+  display: flex;
+  gap: 10px;
+}
+
+/* Sur mobile (écrans de moins de 600px) */
+@media (max-width: 600px) {
+  .admin-header {
+    flex-direction: column; /* On empile de haut en bas */
+    align-items: flex-start; /* On aligne à gauche */
+  }
+  .admin-header-btns {
+    width: 100%; /* Les boutons prennent toute la largeur */
+  }
+  .admin-header-btns .btn {
+    flex: 1; /* Chaque bouton prend 50% de la place */
+    text-align: center;
+    padding: 10px;
+    font-size: 0.85rem; /* Texte un peu plus petit */
+  }
+}
