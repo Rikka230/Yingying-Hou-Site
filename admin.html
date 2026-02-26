@@ -12,33 +12,34 @@
     body { background-color: #f4f4f4; color: #333; font-family: 'Plus Jakarta Sans', sans-serif; }
     .admin-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
     .admin-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
-    
-    /* Login */
     #login-screen { max-width: 450px; margin: 80px auto; text-align: center; }
     
-    /* Onglets */
     .admin-tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; overflow-x: auto; }
     .tab-btn { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 700; color: #888; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; }
     .tab-btn.active { color: #d4af37; border-bottom-color: #d4af37; }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
 
-    /* Formulaires & Drag and Drop */
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
     .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; box-sizing: border-box; }
     
+    /* Drag & Drop Zone */
     .drop-zone { width: 100%; min-height: 180px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px dashed #d4af37; border-radius: 15px; background: #fffcf5; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
     .drop-zone--over { background: #fdf6e3; border-style: solid; }
     .drop-zone__prompt { color: #888; font-weight: 500; font-size: 0.9rem; }
     .drop-zone__input { display: none; }
     .drop-zone__thumb { width: 80px; height: 80px; border-radius: 10px; background-size: cover; background-position: center; margin-bottom: 10px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-    /* Listes */
     .admin-list { list-style: none; padding: 0; }
     .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
     .admin-list-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
     .action-btns button { border: none; background: #f0f0f0; cursor: pointer; border-radius: 8px; padding: 8px 12px; margin-left: 5px; font-size: 1.1rem; }
+
+    /* Pagination */
+    .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 15px; padding: 10px 0; }
+    .page-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: 700; transition: 0.2s; }
+    .page-btn.active { background: #d4af37; color: #fff; border-color: #d4af37; }
 
     .hidden { display: none !important; }
     .success-msg { color: #2e7d32; background: #e8f5e9; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: none; font-weight: 600; }
@@ -98,7 +99,13 @@
               </div>
             </form>
           </div>
-          <div class="admin-card"><h3>Liste des Rôles</h3><ul id="list-roles" class="admin-list"></ul></div>
+          <div class="admin-card">
+            <h3>Liste des Rôles</h3>
+            <div id="list-roles-container">
+                <ul id="list-roles" class="admin-list"></ul>
+                <div id="role-pagination" class="pagination"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -117,23 +124,24 @@
                 </div>
               </div>
               <div class="form-group"><label>Légende</label><input type="text" id="photo-caption"></div>
-              <div class="form-group"><label>Ordre d'affichage</label><input type="number" id="photo-ordre"></div>
+              <div class="form-group"><label>Position / Ordre</label><input type="number" id="photo-ordre"></div>
               <div style="display: flex; gap: 10px;">
                 <button type="submit" id="btn-photo-submit" class="btn" style="flex:1;">Envoyer</button>
                 <button type="button" id="btn-photo-cancel" class="btn hidden" style="background:#eee; color:#333;">Annuler</button>
               </div>
             </form>
           </div>
-          <div class="admin-card"><h3>Gérer la Galerie</h3><ul id="list-photos" class="admin-list"></ul></div>
+          <div class="admin-card">
+            <h3>Gérer la Galerie</h3>
+            <div id="list-photos-container">
+                <ul id="list-photos" class="admin-list"></ul>
+                <div id="photo-pagination" class="pagination"></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div id="tab-videos" class="tab-content">
-        <div class="admin-card" style="text-align: center; padding: 50px;">
-          <h3>🎥 Prochainement : Vidéos</h3>
-          <p style="color: #666;">Ici, nous ajouterons la gestion de votre carrousel YouTube.</p>
-        </div>
-      </div>
+      <div id="tab-videos" class="tab-content"><div class="admin-card" style="text-align:center;"><h3>🎥 Vidéos YouTube</h3><p>Prochainement...</p></div></div>
 
     </section>
   </main>
@@ -160,22 +168,23 @@
 
     let editRoleId = null;
     let editPhotoId = null;
+    let rolePageActuelle = 1; const roleParPage = 7;
+    let photoPageActuelle = 1; const photoParPage = 5;
 
-    // --- NAVIGATION TABS ---
+    // --- NAVIGATION ---
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.onclick = () => {
         document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(btn.dataset.target).classList.add('active');
-      });
+      };
     });
 
-    // --- CONNEXION ---
+    // --- AUTHENTIFICATION ---
     document.getElementById('btn-login').onclick = async () => {
       const e = document.getElementById('email').value;
       const p = document.getElementById('password').value;
-      try { await signInWithEmailAndPassword(auth, e, p); } 
-      catch { document.getElementById('login-error').style.display = 'block'; }
+      try { await signInWithEmailAndPassword(auth, e, p); } catch { document.getElementById('login-error').style.display = 'block'; }
     };
     document.getElementById('btn-logout').onclick = () => signOut(auth);
 
@@ -190,16 +199,17 @@
       }
     });
 
-    // --- DRAG & DROP ---
+    // --- DRAG & DROP LOGIQUE ---
     const dropZone = document.getElementById("drop-zone");
     const fileInput = document.getElementById("photo-file");
     const thumbPreview = document.getElementById("thumb-preview");
+    const dropPrompt = document.getElementById("drop-prompt");
+
     dropZone.onclick = () => fileInput.click();
     dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("drop-zone--over"); };
     dropZone.ondragleave = () => dropZone.classList.remove("drop-zone--over");
     dropZone.ondrop = (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("drop-zone--over");
+      e.preventDefault(); dropZone.classList.remove("drop-zone--over");
       if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; showPreview(e.dataTransfer.files[0]); }
     };
     fileInput.onchange = () => { if(fileInput.files.length) showPreview(fileInput.files[0]); };
@@ -208,9 +218,24 @@
       reader.onload = (e) => {
         thumbPreview.style.backgroundImage = `url('${e.target.result}')`;
         thumbPreview.classList.remove("hidden");
-        document.getElementById("drop-prompt").textContent = file.name;
+        dropPrompt.textContent = file.name;
       };
       reader.readAsDataURL(file);
+    }
+
+    // --- UTILITAIRE PAGINATION ---
+    function afficherPagination(total, parPage, actuelle, conteneurId, callback) {
+      const nbPages = Math.ceil(total / parPage);
+      const nav = document.getElementById(conteneurId);
+      nav.innerHTML = "";
+      if (nbPages <= 1) return;
+      for (let i = 1; i <= nbPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === actuelle ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => callback(i);
+        nav.appendChild(btn);
+      }
     }
 
     // --- GESTION DES RÔLES ---
@@ -218,15 +243,18 @@
       const q = query(collection(db, "role"), orderBy("annee", "desc"));
       const snap = await getDocs(q);
       const list = document.getElementById('list-roles');
+      let roles = []; snap.forEach(d => roles.push({id: d.id, ...d.data()}));
+      
+      const debut = (rolePageActuelle - 1) * roleParPage;
+      const affichees = roles.slice(debut, debut + roleParPage);
       list.innerHTML = "";
-      snap.forEach(d => {
-        const data = d.data();
+      affichees.forEach(data => {
         const li = document.createElement('li');
         li.className = "admin-list-item";
-        li.innerHTML = `<div><strong>${data.projet}</strong> (${data.annee})</div>
+        li.innerHTML = `<div><strong>${data.projet}</strong></div>
                         <div class="action-btns"><button class="ed-r">✏️</button><button class="del-r">🗑️</button></div>`;
         li.querySelector('.ed-r').onclick = () => {
-          editRoleId = d.id;
+          editRoleId = data.id;
           document.getElementById('role-title').textContent = "Modifier Rôle";
           document.getElementById('btn-role-cancel').classList.remove('hidden');
           document.getElementById('role-projet').value = data.projet;
@@ -237,10 +265,12 @@
           document.getElementById('role-lien').value = data.lien || '';
           window.scrollTo({top:0, behavior:'smooth'});
         };
-        li.querySelector('.del-r').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"role",d.id)); loadRoles(); } };
+        li.querySelector('.del-r').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"role",data.id)); loadRoles(); } };
         list.appendChild(li);
       });
+      afficherPagination(roles.length, roleParPage, rolePageActuelle, 'role-pagination', (p) => { rolePageActuelle = p; loadRoles(); });
     }
+
     document.getElementById('form-role').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('btn-role-submit');
@@ -254,13 +284,13 @@
       };
       try {
         btn.disabled = true;
-        if (editRoleId) await updateDoc(doc(db, "role", editRoleId), data);
-        else await addDoc(collection(db, "role"), data);
-        document.getElementById('role-success').style.display = 'block';
-        setTimeout(() => { document.getElementById('role-success').style.display = 'none'; resetR(); loadRoles(); }, 1500);
+        if(editRoleId) await updateDoc(doc(db,"role",editRoleId), data);
+        else await addDoc(collection(db,"role"), data);
+        document.getElementById('role-success').style.display='block';
+        setTimeout(()=> { document.getElementById('role-success').style.display='none'; resetR(); loadRoles(); }, 1500);
       } finally { btn.disabled = false; }
     };
-    function resetR() { editRoleId = null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
+    function resetR() { editRoleId=null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
     document.getElementById('btn-role-cancel').onclick = resetR;
 
     // --- GESTION DES PHOTOS + COMPACTAGE ---
@@ -271,32 +301,40 @@
       let i = 1; snap.forEach(d => { batch.update(doc(db, "galerie", d.id), { ordre: i }); i++; });
       await batch.commit();
     }
+    
     async function loadPhotos() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
       const list = document.getElementById('list-photos');
+      let photos = []; let lastO = 0; snap.forEach(d => { 
+          const data = d.data(); if(data.ordre > lastO) lastO = data.ordre;
+          photos.push({id: d.id, ...data}); 
+      });
+      
+      const debut = (photoPageActuelle - 1) * photoParPage;
+      const affichees = photos.slice(debut, debut + photoParPage);
       list.innerHTML = "";
-      let maxO = 0;
-      snap.forEach(d => {
-        const data = d.data(); if(data.ordre > maxO) maxO = data.ordre;
+      affichees.forEach(photo => {
         const li = document.createElement('li');
         li.className = "admin-list-item";
-        li.innerHTML = `<div><img src="${data.url}"> #${data.ordre}</div>
+        li.innerHTML = `<div><img src="${photo.url}"> #${photo.ordre}</div>
                         <div class="action-btns"><button class="ed-p">✏️</button><button class="del-p">🗑️</button></div>`;
         li.querySelector('.ed-p').onclick = () => {
-          editPhotoId = d.id;
+          editPhotoId = photo.id;
           document.getElementById('photo-title').textContent = "Modifier Photo";
           document.getElementById('box-file').classList.add('hidden');
           document.getElementById('btn-photo-cancel').classList.remove('hidden');
-          document.getElementById('photo-caption').value = data.caption || '';
-          document.getElementById('photo-ordre').value = data.ordre;
+          document.getElementById('photo-caption').value = photo.caption || '';
+          document.getElementById('photo-ordre').value = photo.ordre;
           window.scrollTo({top:0, behavior:'smooth'});
         };
-        li.querySelector('.del-p').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"galerie",d.id)); try{await deleteObject(ref(storage,data.url));}catch(e){} await compactP(); loadPhotos(); } };
+        li.querySelector('.del-p').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"galerie",photo.id)); try{await deleteObject(ref(storage, photo.url));}catch(e){} await compactP(); loadPhotos(); } };
         list.appendChild(li);
       });
-      if (!editPhotoId) document.getElementById('photo-ordre').value = maxO + 1;
+      afficherPagination(photos.length, photoParPage, photoPageActuelle, 'photo-pagination', (p) => { photoPageActuelle = p; loadPhotos(); });
+      if(!editPhotoId) document.getElementById('photo-ordre').value = lastO + 1;
     }
+
     document.getElementById('form-photo').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('btn-photo-submit');
@@ -307,18 +345,27 @@
         btn.disabled = true; btn.textContent = "Patience...";
         if(editPhotoId) { await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + 0.5 }); } 
         else {
-          if(!file) return; if(file.size > 2*1024*1024) throw new Error("Max 2Mo");
+          if(!file) return; if(file.size > 2*1024*1024) throw new Error("Fichier trop lourd (Max 2Mo)");
           const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`);
           await uploadBytes(sRef, file);
           const url = await getDownloadURL(sRef);
           await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
         }
         await compactP();
-        document.getElementById('photo-success').style.display = 'block';
-        setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; resetP(); }, 1500);
+        document.getElementById('photo-success').style.display='block';
+        setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; resetP(); loadPhotos(); }, 1500);
       } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; }
     };
-    function resetP() { editPhotoId = null; document.getElementById('form-photo').reset(); thumbPreview.classList.add("hidden"); document.getElementById("drop-prompt").textContent = "📸 Glissez une photo ou cliquez"; document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent = "Ajouter une Photo"; loadPhotos(); }
+
+    function resetP() { 
+      editPhotoId = null; 
+      document.getElementById('form-photo').reset(); 
+      thumbPreview.classList.add("hidden"); 
+      dropPrompt.textContent = "📸 Glissez une photo ou cliquez";
+      document.getElementById('box-file').classList.remove('hidden'); 
+      document.getElementById('btn-photo-cancel').classList.add('hidden'); 
+      document.getElementById('photo-title').textContent = "Ajouter une Photo"; 
+    }
     document.getElementById('btn-photo-cancel').onclick = resetP;
 
   </script>
