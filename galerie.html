@@ -114,7 +114,63 @@
       <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
     </div>
   </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // Tes clés secrètes Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+      authDomain: "kukyying-f1c95.firebaseapp.com",
+      projectId: "kukyying-f1c95",
+      storageBucket: "kukyying-f1c95.firebasestorage.app",
+      messagingSenderId: "681899915263",
+      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function chargerGalerie() {
+      try {
+        // On va chercher les infos dans ta collection "galerie"
+        const querySnapshot = await getDocs(collection(db, "galerie"));
+        const conteneurGalerie = document.getElementById('gallery');
+        
+        let photos = [];
+        querySnapshot.forEach((doc) => photos.push(doc.data()));
+
+        // S'il trouve des photos dans Firebase, il efface les anciennes et met les nouvelles
+        if (photos.length > 0) {
+          conteneurGalerie.innerHTML = ''; 
+          
+          photos.forEach(photo => {
+            const a = document.createElement('a');
+            a.href = photo.url; // Le lien du Firebase Storage
+            a.className = 'gallery-item';
+            a.setAttribute('data-caption', photo.caption || ''); // La légende
+            
+            a.innerHTML = `
+              <img src="${photo.url}" alt="${photo.caption || 'Photo'}" loading="lazy">
+              <div class="item-overlay"><span>Agrandir</span></div>
+            `;
+            
+            conteneurGalerie.appendChild(a);
+          });
+
+          console.log("✅ Galerie chargée depuis Firebase !");
+        } else {
+          console.log("⚠️ Aucune photo trouvée dans la base de données Firebase.");
+        }
+
+      } catch (erreur) {
+        console.error("❌ Erreur de chargement de la galerie :", erreur);
+      }
+    }
+    
+    // On lance l'aspiration des photos
+    chargerGalerie();
+  </script>
   <script src="/js/main.js" defer></script>
 </body>
 </html>
