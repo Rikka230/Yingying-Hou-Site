@@ -62,7 +62,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ✅ Tes clés de configuration intégrées
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -76,7 +75,8 @@
     const db = getFirestore(app);
 
     async function chargerGalerie() {
-      const conteneurGalerie = document.getElementById('galerie-grid');
+      // ⚠️ Correction de l'ID : gallery-grid au lieu de galerie-grid
+      const conteneurGalerie = document.getElementById('gallery-grid');
       const lightbox = document.getElementById('lightbox');
       const lbImage = document.getElementById('lb-image');
       const lbCaption = document.getElementById('lb-caption');
@@ -88,18 +88,16 @@
       let indexActuel = 0;
 
       try {
-        // On récupère les photos triées par le champ "ordre"
         const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
         const snapshot = await getDocs(q);
         
         if (!snapshot.empty) {
-          conteneurGalerie.innerHTML = ""; // On vide le message de chargement
+          conteneurGalerie.innerHTML = ""; 
           
           snapshot.forEach((doc) => {
             const data = doc.data();
             photos.push(data);
 
-            // On crée l'élément HTML pour chaque photo
             const item = document.createElement('a');
             item.href = "#";
             item.className = "gallery-item";
@@ -110,7 +108,6 @@
             conteneurGalerie.appendChild(item);
           });
 
-          // Fonction pour afficher une photo dans la lightbox
           const afficherPhoto = (index) => {
             indexActuel = index;
             lbImage.src = photos[index].url;
@@ -118,7 +115,6 @@
             lightbox.setAttribute('aria-hidden', 'false');
           };
 
-          // On attache le clic à chaque nouvelle photo
           const liens = conteneurGalerie.querySelectorAll('.gallery-item');
           liens.forEach((lien, index) => {
             lien.addEventListener('click', (e) => {
@@ -127,17 +123,16 @@
             });
           });
 
-          // Navigation Lightbox
-          btnClose.onclick = () => lightbox.setAttribute('aria-hidden', 'true');
-          btnNext.onclick = () => afficherPhoto((indexActuel + 1) % photos.length);
-          btnPrev.onclick = () => afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
+          if(btnClose) btnClose.onclick = () => lightbox.setAttribute('aria-hidden', 'true');
+          if(btnNext) btnNext.onclick = () => afficherPhoto((indexActuel + 1) % photos.length);
+          if(btnPrev) btnPrev.onclick = () => afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
 
         } else {
-          conteneurGalerie.innerHTML = "<p>Aucune photo pour le moment.</p>";
+          conteneurGalerie.innerHTML = "<p>Aucune photo trouvée.</p>";
         }
       } catch (erreur) {
-        console.error("Erreur de chargement :", erreur);
-        conteneurGalerie.innerHTML = "<p>Erreur lors du chargement des photos.</p>";
+        console.error("Erreur Firestore:", erreur);
+        conteneurGalerie.innerHTML = "<p>Erreur de connexion à la base de données.</p>";
       }
     }
     
