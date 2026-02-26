@@ -60,9 +60,9 @@
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Tes clés secrètes Firebase
+    // ✅ Tes clés de configuration intégrées
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -76,90 +76,68 @@
     const db = getFirestore(app);
 
     async function chargerGalerie() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "galerie"));
-        const conteneurGalerie = document.getElementById('gallery');
-        
-        photos.sort((a, b) => (a.ordre || 10) - (b.ordre || 10));
+      const conteneurGalerie = document.getElementById('galerie-grid');
+      const lightbox = document.getElementById('lightbox');
+      const lbImage = document.getElementById('lb-image');
+      const lbCaption = document.getElementById('lb-caption');
+      const btnClose = document.getElementById('lb-close');
+      const btnPrev = document.getElementById('lb-prev');
+      const btnNext = document.getElementById('lb-next');
 
-        if (photos.length > 0) {
-          conteneurGalerie.innerHTML = ''; 
+      let photos = [];
+      let indexActuel = 0;
+
+      try {
+        // On récupère les photos triées par le champ "ordre"
+        const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
+        const snapshot = await getDocs(q);
+        
+        if (!snapshot.empty) {
+          conteneurGalerie.innerHTML = ""; // On vide le message de chargement
           
-          // 1. On injecte les photos dans la grille
-          photos.forEach((photo, index) => {
-            const a = document.createElement('a');
-            a.href = photo.url;
-            a.className = 'gallery-item';
-            a.setAttribute('data-caption', photo.caption || '');
-            
-            a.innerHTML = `
-              <img src="${photo.url}" alt="${photo.caption || 'Photo'}" loading="lazy">
-              <div class="item-overlay"><span>Agrandir</span></div>
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            photos.push(data);
+
+            // On crée l'élément HTML pour chaque photo
+            const item = document.createElement('a');
+            item.href = "#";
+            item.className = "gallery-item";
+            item.innerHTML = `
+              <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
+              <div class="gallery-overlay"><span>Voir</span></div>
             `;
-            
-            conteneurGalerie.appendChild(a);
+            conteneurGalerie.appendChild(item);
           });
 
-          // ==========================================
-          // 2. RECONNEXION DE LA LIGHTBOX (ZOOM)
-          // ==========================================
-          
-          // On "nettoie" l'ancienne lightbox pour désactiver les vieux réglages de main.js
-          const ancienneLightbox = document.getElementById('lightbox');
-          const lightbox = ancienneLightbox.cloneNode(true);
-          ancienneLightbox.parentNode.replaceChild(lightbox, ancienneLightbox);
-
-          const lbImage = lightbox.querySelector('#lb-image');
-          const lbCaption = lightbox.querySelector('#lb-caption');
-          const btnClose = lightbox.querySelector('.lb-close');
-          const btnPrev = lightbox.querySelector('.lb-prev');
-          const btnNext = lightbox.querySelector('.lb-next');
-
-          let indexActuel = 0;
-
-          // Fonction magique pour afficher la bonne photo
+          // Fonction pour afficher une photo dans la lightbox
           const afficherPhoto = (index) => {
             indexActuel = index;
-            lbImage.src = photos[indexActuel].url;
-            lbCaption.textContent = photos[indexActuel].caption || '';
+            lbImage.src = photos[index].url;
+            lbCaption.textContent = photos[index].caption || "";
             lightbox.setAttribute('aria-hidden', 'false');
           };
 
-          // On branche le clic sur chaque nouvelle photo de la grille
-          const nouveauxLiens = conteneurGalerie.querySelectorAll('.gallery-item');
-          nouveauxLiens.forEach((lien, index) => {
+          // On attache le clic à chaque nouvelle photo
+          const liens = conteneurGalerie.querySelectorAll('.gallery-item');
+          liens.forEach((lien, index) => {
             lien.addEventListener('click', (e) => {
-              e.preventDefault(); // Empêche d'ouvrir l'image dans une nouvelle page brute
+              e.preventDefault();
               afficherPhoto(index);
             });
           });
 
-          // On rend les boutons de navigation fonctionnels
-          btnClose.addEventListener('click', () => lightbox.setAttribute('aria-hidden', 'true'));
-          
-          btnNext.addEventListener('click', () => {
-            afficherPhoto((indexActuel + 1) % photos.length);
-          });
-          
-          btnPrev.addEventListener('click', () => {
-            afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
-          });
-
-          // Bonus confort : fermer la lightbox en cliquant dans le vide autour de la photo
-          lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox || e.target.classList.contains('lb-figure')) {
-              lightbox.setAttribute('aria-hidden', 'true');
-            }
-          });
-
-          console.log("✅ Galerie et Lightbox connectées avec succès !");
+          // Navigation Lightbox
+          btnClose.onclick = () => lightbox.setAttribute('aria-hidden', 'true');
+          btnNext.onclick = () => afficherPhoto((indexActuel + 1) % photos.length);
+          btnPrev.onclick = () => afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
 
         } else {
-          console.log("⚠️ Aucune photo trouvée dans Firebase.");
+          conteneurGalerie.innerHTML = "<p>Aucune photo pour le moment.</p>";
         }
-
       } catch (erreur) {
-        console.error("❌ Erreur de chargement :", erreur);
+        console.error("Erreur de chargement :", erreur);
+        conteneurGalerie.innerHTML = "<p>Erreur lors du chargement des photos.</p>";
       }
     }
     
