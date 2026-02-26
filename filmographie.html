@@ -45,6 +45,8 @@
             <option value="Court métrage">Court métrage</option>
             <option value="Série TV">Série TV</option>
             <option value="Pub">Pub</option>
+            <option value="Théâtre">Théâtre</option>
+            <option value="Voix">Voix</option>
           </select>
         </label>
         
@@ -52,6 +54,7 @@
           <select id="sort-by" autocomplete="off">
             <option value="year-desc" selected>Année ↓</option>
             <option value="year-asc">Année ↑</option>
+            <option value="title-asc">Titre A→Z</option>
           </select>
         </label>
       </div>
@@ -105,17 +108,22 @@
           tbody.innerHTML = '';
           let rolesFiltres = [...roles];
 
+          // 1. Filtrage
           if (filterCat.value !== 'all') {
             rolesFiltres = rolesFiltres.filter(r => r.type === filterCat.value);
           }
 
+          // 2. Tri
           rolesFiltres.sort((a, b) => {
-            return (sortBtn.value === 'year-desc') ? (b.annee - a.annee) : (a.annee - b.annee);
+            if (sortBtn.value === 'year-desc') return (b.annee || 0) - (a.annee || 0);
+            if (sortBtn.value === 'year-asc') return (a.annee || 0) - (b.annee || 0);
+            if (sortBtn.value === 'title-asc') return (a.projet || '').localeCompare(b.projet || '');
+            return 0;
           });
 
+          // 3. Affichage avec DATA-LABEL pour le mobile
           rolesFiltres.forEach(role => {
             const tr = document.createElement('tr');
-            // AJOUT DES DATA-LABEL POUR LE MOBILE
             tr.innerHTML = `
               <td data-label="Année">${role.annee || ''}</td>
               <td data-label="Titre">${role.projet || ''}</td>
