@@ -133,40 +133,35 @@
     let editRoleId = null;
     let editPhotoId = null;
 
-    // --- 1. CONNEXION ---
+    // --- CONNEXION ---
     const btnLogin = document.getElementById('btn-login');
     if(btnLogin) {
       btnLogin.onclick = async () => {
         const e = document.getElementById('email').value;
         const p = document.getElementById('password').value;
-        const err = document.getElementById('login-error');
         try {
           btnLogin.textContent = "Vérification...";
           await signInWithEmailAndPassword(auth, e, p);
         } catch (error) {
-          err.textContent = "Identifiants incorrects.";
-          err.style.display = 'block';
+          alert("Erreur d'identifiants");
           btnLogin.textContent = "Se connecter";
         }
       };
     }
-
     document.getElementById('btn-logout').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
-      const loginS = document.getElementById('login-screen');
-      const dashS = document.getElementById('dashboard-screen');
       if (user) {
-        loginS.classList.add('hidden');
-        dashS.classList.remove('hidden');
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('dashboard-screen').classList.remove('hidden');
         loadRoles(); loadPhotos();
       } else {
-        loginS.classList.remove('hidden');
-        dashS.classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('dashboard-screen').classList.add('hidden');
       }
     });
 
-    // --- 2. ONGLETS ---
+    // --- TABS ---
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
@@ -175,7 +170,22 @@
       };
     });
 
-    // --- 3. ROLES ---
+    // --- FONCTIONS DE TRI ET COMPACTAGE ---
+    async function compactP() {
+      try {
+        const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        let i = 1;
+        snap.forEach(d => {
+          batch.update(doc(db, "galerie", d.id), { ordre: i });
+          i++;
+        });
+        await batch.commit();
+      } catch (e) { console.error("Erreur compactage:", e); }
+    }
+
+    // --- GESTION ROLES ---
     async function loadRoles() {
       const q = query(collection(db, "role"), orderBy("annee", "desc"));
       const snap = await getDocs(q);
@@ -186,10 +196,8 @@
         const li = document.createElement('li');
         li.className = "admin-list-item";
         li.innerHTML = `<div><strong>${data.projet}</strong></div>
-                        <div class="action-btns">
-                          <button class="edit-r">✏️</button><button class="del-r">🗑️</button>
-                        </div>`;
-        li.querySelector('.edit-r').onclick = () => {
+                        <div class="action-btns"><button class="ed-r">✏️</button><button class="del-r">🗑️</button></div>`;
+        li.querySelector('.ed-r').onclick = () => {
           editRoleId = d.id;
           document.getElementById('role-title').textContent = "Modifier Rôle";
           document.getElementById('btn-role-cancel').classList.remove('hidden');
@@ -207,32 +215,26 @@
 
     document.getElementById('form-role').onsubmit = async (e) => {
       e.preventDefault();
-      const data = {
-        projet: document.getElementById('role-projet').value,
-        titre: document.getElementById('role-titre').value,
-        type: document.getElementById('role-type').value,
-        annee: Number(document.getElementById('role-annee').value),
-        realisateur: document.getElementById('role-real').value,
-        lien: document.getElementById('role-lien').value
-      };
-      if(editRoleId) await updateDoc(doc(db,"role",editRoleId), data);
-      else await addDoc(collection(db,"role"), data);
-      document.getElementById('role-success').style.display='block';
-      setTimeout(()=> { document.getElementById('role-success').style.display='none'; resetR(); loadRoles(); }, 1500);
+      const btn = document.getElementById('btn-role-submit');
+      try {
+        btn.disabled = true;
+        const data = {
+          projet: document.getElementById('role-projet').value,
+          titre: document.getElementById('role-titre').value,
+          type: document.getElementById('role-type').value,
+          annee: Number(document.getElementById('role-annee').value),
+          realisateur: document.getElementById('role-real').value,
+          lien: document.getElementById('role-lien').value
+        };
+        if(editRoleId) await updateDoc(doc(db,"role",editRoleId), data);
+        else await addDoc(collection(db,"role"), data);
+        resetR(); loadRoles();
+      } finally { btn.disabled = false; }
     };
-
     function resetR() { editRoleId=null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
     document.getElementById('btn-role-cancel').onclick = resetR;
 
-    // --- 4. PHOTOS + TRI AUTO ---
-    async function compactP() {
-      const q = query(collection(db,"galerie"), orderBy("ordre","asc"));
-      const snap = await getDocs(q);
-      const batch = writeBatch(db);
-      let i = 1; snap.forEach(d => { batch.update(doc(db,"galerie",d.id), {ordre:i}); i++; });
-      await batch.commit();
-    }
-
+    // --- GESTION PHOTOS ---
     async function loadPhotos() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
@@ -244,8 +246,8 @@
         const li = document.createElement('li');
         li.className = "admin-list-item";
         li.innerHTML = `<div><img src="${data.url}"> #${data.ordre}</div>
-                        <div class="action-btns"><button class="edit-p">✏️</button><button class="del-p">🗑️</button></div>`;
-        li.querySelector('.edit-p').onclick = () => {
+                        <div class="action-btns"><button class="ed-p">✏️</button><button class="del-p">🗑️</button></div>`;
+        li.querySelector('.ed-p').onclick = () => {
           editPhotoId = d.id;
           document.getElementById('photo-title').textContent="Modifier Photo";
           document.getElementById('box-file').classList.add('hidden');
@@ -253,7 +255,13 @@
           document.getElementById('photo-caption').value = data.caption || '';
           document.getElementById('photo-ordre').value = data.ordre;
         };
-        li.querySelector('.del-p').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"galerie",d.id)); try{await deleteObject(ref(storage,data.url));}catch(e){} await compactP(); loadPhotos(); } };
+        li.querySelector('.del-p').onclick = async () => { 
+            if(confirm("Supprimer?")){ 
+                await deleteDoc(doc(db,"galerie",d.id)); 
+                try{await deleteObject(ref(storage,data.url));}catch(e){} 
+                await compactP(); loadPhotos(); 
+            } 
+        };
         list.appendChild(li);
       });
       if(!editPhotoId) document.getElementById('photo-ordre').value = maxO + 1;
@@ -261,60 +269,52 @@
 
     document.getElementById('form-photo').onsubmit = async (e) => {
       e.preventDefault();
+      const btn = document.getElementById('btn-photo-submit');
       const file = document.getElementById('photo-file').files[0];
       const caption = document.getElementById('photo-caption').value;
       const ordreS = Number(document.getElementById('photo-ordre').value);
-      const btn = document.getElementById('btn-photo-submit');
 
       try {
-        // 1. On bloque le bouton pour éviter les doubles clics
         btn.disabled = true;
         btn.textContent = "Enregistrement...";
 
-        // 2. Logique de modification ou d'ajout
         if(editPhotoId) {
-          // On utilise un chiffre temporaire (+0.5) pour permettre le tri sans conflit d'ID unique
-          await updateDoc(doc(db, "galerie", editPhotoId), { 
-            caption: caption, 
-            ordre: ordreS + 0.5 
-          });
+          await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + 0.5 });
         } else {
-          if(!file) {
-            alert("Merci de choisir une image.");
-            btn.disabled = false;
-            btn.textContent = "Envoyer";
-            return;
-          }
-          if(file.size > 2*1024*1024) throw new Error("Fichier trop lourd (Max 2Mo)");
-          
+          if(!file) throw new Error("Sélectionnez un fichier");
+          if(file.size > 2*1024*1024) throw new Error("Max 2Mo");
           const sRef = ref(storage, `galerie/${Date.now()}_${file.name}`);
           await uploadBytes(sRef, file);
           const url = await getDownloadURL(sRef);
-          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
+          await addDoc(collection(db,"galerie"), {url, caption, ordre: ordreS + 0.5});
         }
 
-        // 3. On compacte tout (1, 2, 3...)
         await compactP();
-
-        // 4. Succès et Reset complet
-        document.getElementById('photo-success').style.display = 'block';
-        
-        // On attend un peu pour que l'utilisateur voie le message vert
-        setTimeout(() => {
-          document.getElementById('photo-success').style.display = 'none';
-          resetP(); // Cette fonction va recharger la liste et débloquer le bouton
-        }, 1000);
-
+        document.getElementById('photo-success').style.display='block';
+        setTimeout(()=> document.getElementById('photo-success').style.display='none', 2000);
+        resetP();
       } catch(err) {
-        alert("Erreur : " + err.message);
+        alert(err.message);
+      } finally {
+        // C'EST CETTE LIGNE QUI DÉBLOQUE TOUT
         btn.disabled = false;
-        btn.textContent = "Envoyer";
+        btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer";
       }
     };
-    function resetP() { editPhotoId=null; document.getElementById('form-photo').reset(); document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent="Ajouter une Photo"; loadPhotos(); }
+
+    function resetP() { 
+        editPhotoId=null; 
+        document.getElementById('form-photo').reset(); 
+        document.getElementById('box-file').classList.remove('hidden'); 
+        document.getElementById('btn-photo-cancel').classList.add('hidden'); 
+        document.getElementById('photo-title').textContent="Ajouter une Photo"; 
+        loadPhotos(); 
+    }
     document.getElementById('btn-photo-cancel').onclick = resetP;
+</script>
 
   </script>
 </body>
 </html>
+
 
