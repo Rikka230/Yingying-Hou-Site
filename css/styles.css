@@ -859,3 +859,24 @@ a.link{color:#1a66ff}
     font-size: 0.85rem; /* Texte un peu plus petit */
   }
 }
+
+/* =========================================
+   TRANSITIONS DE PAGE FLUIDES
+========================================= */
+/* Animation d'entrée quand la page charge */
+body {
+  animation: pageLoad 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes pageLoad {
+  0% { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation de sortie quand on clique sur un lien */
+body.page-exit {
+  opacity: 0;
+  transform: translateY(-15px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none; /* Empêche de recliquer pendant l'animation */
+}
