@@ -133,14 +133,46 @@
       </div>
 
       <div id="tab-videos" class="tab-content">
-        <div class="admin-card" style="text-align: center; padding: 50px;">
-          <h3>🎥 Prochainement : Vidéos</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          
+          <div class="admin-card">
+            <h3 id="video-title">Ajouter une Vidéo</h3>
+            <div id="video-success" class="success-msg">✅ Vidéo ajoutée !</div>
+            <form id="form-video">
+              <div class="form-group">
+                <label>Lien YouTube</label>
+                <input type="url" id="video-url" placeholder="https://www.youtube.com/watch?v=..." required>
+                <small style="color: #888; display: block; margin-top: 5px;">Collez n'importe quel lien YouTube, on s'occupe du reste.</small>
+              </div>
+              <div class="form-group">
+                <label>Titre (Optionnel)</label>
+                <input type="text" id="video-titre" placeholder="Bande annonce...">
+              </div>
+              <div class="form-group">
+                <label>Position / Ordre</label>
+                <input type="number" id="video-ordre" required>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" id="btn-video-submit" class="btn" style="flex:1;">Publier</button>
+                <button type="button" id="btn-video-cancel" class="btn hidden" style="background:#eee; color:#333;">Annuler</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="admin-card">
+            <h3>Gérer les Vidéos</h3>
+            <ul id="list-videos" class="admin-list"></ul>
+            <div id="video-pagination" class="pagination"></div>
+          </div>
+          
         </div>
       </div>
     </section>
   </main>
 
   <script type="module">
+    let editVideoId = null;
+    let videoPageActuelle = 1; const videoParPage = 5;
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -184,7 +216,7 @@
       if (user) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('dashboard-screen').classList.remove('hidden');
-        loadRoles(); loadPhotos();
+        loadRoles(); loadPhotos(); loadVideos();
       } else {
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('dashboard-screen').classList.add('hidden');
@@ -285,8 +317,131 @@
     };
     function resetP() { editPhotoId = null; document.getElementById('form-photo').reset(); thumbPreview.classList.add("hidden"); dropPrompt.textContent = "📸 Glissez une photo ou cliquez"; document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent = "Ajouter une Photo"; loadPhotos(); }
     document.getElementById('btn-photo-cancel').onclick = resetP;
+
+    // ==========================================
+    // --- GESTION DES VIDÉOS YOUTUBE ---
+    // ==========================================
+
+    // 1. La fonction "Magique" pour nettoyer les liens YouTube
+    function cleanYouTubeUrl(url) {
+      let videoId = "";
+      try {
+        if (url.includes("youtu.be/")) {
+          videoId = url.split("youtu.be/")[1].split("?")[0];
+        } else if (url.includes("youtube.com/watch")) {
+          const urlObj = new URL(url);
+          videoId = urlObj.searchParams.get("v");
+        } else if (url.includes("youtube.com/embed/")) {
+          return url; // C'est déjà bon !
+        }
+      } catch (e) { console.error("Lien invalide"); }
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+      return null;
+    }
+
+    // 2. Compactage de l'ordre (1, 2, 3...)
+    async function compactV() {
+      const q = query(collection(db, "videos"), orderBy("ordre", "asc"));
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      let i = 1; snap.forEach(d => { batch.update(doc(db, "videos", d.id), { ordre: i }); i++; });
+      await batch.commit();
+    }
+
+    // 3. Chargement de la liste paginée
+    async function loadVideos() {
+      const q = query(collection(db, "videos"), orderBy("ordre", "asc"));
+      const snap = await getDocs(q);
+      const list = document.getElementById('list-videos');
+      
+      let videos = []; let lastO = 0; 
+      snap.forEach(d => { 
+        const data = d.data(); if(data.ordre > lastO) lastO = data.ordre;
+        videos.push({id: d.id, ...data}); 
+      });
+      
+      const start = (videoPageActuelle - 1) * videoParPage;
+      const items = videos.slice(start, start + videoParPage);
+      list.innerHTML = "";
+      
+      items.forEach(v => {
+        const li = document.createElement('li'); li.className = "admin-list-item";
+        li.innerHTML = `
+          <div style="display:flex; align-items:center;">
+             <span style="font-size: 24px; margin-right: 15px;">🎥</span> 
+             <div><strong>#${v.ordre}</strong> <br><small>${v.titre || 'Vidéo'}</small></div>
+          </div>
+          <div class="action-btns"><button class="ed-v">✏️</button><button class="del-v">🗑️</button></div>`;
+        
+        li.querySelector('.ed-v').onclick = () => {
+          editVideoId = v.id;
+          document.getElementById('video-title').textContent = "Modifier Vidéo";
+          document.getElementById('btn-video-cancel').classList.remove('hidden');
+          document.getElementById('video-url').value = v.url;
+          document.getElementById('video-titre').value = v.titre || '';
+          document.getElementById('video-ordre').value = v.ordre;
+          window.scrollTo({top:0, behavior:'smooth'});
+        };
+        li.querySelector('.del-v').onclick = async () => { 
+          if(confirm("Supprimer cette vidéo ?")){ 
+            await deleteDoc(doc(db,"videos",v.id)); 
+            await compactV(); loadVideos(); 
+          } 
+        };
+        list.appendChild(li);
+      });
+      
+      renderPagination(videos.length, videoParPage, videoPageActuelle, 'video-pagination', (p) => { videoPageActuelle = p; loadVideos(); });
+      if(!editVideoId) document.getElementById('video-ordre').value = lastO + 1;
+    }
+
+    // 4. Envoi du Formulaire
+    document.getElementById('form-video').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-video-submit');
+      const urlBrute = document.getElementById('video-url').value;
+      const titre = document.getElementById('video-titre').value;
+      const ordreS = Number(document.getElementById('video-ordre').value);
+
+      const urlPropre = cleanYouTubeUrl(urlBrute);
+      if (!urlPropre) {
+        alert("Le lien YouTube ne semble pas valide.");
+        return;
+      }
+
+      try {
+        btn.disabled = true; btn.textContent = "Patience...";
+        
+        if (editVideoId) {
+          const snap = await getDocs(collection(db, "videos")); 
+          let current = null; snap.forEach(d => { if(d.id === editVideoId) current = d.data(); });
+          const adj = (ordreS < current.ordre) ? -0.5 : 0.5;
+          await updateDoc(doc(db, "videos", editVideoId), { url: urlPropre, titre, ordre: ordreS + adj });
+        } else {
+          await addDoc(collection(db, "videos"), { url: urlPropre, titre, ordre: ordreS + 0.5 });
+        }
+        
+        await compactV();
+        document.getElementById('video-success').style.display='block';
+        setTimeout(() => { document.getElementById('video-success').style.display='none'; resetV(); }, 1500);
+      } catch (err) { alert(err.message); } 
+      finally { btn.disabled = false; btn.textContent = editVideoId ? "Mettre à jour" : "Publier"; }
+    };
+
+    function resetV() {
+      editVideoId = null; 
+      document.getElementById('form-video').reset(); 
+      document.getElementById('btn-video-cancel').classList.add('hidden'); 
+      document.getElementById('video-title').textContent = "Ajouter une Vidéo"; 
+      loadVideos();
+    }
+    document.getElementById('btn-video-cancel').onclick = resetV;
   </script>
 </body>
 </html>
+
 
 
