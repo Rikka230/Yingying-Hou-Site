@@ -13,6 +13,15 @@
     .admin-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
     .admin-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
     #login-screen { max-width: 450px; margin: 80px auto; text-align: center; }
+    
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 15px; }
+    .admin-header-btns { display: flex; gap: 10px; }
+    @media (max-width: 600px) {
+      .admin-header { flex-direction: column; align-items: flex-start; }
+      .admin-header-btns { width: 100%; }
+      .admin-header-btns .btn { flex: 1; text-align: center; padding: 10px; font-size: 0.85rem; }
+    }
+
     .admin-tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; overflow-x: auto; }
     .tab-btn { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 700; color: #888; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; }
     .tab-btn.active { color: #d4af37; border-bottom-color: #d4af37; }
@@ -111,9 +120,20 @@
                 <label>Image (Compression automatique ⚡)</label>
                 <div class="drop-zone" id="drop-zone">
                   <div class="drop-zone__thumb hidden" id="thumb-preview"></div>
-                  <span class="drop-zone__prompt" id="drop-prompt">📸 Glissez une photo haute résolution ou cliquez</span>
+                  <span class="drop-zone__prompt" id="drop-prompt">📸 Glissez une photo ou cliquez</span>
                   <input type="file" id="photo-file" class="drop-zone__input" accept="image/*">
                 </div>
+              </div>
+              <div class="form-group">
+                <label>Catégorie</label>
+                <select id="photo-categorie" required>
+                  <option value="Portrait">Portrait</option>
+                  <option value="Profil">Profil</option>
+                  <option value="En pied">En pied</option>
+                  <option value="Presse">Presse</option>
+                  <option value="Tournage">Tournage</option>
+                  <option value="Pose">Pose</option>
+                </select>
               </div>
               <div class="form-group"><label>Légende</label><input type="text" id="photo-caption"></div>
               <div class="form-group"><label>Position / Ordre</label><input type="number" id="photo-ordre"></div>
@@ -280,17 +300,29 @@
       let i = 1; snap.forEach(d => { batch.update(doc(db, "galerie", d.id), { ordre: i }); i++; });
       await batch.commit();
     }
+
     async function loadPhotos() {
       const q = query(collection(db, "galerie"), orderBy("ordre", "asc")), snap = await getDocs(q), list = document.getElementById('list-photos');
       let photos = [], lastO = 0; snap.forEach(d => { const data = d.data(); if(data.ordre > lastO) lastO = data.ordre; photos.push({id: d.id, ...data}); });
       const start = (photoPageActuelle - 1) * photoParPage, items = photos.slice(start, start + photoParPage);
       list.innerHTML = "";
+      
       items.forEach(p => {
         const li = document.createElement('li'); li.className = "admin-list-item";
-        li.innerHTML = `<div><img src="${p.url}"> #${p.ordre}</div><div class="action-btns"><button class="ed-p">✏️</button><button class="del-p">🗑️</button></div>`;
+        // Ajout de l'affichage de la catégorie dans la liste
+        li.innerHTML = `<div><img src="${p.url}"> #${p.ordre} <br><small style="color:#d4af37; font-weight:bold;">${p.categorie || 'Portrait'}</small></div>
+                        <div class="action-btns"><button class="ed-p">✏️</button><button class="del-p">🗑️</button></div>`;
+        
         li.querySelector('.ed-p').onclick = () => {
-          editPhotoId = p.id; document.getElementById('photo-title').textContent = "Modifier Photo"; document.getElementById('box-file').classList.add('hidden'); document.getElementById('btn-photo-cancel').classList.remove('hidden');
-          document.getElementById('photo-caption').value = p.caption || ''; document.getElementById('photo-ordre').value = p.ordre; window.scrollTo({top:0, behavior:'smooth'});
+          editPhotoId = p.id; 
+          document.getElementById('photo-title').textContent = "Modifier Photo"; 
+          document.getElementById('box-file').classList.add('hidden'); 
+          document.getElementById('btn-photo-cancel').classList.remove('hidden');
+          
+          document.getElementById('photo-caption').value = p.caption || ''; 
+          document.getElementById('photo-ordre').value = p.ordre; 
+          document.getElementById('photo-categorie').value = p.categorie || 'Portrait'; // Chargement de la catégorie
+          window.scrollTo({top:0, behavior:'smooth'});
         };
         li.querySelector('.del-p').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"galerie",p.id)); try{await deleteObject(ref(storage,p.url));}catch(e){} await compactP(); loadPhotos(); } };
         list.appendChild(li);
@@ -298,56 +330,59 @@
       renderPagination(photos.length, photoParPage, photoPageActuelle, 'photo-pagination', (p) => { photoPageActuelle = p; loadPhotos(); });
       if(!editPhotoId) document.getElementById('photo-ordre').value = lastO + 1;
     }
-    // --- ENVOI DE LA PHOTO (AVEC COMPRESSION) ---
+
+    // --- ENVOI DE LA PHOTO (AVEC COMPRESSION ET CATÉGORIE) ---
     document.getElementById('form-photo').onsubmit = async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('btn-photo-submit');
-      const file = fileInput.files[0];
-      const caption = document.getElementById('photo-caption').value;
-      const ordreS = Number(document.getElementById('photo-ordre').value);
-      
+      e.preventDefault(); 
+      const btn = document.getElementById('btn-photo-submit'), 
+            file = fileInput.files[0], 
+            caption = document.getElementById('photo-caption').value, 
+            ordreS = Number(document.getElementById('photo-ordre').value),
+            categorie = document.getElementById('photo-categorie').value;
+
       try {
         btn.disabled = true; 
         
         if(editPhotoId) {
           btn.textContent = "Mise à jour...";
-          const snap = await getDocs(collection(db, "galerie")); 
-          let current = null; snap.forEach(d => { if(d.id === editPhotoId) current = d.data(); });
+          const snap = await getDocs(collection(db, "galerie")); let current = null; snap.forEach(d => { if(d.id === editPhotoId) current = d.data(); });
           const adj = (ordreS < current.ordre) ? -0.5 : 0.5;
-          await updateDoc(doc(db, "galerie", editPhotoId), { caption, ordre: ordreS + adj });
+          await updateDoc(doc(db, "galerie", editPhotoId), { caption, categorie, ordre: ordreS + adj });
         } else {
           if(!file) throw new Error("Veuillez sélectionner une image.");
           
-          btn.textContent = "Compression en cours...";
-          // 🚀 C'est ici que la magie opère ! Plus de limite de 2Mo.
+          btn.textContent = "Compression...";
           const compressedFile = await compresserImage(file, 1920, 0.82); 
           
-          btn.textContent = "Envoi sécurisé...";
+          btn.textContent = "Envoi...";
           const sRef = ref(storage, `galerie/${Date.now()}_${compressedFile.name}`); 
           await uploadBytes(sRef, compressedFile);
           const url = await getDownloadURL(sRef); 
           
-          await addDoc(collection(db, "galerie"), { url, caption, ordre: ordreS + 0.5 });
+          await addDoc(collection(db, "galerie"), { url, caption, categorie, ordre: ordreS + 0.5 });
         }
         
-        await compactP(); 
-        document.getElementById('photo-success').style.display='block';
-        setTimeout(() => { document.getElementById('photo-success').style.display = 'none'; resetP(); loadPhotos(); }, 1500);
-      } catch(err) { 
-        alert(err.message); 
-      } finally { 
-        btn.disabled = false; 
-        btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; 
-      }
+        await compactP(); document.getElementById('photo-success').style.display='block'; 
+        setTimeout(() => { document.getElementById('photo-success').style.display='none'; resetP(); }, 1500);
+      } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = editPhotoId ? "Mettre à jour" : "Envoyer"; }
     };
-    function resetP() { editPhotoId = null; document.getElementById('form-photo').reset(); thumbPreview.classList.add("hidden"); dropPrompt.textContent = "📸 Glissez une photo ou cliquez"; document.getElementById('box-file').classList.remove('hidden'); document.getElementById('btn-photo-cancel').classList.add('hidden'); document.getElementById('photo-title').textContent = "Ajouter une Photo"; loadPhotos(); }
+    
+    function resetP() { 
+      editPhotoId = null; 
+      document.getElementById('form-photo').reset(); 
+      thumbPreview.classList.add("hidden"); 
+      dropPrompt.textContent = "📸 Glissez une photo ou cliquez"; 
+      document.getElementById('box-file').classList.remove('hidden'); 
+      document.getElementById('btn-photo-cancel').classList.add('hidden'); 
+      document.getElementById('photo-title').textContent = "Ajouter une Photo"; 
+      loadPhotos(); 
+    }
     document.getElementById('btn-photo-cancel').onclick = resetP;
 
     // ==========================================
     // --- GESTION DES VIDÉOS YOUTUBE ---
     // ==========================================
 
-    // 1. La fonction "Magique" pour nettoyer les liens YouTube
     function cleanYouTubeUrl(url) {
       let videoId = "";
       try {
@@ -357,7 +392,7 @@
           const urlObj = new URL(url);
           videoId = urlObj.searchParams.get("v");
         } else if (url.includes("youtube.com/embed/")) {
-          return url; // C'est déjà bon !
+          return url;
         }
       } catch (e) { console.error("Lien invalide"); }
 
@@ -367,7 +402,6 @@
       return null;
     }
 
-    // 2. Compactage de l'ordre (1, 2, 3...)
     async function compactV() {
       const q = query(collection(db, "videos"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
@@ -376,7 +410,6 @@
       await batch.commit();
     }
 
-    // 3. Chargement de la liste paginée
     async function loadVideos() {
       const q = query(collection(db, "videos"), orderBy("ordre", "asc"));
       const snap = await getDocs(q);
@@ -423,7 +456,6 @@
       if(!editVideoId) document.getElementById('video-ordre').value = lastO + 1;
     }
 
-    // 4. Envoi du Formulaire
     document.getElementById('form-video').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('btn-video-submit');
@@ -480,7 +512,6 @@
             let width = img.width;
             let height = img.height;
 
-            // Redimensionnement proportionnel si l'image est trop grande
             if (width > maxWidth) {
               height = Math.round((height * maxWidth) / width);
               width = maxWidth;
@@ -491,7 +522,6 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Conversion en fichier JPEG allégé
             canvas.toBlob((blob) => {
               const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
                 type: 'image/jpeg',
@@ -508,10 +538,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
