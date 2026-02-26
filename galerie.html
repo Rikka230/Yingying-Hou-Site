@@ -9,6 +9,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    /* Style pour la barre de filtres */
+    .gallery-filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 30px auto 10px;
+      max-width: 900px;
+    }
+    
+    .filter-btn {
+      padding: 8px 20px !important;
+      font-size: 0.9rem !important;
+      cursor: pointer;
+    }
+    
+    /* Animation fluide quand les photos apparaissent */
+    @keyframes fadeInScale {
+      0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    
+    .gallery-item {
+      animation: fadeInScale 0.4s ease-out forwards;
+    }
+  </style>
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
@@ -32,14 +59,25 @@
     <section class="page-hero">
       <div class="wrap">
         <h1>Galerie Photo</h1>
-        <p class="kicker">Portraits studio, photos de tournage et festivals.</p>
+        <p class="kicker">Portraits studio, photos de tournage et presse.</p>
+        
+        <div class="gallery-filters" id="filters-container">
+          <button class="btn filter-btn" data-filter="Tout">Tout</button>
+          <button class="btn outline filter-btn" data-filter="Portrait">Portrait</button>
+          <button class="btn outline filter-btn" data-filter="Profil">Profil</button>
+          <button class="btn outline filter-btn" data-filter="En pied">En pied</button>
+          <button class="btn outline filter-btn" data-filter="Pose">Pose</button>
+          <button class="btn outline filter-btn" data-filter="Tournage">Tournage</button>
+          <button class="btn outline filter-btn" data-filter="Presse">Presse</button>
+        </div>
       </div>
     </section>
 
-    <section class="wrap pad">
-  <div class="gallery-grid" id="gallery">
-    </div>
-</section>
+    <section class="wrap pad" style="padding-top: 20px;">
+      <div class="gallery-grid" id="gallery">
+        <p style="text-align:center; color:#888; grid-column: 1/-1;">Chargement de la galerie...</p>
+      </div>
+    </section>
 
     <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
       <button class="lb-close" aria-label="Fermer">✕</button>
@@ -58,6 +96,7 @@
       <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
     </div>
   </footer>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -74,65 +113,107 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Variables pour gérer les filtres
+    let toutesLesPhotos = []; 
+    let photosAffichees = []; 
+    let indexActuel = 0;
+
+    const conteneurGalerie = document.getElementById('gallery');
+    const lightbox = document.getElementById('lightbox');
+    const lbImage = document.getElementById('lb-image');
+    const lbCaption = document.getElementById('lb-caption');
+
     async function chargerGalerie() {
-      // ⚠️ Note : Ton HTML utilise id="gallery"
-      const conteneurGalerie = document.getElementById('gallery');
-      const lightbox = document.getElementById('lightbox');
-      const lbImage = document.getElementById('lb-image');
-      const lbCaption = document.getElementById('lb-caption');
-
-      let photos = [];
-      let indexActuel = 0;
-
       try {
-        // On demande à Firebase de trier par "ordre" directement
         const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
         const snapshot = await getDocs(q);
         
         if (!snapshot.empty) {
-          conteneurGalerie.innerHTML = ""; 
-          
           snapshot.forEach((doc) => {
-            const data = doc.data();
-            photos.push(data);
-
-            const item = document.createElement('a');
-            item.href = "#";
-            item.className = "gallery-item";
-            item.innerHTML = `
-              <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
-              <div class="item-overlay"><span>Agrandir</span></div>
-            `;
-            
-            item.onclick = (e) => {
-              e.preventDefault();
-              afficherPhoto(photos.indexOf(data));
-            };
-            
-            conteneurGalerie.appendChild(item);
+            toutesLesPhotos.push(doc.data());
           });
-
-          const afficherPhoto = (index) => {
-            indexActuel = index;
-            lbImage.src = photos[index].url;
-            lbCaption.textContent = photos[index].caption || "";
-            lightbox.setAttribute('aria-hidden', 'false');
-          };
-
-          // Navigation Lightbox
-          lightbox.querySelector('.lb-close').onclick = () => lightbox.setAttribute('aria-hidden', 'true');
-          lightbox.querySelector('.lb-next').onclick = () => afficherPhoto((indexActuel + 1) % photos.length);
-          lightbox.querySelector('.lb-prev').onclick = () => afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
-
+          
+          // Par défaut, on affiche tout
+          afficherGrille('Tout');
+          
         } else {
-          conteneurGalerie.innerHTML = "<p>Aucune photo trouvée.</p>";
+          conteneurGalerie.innerHTML = "<p style='text-align:center;'>Aucune photo trouvée.</p>";
         }
       } catch (erreur) {
-        console.error("Erreur :", erreur);
-        conteneurGalerie.innerHTML = "<p>Erreur de chargement.</p>";
+        console.error("Erreur Firestore :", erreur);
+        conteneurGalerie.innerHTML = "<p style='text-align:center; color:red;'>Erreur de chargement de la galerie.</p>";
       }
     }
-    
+
+    // --- FONCTION DE FILTRAGE ---
+    function afficherGrille(categorieFiltre) {
+      conteneurGalerie.innerHTML = ""; 
+      
+      if (categorieFiltre === 'Tout') {
+        photosAffichees = toutesLesPhotos;
+      } else {
+        // On ne garde que les photos qui ont la bonne catégorie
+        photosAffichees = toutesLesPhotos.filter(photo => photo.categorie === categorieFiltre);
+      }
+
+      if (photosAffichees.length === 0) {
+        conteneurGalerie.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1/-1; padding: 40px;">Aucune photo dans la catégorie "${categorieFiltre}".</p>`;
+        return;
+      }
+
+      // On reconstruit la grille avec les photos filtrées
+      photosAffichees.forEach((data, index) => {
+        const item = document.createElement('a');
+        item.href = "#";
+        item.className = "gallery-item";
+        
+        item.innerHTML = `
+          <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
+          <div class="item-overlay"><span>Agrandir</span></div>
+        `;
+        
+        // Au clic, on ouvre la lightbox en lui donnant le NOUVEL index (celui de la liste filtrée)
+        item.onclick = (e) => {
+          e.preventDefault();
+          afficherPhoto(index);
+        };
+        
+        conteneurGalerie.appendChild(item);
+      });
+    }
+
+    // --- GESTION DES BOUTONS DE LA BARRE DE FILTRES ---
+    const boutonsFiltres = document.querySelectorAll('.filter-btn');
+    boutonsFiltres.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // 1. On retire l'état "actif" (jaune plein) de tous les boutons
+        boutonsFiltres.forEach(f => {
+          f.classList.remove('btn');
+          f.classList.add('btn', 'outline');
+        });
+        
+        // 2. On met l'état "actif" uniquement sur le bouton cliqué
+        btn.classList.remove('outline');
+        
+        // 3. On déclenche le filtrage
+        const categorie = btn.getAttribute('data-filter');
+        afficherGrille(categorie);
+      });
+    });
+
+    // --- GESTION DE LA LIGHTBOX ---
+    function afficherPhoto(index) {
+      indexActuel = index;
+      lbImage.src = photosAffichees[index].url;
+      lbCaption.textContent = photosAffichees[index].caption || "";
+      lightbox.setAttribute('aria-hidden', 'false');
+    }
+
+    lightbox.querySelector('.lb-close').onclick = () => lightbox.setAttribute('aria-hidden', 'true');
+    lightbox.querySelector('.lb-next').onclick = () => afficherPhoto((indexActuel + 1) % photosAffichees.length);
+    lightbox.querySelector('.lb-prev').onclick = () => afficherPhoto((indexActuel - 1 + photosAffichees.length) % photosAffichees.length);
+
+    // Lancer le chargement au démarrage
     chargerGalerie();
   </script>
   <script src="/js/main.js" defer></script>
