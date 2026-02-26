@@ -75,19 +75,17 @@
     const db = getFirestore(app);
 
     async function chargerGalerie() {
-      // ⚠️ Correction de l'ID : gallery-grid au lieu de galerie-grid
-      const conteneurGalerie = document.getElementById('gallery-grid');
+      // ⚠️ Note : Ton HTML utilise id="gallery"
+      const conteneurGalerie = document.getElementById('gallery');
       const lightbox = document.getElementById('lightbox');
       const lbImage = document.getElementById('lb-image');
       const lbCaption = document.getElementById('lb-caption');
-      const btnClose = document.getElementById('lb-close');
-      const btnPrev = document.getElementById('lb-prev');
-      const btnNext = document.getElementById('lb-next');
 
       let photos = [];
       let indexActuel = 0;
 
       try {
+        // On demande à Firebase de trier par "ordre" directement
         const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
         const snapshot = await getDocs(q);
         
@@ -103,8 +101,14 @@
             item.className = "gallery-item";
             item.innerHTML = `
               <img src="${data.url}" alt="${data.caption || 'Photo Yingying HOU'}" loading="lazy">
-              <div class="gallery-overlay"><span>Voir</span></div>
+              <div class="item-overlay"><span>Agrandir</span></div>
             `;
+            
+            item.onclick = (e) => {
+              e.preventDefault();
+              afficherPhoto(photos.indexOf(data));
+            };
+            
             conteneurGalerie.appendChild(item);
           });
 
@@ -115,24 +119,17 @@
             lightbox.setAttribute('aria-hidden', 'false');
           };
 
-          const liens = conteneurGalerie.querySelectorAll('.gallery-item');
-          liens.forEach((lien, index) => {
-            lien.addEventListener('click', (e) => {
-              e.preventDefault();
-              afficherPhoto(index);
-            });
-          });
-
-          if(btnClose) btnClose.onclick = () => lightbox.setAttribute('aria-hidden', 'true');
-          if(btnNext) btnNext.onclick = () => afficherPhoto((indexActuel + 1) % photos.length);
-          if(btnPrev) btnPrev.onclick = () => afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
+          // Navigation Lightbox
+          lightbox.querySelector('.lb-close').onclick = () => lightbox.setAttribute('aria-hidden', 'true');
+          lightbox.querySelector('.lb-next').onclick = () => afficherPhoto((indexActuel + 1) % photos.length);
+          lightbox.querySelector('.lb-prev').onclick = () => afficherPhoto((indexActuel - 1 + photos.length) % photos.length);
 
         } else {
           conteneurGalerie.innerHTML = "<p>Aucune photo trouvée.</p>";
         }
       } catch (erreur) {
-        console.error("Erreur Firestore:", erreur);
-        conteneurGalerie.innerHTML = "<p>Erreur de connexion à la base de données.</p>";
+        console.error("Erreur :", erreur);
+        conteneurGalerie.innerHTML = "<p>Erreur de chargement.</p>";
       }
     }
     
