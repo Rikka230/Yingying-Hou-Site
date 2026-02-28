@@ -64,7 +64,7 @@ a.link{color:#1a66ff}
 .info .kv b { text-align: right; }
 
 /* TABLEAU FILMOGRAPHIE */
-.table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--shadow); }
+.table-wrap { overflow: auto; max-height: 65vh; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--shadow); }
 .table { width: 100%; border-collapse: collapse; text-align: left; }
 .table th, .table td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .table thead th { background: #fdfdfd; color: var(--muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #eaeaea; position: sticky; top: 0; z-index: 2; }
