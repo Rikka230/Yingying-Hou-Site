@@ -371,23 +371,17 @@ a.link{color:#1a66ff}
 }
 
 /* =========================================
-   TRANSITIONS DE PAGE FLUIDES (RÉPARÉ)
+   TRANSITIONS DE PAGE FLUIDES
 ========================================= */
 body { animation: pageLoad 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
-
-@keyframes pageLoad {
-  0% { opacity: 0; }
-  100% { opacity: 1; } /* FIX MAJEUR : On enlève le "transform" qui cassait la Lightbox ! */
-}
-
+@keyframes pageLoad { 0% { opacity: 0; } 100% { opacity: 1; } }
 body.page-exit { opacity: 0; transform: translateY(-15px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
 
 /* =========================================
-   DARK MODE & BOUTON MODERNE (RESTAURÉ)
+   DARK MODE & BOUTON MODERNE
 ========================================= */
 .header-right { display: flex; align-items: center; gap: 15px; margin-left: auto; }
 
-/* --- FIX : Le bouton retrouve tout son style --- */
 .theme-toggle-modern {
   background: transparent;
   border: 1px solid rgba(136, 136, 136, 0.4);
@@ -410,28 +404,58 @@ body.dark-mode .theme-toggle-modern {
   border-color: rgba(255, 255, 255, 0.2);
   color: var(--yellow) !important; 
 }
-/* ------------------------------------------------ */
 
-body.dark-mode { --bg: #0d0f14; --text: #f0f2f5; --muted: #8b95a5; --card: #161922; --line: #262a35; --shadow: 0 8px 30px rgba(0,0,0,0.4); }
+/* =========================================
+   DARK MODE (MODE SOMBRE) - LE PATCH ULTIME
+========================================= */
+body.dark-mode {
+  --bg: #0d0f14;
+  --text: #f0f2f5;
+  --muted: #8b95a5;
+  --card: #161922;
+  --line: #262a35;
+  --shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+/* 1. En-tête, Menu Mobile, Footer et Hero */
 body.dark-mode .site-header { background: rgba(13, 15, 20, 0.85) !important; }
-body.dark-mode .hero-copy { background: var(--card) !important; border-color: rgba(255, 255, 255, 0.05); backdrop-filter: none !important; }
-body.dark-mode .roles-highlight { background: linear-gradient(135deg, #161922, #1c202a); }
-
-body.dark-mode .btn.ghost { background: transparent !important; border: 1px solid var(--text) !important; color: var(--text) !important; }
-body.dark-mode .btn.ghost:hover { background: var(--text) !important; color: var(--bg) !important; }
-body.dark-mode table, body.dark-mode .table, body.dark-mode table tbody tr, body.dark-mode .table tbody tr, body.dark-mode table td { background-color: transparent !important; background: transparent !important; color: var(--text) !important; border-color: var(--line) !important; }
-body.dark-mode table tbody tr:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
+body.dark-mode .site-nav { background: var(--bg) !important; border-color: var(--line) !important; }
+body.dark-mode .nav-toggle { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; }
+body.dark-mode .hero-copy { background: rgba(22, 25, 34, 0.85) !important; border-color: rgba(255,255,255,0.05) !important; }
 body.dark-mode .site-footer { background: var(--bg) !important; color: var(--muted) !important; border-color: var(--line) !important; }
 body.dark-mode .site-footer a { color: var(--muted) !important; }
 
+/* 2. Boutons & Filtres */
+body.dark-mode .btn.ghost { background: transparent !important; background-image: none !important; color: var(--text) !important; border: 1px solid var(--line) !important; }
+body.dark-mode .btn.ghost:hover { background: var(--text) !important; color: var(--bg) !important; }
+body.dark-mode .filters select { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; }
+
+/* 3. FLÈCHES CARROUSEL YOUTUBE */
 body.dark-mode .slider-btn { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; }
 body.dark-mode .slider-btn:hover { background: var(--yellow) !important; color: var(--yellow-ink) !important; }
 
+/* 4. PAGE CONTACT */
 body.dark-mode .form-card, body.dark-mode .agent-card { background: var(--card) !important; border-color: var(--line) !important; color: var(--text) !important; }
 body.dark-mode .field input, body.dark-mode .field textarea { background: var(--bg) !important; color: var(--text) !important; border-color: var(--line) !important; }
 body.dark-mode .field label { background: var(--card) !important; color: var(--muted) !important; }
 body.dark-mode .field input:focus + label, body.dark-mode .field textarea:focus + label { color: var(--yellow) !important; }
 
+/* 5. TABLEAUX ET BADGES (FIX DU BLANC) */
+body.dark-mode .table-wrap { background: var(--card) !important; border-color: var(--line) !important; }
+body.dark-mode .table, body.dark-mode table, body.dark-mode th, body.dark-mode td, body.dark-mode tr { 
+  background: var(--card) !important; 
+  background-color: var(--card) !important; 
+  color: var(--text) !important; 
+  border-color: var(--line) !important; 
+}
+body.dark-mode .table thead th { background: var(--bg) !important; background-color: var(--bg) !important; }
+body.dark-mode table tbody tr:hover, body.dark-mode .table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; background-color: rgba(255, 255, 255, 0.05) !important; }
+
+/* Fix du bouton "Voir" en bout de ligne */
+body.dark-mode .table tbody td:last-child a { background: rgba(255, 193, 7, 0.15) !important; color: var(--yellow) !important; }
+body.dark-mode .table tbody td:last-child a:hover { background: var(--yellow) !important; color: var(--yellow-ink) !important; }
+
 body.dark-mode .badges li, body.dark-mode .role-page li, body.dark-mode .roles-highlight, body.dark-mode aside { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; }
 
+/* 6. SÉCURITÉ FORCE BRUTE */
 body.dark-mode [style*="background: white"], body.dark-mode [style*="background-color: white"], body.dark-mode [style*="background: #fff"], body.dark-mode [style*="background-color: #fff"] { background: var(--card) !important; color: var(--text) !important; }
