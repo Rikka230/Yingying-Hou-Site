@@ -60,17 +60,12 @@
 
     <section class="wrap pad">
       
-      <div class="filters" style="margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+      <div class="filtres-bar">
+        <input type="text" id="search-film" class="search-input" placeholder="Rechercher : Titre, rôle, réalisateur..." autocomplete="off">
         
-        <label style="flex-grow: 1; min-width: 250px; font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px;">
-          Rechercher
-          <input type="text" id="search-film" class="search-input" placeholder="Titre, rôle, réalisateur..." autocomplete="off">
-        </label>
-
-        <label style="font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px;">
-          Catégorie
-          <select id="filter-category" autocomplete="off">
-            <option value="all" selected>Toutes</option>
+        <div class="filtre-selects">
+          <select id="filter-category" class="select-input" autocomplete="off">
+            <option value="all" selected>Toutes catégories</option>
             <option value="Long métrage">Long métrage</option>
             <option value="Court métrage">Court métrage</option>
             <option value="Série TV">Série TV</option>
@@ -79,17 +74,14 @@
             <option value="Théâtre">Théâtre</option>
             <option value="Voix">Voix</option>
           </select>
-        </label>
-        
-        <label style="font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px;">
-          Trier par
-          <select id="sort-by" autocomplete="off">
-            <option value="year-desc" selected>Année ↓</option>
-            <option value="year-asc">Année ↑</option>
-            <option value="title-asc">Titre A→Z</option>
-            <option value="title-desc">Titre Z→A</option>
+          
+          <select id="sort-by" class="select-input" autocomplete="off">
+            <option value="year-desc" selected>Trier : Année ↓</option>
+            <option value="year-asc">Trier : Année ↑</option>
+            <option value="title-asc">Trier : Titre A→Z</option>
+            <option value="title-desc">Trier : Titre Z→A</option>
           </select>
-        </label>
+        </div>
       </div>
 
       <div class="table-wrap">
