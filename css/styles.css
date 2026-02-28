@@ -555,3 +555,32 @@ body.dark-mode .badges li, body.dark-mode .role-page li, body.dark-mode .roles-h
 
 /* 6. SÉCURITÉ FORCE BRUTE */
 body.dark-mode [style*="background: white"], body.dark-mode [style*="background-color: white"], body.dark-mode [style*="background: #fff"], body.dark-mode [style*="background-color: #fff"] { background: var(--card) !important; color: var(--text) !important; }
+
+/* -----------------------------------------
+   FIX ULTIME : LÉGENDES DU TABLEAU FIGÉES
+----------------------------------------- */
+.table-wrap {
+  position: relative; 
+}
+
+.table thead, 
+.table thead tr,
+.table thead th {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important; /* Force l'en-tête à passer par-dessus les lignes */
+}
+
+/* Force le fond pour empêcher les lignes de se voir en transparence lors du scroll */
+.table thead th {
+  background-clip: padding-box !important; 
+  background-color: #fdfdfd !important;
+}
+
+/* Force le fond en Mode Sombre */
+body.dark-mode .table thead th,
+body.dark-mode .page-filmographie .table thead th {
+  background-color: var(--card) !important;
+  border-bottom: 2px solid var(--line) !important;
+}
