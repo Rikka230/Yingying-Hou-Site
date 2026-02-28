@@ -9,6 +9,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Style spécifique pour la barre de recherche calqué sur tes filtres */
+    .search-input {
+      font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 16px; 
+      border-radius: 12px; background: var(--card); border: 1px solid var(--line); 
+      color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.04); outline: none; 
+      transition: all 0.2s ease; width: 100%;
+    }
+    .search-input:hover, .search-input:focus {
+      border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,193,7,.18);
+    }
+    body.dark-mode .search-input {
+      background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important;
+    }
+  </style>
 </head>
 <body>
   <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
@@ -44,8 +59,16 @@
     </section>
 
     <section class="wrap pad">
-      <div class="filters" style="margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
-        <label>Catégorie
+      
+      <div class="filters" style="margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+        
+        <label style="flex-grow: 1; min-width: 250px; font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px;">
+          Rechercher
+          <input type="text" id="search-film" class="search-input" placeholder="Titre, rôle, réalisateur..." autocomplete="off">
+        </label>
+
+        <label style="font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px;">
+          Catégorie
           <select id="filter-category" autocomplete="off">
             <option value="all" selected>Toutes</option>
             <option value="Long métrage">Long métrage</option>
@@ -58,7 +81,8 @@
           </select>
         </label>
         
-        <label>Trier par
+        <label style="font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px;">
+          Trier par
           <select id="sort-by" autocomplete="off">
             <option value="year-desc" selected>Année ↓</option>
             <option value="year-asc">Année ↑</option>
@@ -101,7 +125,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Ta configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
       authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -123,28 +146,43 @@
         const tbody = document.querySelector('#filmography tbody');
         const filterCat = document.getElementById('filter-category');
         const sortBtn = document.getElementById('sort-by');
+        const searchInput = document.getElementById('search-film'); // NOUVEAU : Champ de recherche
 
         function afficherTableau() {
-          tbody.innerHTML = ''; // Vide le tableau
+          tbody.innerHTML = '';
           let rolesFiltres = [...roles];
 
-          // 1. Filtrage par catégorie
+          // 1. Recherche par texte (Titre, Rôle, Réal ou Année)
+          const termeRecherche = searchInput.value.toLowerCase().trim();
+          if (termeRecherche !== '') {
+            rolesFiltres = rolesFiltres.filter(role => {
+              const texteGlobal = `${role.projet || ''} ${role.titre || ''} ${role.realisateur || ''} ${role.annee || ''}`.toLowerCase();
+              return texteGlobal.includes(termeRecherche);
+            });
+          }
+
+          // 2. Filtrage par catégorie
           const categorieChoisie = filterCat.value;
           if (categorieChoisie !== 'all') {
             rolesFiltres = rolesFiltres.filter(role => role.type === categorieChoisie);
           }
 
-          // 2. Logique de Tri complète
+          // 3. Logique de Tri
           rolesFiltres.sort((a, b) => {
             const tri = sortBtn.value;
             if (tri === 'year-desc') return (Number(b.annee) || 0) - (Number(a.annee) || 0);
             if (tri === 'year-asc') return (Number(a.annee) || 0) - (Number(b.annee) || 0);
             if (tri === 'title-asc') return (a.projet || '').localeCompare(b.projet || '');
-            if (tri === 'title-desc') return (b.projet || '').localeCompare(a.projet || ''); // Tri Z-A
+            if (tri === 'title-desc') return (b.projet || '').localeCompare(a.projet || '');
             return 0;
           });
 
-          // 3. Affichage des lignes avec les étiquettes pour le mobile
+          // 4. Affichage des lignes (ou message vide)
+          if (rolesFiltres.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé pour cette recherche.</td></tr>`;
+            return;
+          }
+
           rolesFiltres.forEach(role => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -159,9 +197,10 @@
           });
         }
 
-        // Écouteurs de changements sur les menus de tri/filtre
+        // Écouteurs d'événements : on actualise le tableau dès qu'on tape au clavier ou qu'on change un menu
         filterCat.addEventListener('change', afficherTableau);
         sortBtn.addEventListener('change', afficherTableau);
+        searchInput.addEventListener('input', afficherTableau);
 
         // Lancement initial
         if (roles.length > 0) {
