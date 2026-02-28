@@ -130,6 +130,20 @@ body.dark-mode .search-input, body.dark-mode .select-input {
   background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important;
 }
 
+.page-filmographie .wrap {
+  max-width: 1400px !important; /* Plus large que le reste du site */
+}
+
+.page-filmographie .table {
+  width: 100%;
+  min-width: 1200px; /* Empêche le texte de se tasser si on réduit la fenêtre */
+}
+
+.page-filmographie .table th, 
+.page-filmographie .table td {
+  padding: 22px 30px !important; /* Ajoute beaucoup de "vide" élégant autour des mots */
+}
+
 /* -----------------------------------------
    3. RESPONSIVE MOBILE (Filtres empilés + Scroll Normal)
 ----------------------------------------- */
