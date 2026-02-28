@@ -64,7 +64,16 @@ a.link{color:#1a66ff}
 .info .kv b { text-align: right; }
 
 /* TABLEAU FILMOGRAPHIE */
-.table-wrap { overflow: auto; max-height: 65vh; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--shadow); }
+.table-wrap { 
+  overflow: auto; 
+  /* Le secret est ici : on prend 100% de l'écran moins la hauteur du haut de page */
+  max-height: calc(100vh - 360px); 
+  min-height: 400px; /* Sécurité pour les tout petits écrans PC */
+  border: 1px solid var(--line); 
+  border-radius: 12px; 
+  background: #fff; 
+  box-shadow: var(--shadow); 
+}
 .table { width: 100%; border-collapse: collapse; text-align: left; }
 .table th, .table td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .table thead th { background: #fdfdfd; color: var(--muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #eaeaea; position: sticky; top: 0; z-index: 2; }
@@ -227,7 +236,12 @@ a.link{color:#1a66ff}
   
   /* --- Correction Filmographie Mobile --- */
   .table thead { display: none; }
-  .table-wrap { border: 0; background: transparent; box-shadow: none; }
+  .table-wrap { 
+    border: 0; 
+    background: transparent; 
+    box-shadow: none; 
+    max-height: none;
+  }
   .table tbody tr { display: flex; flex-direction: column; background: var(--bg) !important; border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
   .table tbody td { border: 0; padding: 8px 0; display: flex; align-items: flex-start; justify-content: flex-start; }
   .table tbody td::before { content: attr(data-label) " : "; min-width: 120px; color: var(--muted); font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
