@@ -131,22 +131,22 @@ body.dark-mode .search-input, body.dark-mode .select-input {
 }
 
 /* -----------------------------------------
-   3. RESPONSIVE MOBILE (Filtres empilés)
+   3. RESPONSIVE MOBILE (Filtres empilés + Scroll Normal)
 ----------------------------------------- */
 @media (max-width: 700px) {
   .page-filmographie .filtres-bar { flex-direction: column; gap: 10px; margin-bottom: 12px; }
   .page-filmographie .filtre-selects { width: 100%; }
   .page-filmographie .filtre-selects .select-input { flex: 1; padding: 10px; font-size: 0.85rem; }
   .search-input { padding: 10px 14px; }
+  
+  /* FIX : On annule le verrouillage de l'écran sur mobile */
+  .page-filmographie { height: auto; display: block; overflow: visible; }
+  .page-filmographie #main { display: block; overflow: visible; flex: none; }
+  .page-filmographie .pad { display: block; overflow: visible; flex: none; padding: 20px 0; }
+  
+  /* Le tableau grandit normalement et repousse le footer vers le bas */
+  .page-filmographie .table-wrap { overflow: visible; flex: none; }
 }
-.table { width: 100%; border-collapse: collapse; text-align: left; }
-.table th, .table td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-.table thead th { background: #fdfdfd; color: var(--muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #eaeaea; position: sticky; top: 0; z-index: 2; }
-.table tbody tr { transition: background 0.2s ease; }
-.table tbody tr:hover { background: #fafbfe; }
-.table tbody td:nth-child(2) { font-weight: 700; color: var(--text); }
-.table tbody td:last-child a { display: inline-block; padding: 6px 14px; background: rgba(255, 193, 7, 0.15) !important; color: var(--yellow-ink) !important; border-radius: 8px; font-size: 0.9rem; font-weight: 700; transition: all 0.2s ease; }
-.table tbody td:last-child a:hover { background: var(--yellow) !important; transform: translateY(-1px); }
 
 /* FILTRES FILMOGRAPHIE */
 .filters { display: flex; flex-direction: row; gap: 16px; margin: 16px 0 24px; }
