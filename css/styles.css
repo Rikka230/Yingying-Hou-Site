@@ -584,3 +584,65 @@ body.dark-mode .page-filmographie .table thead th {
   background-color: var(--card) !important;
   border-bottom: 2px solid var(--line) !important;
 }
+
+/* =========================================
+   FINITIONS PREMIUM : SURVOL & SLIDER (SCROLLBAR)
+========================================= */
+
+/* 1. EFFET "ALLUMAGE" DES LIGNES AU SURVOL */
+.table tbody tr {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Survol en mode clair */
+.table tbody tr:hover {
+  background-color: rgba(255, 193, 7, 0.08) !important; /* Fond jaune ultra léger */
+  box-shadow: inset 4px 0 0 var(--yellow) !important; /* Ligne jaune sur le bord gauche */
+}
+
+/* Survol en mode sombre */
+body.dark-mode .table tbody tr:hover,
+body.dark-mode .page-filmographie .table tbody tr:hover {
+  background-color: rgba(255, 193, 7, 0.12) !important; /* Fond jaune un peu plus fort sur fond noir */
+  box-shadow: inset 4px 0 0 var(--yellow) !important;
+}
+
+
+/* 2. CUSTOMISATION DU SLIDER (BARRE DE DÉFILEMENT DU TABLEAU) */
+
+/* Largeur globale du slider */
+.table-wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Le fond (la piste) du slider */
+.table-wrap::-webkit-scrollbar-track {
+  background: var(--bg); /* S'adapte tout seul au clair/sombre */
+  border-radius: 0 12px 12px 0;
+}
+
+/* La poignée du slider */
+.table-wrap::-webkit-scrollbar-thumb {
+  background: var(--muted); /* Gris doux par défaut */
+  border-radius: 10px;
+  border: 2px solid var(--bg); /* Crée un faux espace autour de la poignée */
+  transition: background 0.3s ease;
+}
+
+/* La poignée s'allume au survol de la souris */
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--yellow);
+}
+
+/* Ajustement fin pour le mode sombre (Poignée plus foncée au repos) */
+body.dark-mode .table-wrap::-webkit-scrollbar-thumb {
+  background: #3a404d; 
+  border-color: var(--card);
+}
+body.dark-mode .table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--yellow);
+}
+body.dark-mode .table-wrap::-webkit-scrollbar-track {
+  background: var(--card);
+}
