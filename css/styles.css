@@ -65,22 +65,12 @@ a.link{color:#1a66ff}
 
 /* TABLEAU FILMOGRAPHIE */
 /* -----------------------------------------
-   1. FIX: HAUTEUR DU TABLEAU (PC)
+   1. FILMOGRAPHIE : PROPORTIONS DES FILTRES
 ----------------------------------------- */
-.table-wrap { 
-  overflow: auto; 
-  max-height: 60vh; /* FIX : S'arrête toujours net avant le bas de l'écran (60% de l'écran) */
-  border: 1px solid var(--line); 
-  border-radius: 12px; 
-  background: #fff; 
-  box-shadow: var(--shadow); 
-}
-
-/* -----------------------------------------
-   2. DESIGN COMPACT DES FILTRES
------------------------------------------ */
-.filtres-bar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; }
-.filtre-selects { display: flex; gap: 12px; }
+.filtres-bar { display: flex; gap: 16px; margin-bottom: 20px; align-items: center; flex-shrink: 0; }
+.search-input { flex: 1.2; } /* La recherche prend un peu plus d'une part */
+.filtre-selects { display: flex; gap: 12px; flex: 2; } /* Les menus prennent 2 parts (plus d'espace) */
+.filtre-selects .select-input { flex: 1; min-width: 0; } /* min-width:0 empêche le texte de déborder */
 
 .search-input, .select-input {
   font-family: inherit; font-size: 14px; font-weight: 600; 
@@ -89,9 +79,50 @@ a.link{color:#1a66ff}
   color: var(--text); outline: none; transition: all 0.2s ease;
   width: 100%;
 }
-.search-input { flex-grow: 1; }
 .search-input:hover, .search-input:focus, .select-input:hover, .select-input:focus { 
   border-color: var(--yellow); 
+}
+
+/* -----------------------------------------
+   2. FILMOGRAPHIE : ECRAN VERROUILLÉ (FULLSCREEN)
+----------------------------------------- */
+/* On bloque la page à 100% de l'écran dynamique (100dvh) et on coupe le scroll global */
+.page-filmographie {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+}
+
+.page-filmographie .site-header { flex-shrink: 0; }
+.page-filmographie #main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* On réduit un peu les marges vides en haut pour maximiser la taille du tableau */
+.page-filmographie .page-hero { padding: 20px 0 10px; flex-shrink: 0; }
+.page-filmographie .page-hero h1 { font-size: clamp(24px, 4vw, 36px); }
+.page-filmographie .pad { padding: 10px 0 20px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* LE TABLEAU MAGIQUE : Il prend 100% de la place restante, et génère son propre scroll */
+.page-filmographie .table-wrap {
+  flex: 1;
+  max-height: none; /* Annule les anciens calculs rigides */
+  overflow: auto;
+  border: 1px solid var(--line); 
+  border-radius: 12px; 
+  background: #fff; 
+  box-shadow: var(--shadow); 
+}
+
+/* Le footer est forcé de rester en bas, sans marge qui pousse */
+.page-filmographie .site-footer {
+  margin-top: 0;
+  padding: 12px 0;
+  flex-shrink: 0;
 }
 
 /* Mode Sombre pour les nouveaux filtres */
@@ -100,18 +131,13 @@ body.dark-mode .search-input, body.dark-mode .select-input {
 }
 
 /* -----------------------------------------
-   3. RESPONSIVE MOBILE (Filtres empilés et petits)
+   3. RESPONSIVE MOBILE (Filtres empilés)
 ----------------------------------------- */
 @media (max-width: 700px) {
-  .filtres-bar { flex-direction: column; gap: 10px; margin-bottom: 16px; }
-  .search-input { padding: 10px 14px; width: 100%; }
-  
-  .filtre-selects { width: 100%; }
-  /* Les deux menus s'affichent côte à côte à 50% */
-  .filtre-selects .select-input { flex: 1; padding: 10px; font-size: 0.85rem; }
-  
-  /* On libère totalement la hauteur du tableau sur mobile pour défiler au doigt */
-  .table-wrap { max-height: none; } 
+  .page-filmographie .filtres-bar { flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .page-filmographie .filtre-selects { width: 100%; }
+  .page-filmographie .filtre-selects .select-input { flex: 1; padding: 10px; font-size: 0.85rem; }
+  .search-input { padding: 10px 14px; }
 }
 .table { width: 100%; border-collapse: collapse; text-align: left; }
 .table th, .table td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
