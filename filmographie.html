@@ -145,12 +145,25 @@
           tbody.innerHTML = '';
           let rolesFiltres = [...roles];
 
-          // 1. Recherche par texte (Titre, Rôle, Réal ou Année)
+          // 1. Recherche exacte (Début de texte ou début de mot)
           const termeRecherche = searchInput.value.toLowerCase().trim();
           if (termeRecherche !== '') {
             rolesFiltres = rolesFiltres.filter(role => {
-              const texteGlobal = `${role.projet || ''} ${role.titre || ''} ${role.realisateur || ''} ${role.annee || ''}`.toLowerCase();
-              return texteGlobal.includes(termeRecherche);
+              const projet = (role.projet || '').toLowerCase();
+              const titre = (role.titre || '').toLowerCase();
+              const realisateur = (role.realisateur || '').toLowerCase();
+              const annee = (role.annee || '').toString();
+
+              // Fonction qui vérifie si le texte commence par la recherche 
+              // OU si un mot à l'intérieur commence par la recherche (grâce à l'espace ou tiret)
+              const commencePar = (texte) => 
+                texte.startsWith(termeRecherche) || 
+                texte.includes(' ' + termeRecherche) || 
+                texte.includes('-' + termeRecherche) ||
+                texte.includes('’' + termeRecherche) ||
+                texte.includes('\'' + termeRecherche);
+
+              return commencePar(projet) || commencePar(titre) || commencePar(realisateur) || commencePar(annee);
             });
           }
 
