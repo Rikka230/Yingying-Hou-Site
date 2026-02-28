@@ -64,15 +64,54 @@ a.link{color:#1a66ff}
 .info .kv b { text-align: right; }
 
 /* TABLEAU FILMOGRAPHIE */
+/* -----------------------------------------
+   1. FIX: HAUTEUR DU TABLEAU (PC)
+----------------------------------------- */
 .table-wrap { 
   overflow: auto; 
-  /* Le secret est ici : on prend 100% de l'écran moins la hauteur du haut de page */
-  max-height: calc(100vh - 360px); 
-  min-height: 400px; /* Sécurité pour les tout petits écrans PC */
+  max-height: 60vh; /* FIX : S'arrête toujours net avant le bas de l'écran (60% de l'écran) */
   border: 1px solid var(--line); 
   border-radius: 12px; 
   background: #fff; 
   box-shadow: var(--shadow); 
+}
+
+/* -----------------------------------------
+   2. DESIGN COMPACT DES FILTRES
+----------------------------------------- */
+.filtres-bar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; }
+.filtre-selects { display: flex; gap: 12px; }
+
+.search-input, .select-input {
+  font-family: inherit; font-size: 14px; font-weight: 600; 
+  padding: 12px 16px; border-radius: 12px; 
+  background: var(--card); border: 1px solid var(--line); 
+  color: var(--text); outline: none; transition: all 0.2s ease;
+  width: 100%;
+}
+.search-input { flex-grow: 1; }
+.search-input:hover, .search-input:focus, .select-input:hover, .select-input:focus { 
+  border-color: var(--yellow); 
+}
+
+/* Mode Sombre pour les nouveaux filtres */
+body.dark-mode .search-input, body.dark-mode .select-input {
+  background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important;
+}
+
+/* -----------------------------------------
+   3. RESPONSIVE MOBILE (Filtres empilés et petits)
+----------------------------------------- */
+@media (max-width: 700px) {
+  .filtres-bar { flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .search-input { padding: 10px 14px; width: 100%; }
+  
+  .filtre-selects { width: 100%; }
+  /* Les deux menus s'affichent côte à côte à 50% */
+  .filtre-selects .select-input { flex: 1; padding: 10px; font-size: 0.85rem; }
+  
+  /* On libère totalement la hauteur du tableau sur mobile pour défiler au doigt */
+  .table-wrap { max-height: none; } 
 }
 .table { width: 100%; border-collapse: collapse; text-align: left; }
 .table th, .table td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
