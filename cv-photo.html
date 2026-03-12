@@ -525,8 +525,8 @@
             });
         }
 
-        // --- COMPRESSION ET UPLOAD D'IMAGES SUR FIREBASE ---
-        function compresserImage(file, maxWidth = 1200, quality = 0.8) {
+        // --- COMPRESSION INTERNE (Évite les erreurs de sécurité de capture d'écran) ---
+        function compresserImage(file, maxWidth = 1000, quality = 0.75) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader(); reader.readAsDataURL(file);
                 reader.onload = (event) => {
@@ -537,7 +537,9 @@
                         if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         canvas.width = width; canvas.height = height;
                         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                        canvas.toBlob((blob) => { resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' })); }, 'image/jpeg', quality);
+                        
+                        // On retourne l'image en code Base64 ultra-compressé au lieu d'un fichier lourd !
+                        resolve(canvas.toDataURL('image/jpeg', quality));
                     };
                     img.onerror = error => reject(error);
                 };
@@ -550,20 +552,24 @@
         });
 
         async function processImageFile(file, block) {
-            block.querySelector('.placeholder-text').textContent = "⏳ Upload...";
+            block.querySelector('.placeholder-text').textContent = "⏳ Traitement...";
             try {
-                const compressedFile = await compresserImage(file, 1200, 0.8);
-                const sRef = ref(storage, `presskit/zcard_${Date.now()}.jpg`);
-                await uploadBytes(sRef, compressedFile);
-                const url = await getDownloadURL(sRef);
+                // On génère le Base64 compressé (fini les soucis avec Firebase Storage pour les cases)
+                const base64Data = await compresserImage(file, 1000, 0.75);
 
                 let img = block.querySelector('img');
                 if (!img) { img = document.createElement('img'); block.appendChild(img); }
-                img.src = url; img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
+                
+                img.src = base64Data; // L'image est stockée localement, dom-to-image ne plantera plus !
+                img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
                 block.classList.add('has-image'); 
                 updateImageTransform(img);
-            } catch(e) { alert("Erreur lors du chargement de l'image."); console.error(e); } 
-            finally { block.querySelector('.placeholder-text').textContent = "+ Photo"; }
+            } catch(e) { 
+                alert("Erreur lors du chargement de l'image."); 
+                console.error(e); 
+            } finally { 
+                block.querySelector('.placeholder-text').textContent = "+ Photo"; 
+            }
         }
 
         function updateImageTransform(img) { 
@@ -699,3 +705,4 @@
     </script>
 </body>
 </html>
+
