@@ -179,35 +179,39 @@
             body { display: block; overflow: auto; }
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
             
-            /* --- ESPACE DE TRAVAIL : Centrage total --- */
+            /* --- ESPACE DE TRAVAIL --- */
 .workspace { 
     flex-grow: 1; 
-    overflow: auto; 
+    height: 100vh;
+    overflow: hidden; /* Empêche le scroll de la page entière */
     display: flex; 
     justify-content: center; 
-    align-items: center; /* Centre verticalement si l'écran est très haut */
-    padding: 20px; 
+    align-items: center; 
+    padding: 20px; /* Petite marge de sécurité autour */
     background: #0f0f0f;
 }
 
-/* --- PAGE DYNAMIQUE : Utilise 95% de la hauteur ou largeur dispo --- */
+/* --- PAGE DYNAMIQUE (LE FIX) --- */
 .page-a4 { 
-    /* Calcule la taille optimale pour remplir l'écran sans déformer le A4 */
-    width: min(95vw - 340px, (95vh * 210) / 297); 
-    height: min(95vh, ((95vw - 340px) * 297) / 210);
+    /* Calcule la taille pour être toujours au max de l'écran en gardant le ratio A4 */
+    /* On retire 340px pour laisser de la place à la sidebar sur PC */
+    height: 95vh; 
+    aspect-ratio: 210 / 297; /* Ratio A4 Portrait pour cv-auto */
     
+    /* Pour cv-photo.html, inverse le ratio : aspect-ratio: 297 / 210; */
+
     background-color: var(--bg-page); 
-    position: relative; 
+    box-sizing: border-box; 
+    padding: 30px; 
     display: flex; 
     flex-direction: column;
-    padding: 4%; /* Padding en % pour qu'il s'adapte à la taille */
-    box-sizing: border-box; 
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    transition: all 0.3s ease;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.8);
+    position: relative;
+    overflow-y: auto; /* Permet de scroller à l'intérieur du CV si tu mets trop de texte */
 }
 
-/* On ajuste les textes pour qu'ils suivent la taille de la page */
-.page-a4 { font-size: 1.1cqw; } /* Utilise les Container Queries units */
+/* On ajuste la taille de la police pour qu'elle suive la taille de la page */
+.page-a4 { font-size: 0.9vw; }
             
             .photo-controls { display: none !important; }
             .mobile-warning { display: block; }
@@ -749,6 +753,7 @@
     </script>
 </body>
 </html>
+
 
 
 
