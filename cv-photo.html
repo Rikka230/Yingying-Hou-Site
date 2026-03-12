@@ -610,16 +610,30 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
-        // --- SAUVEGARDE & PUBLICATION ---
+        // --- SAUVEGARDE INTELLIGENTE (IMAGE PAR IMAGE POUR ÉVITER LA LIMITE 1MO) ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ Génération & Mise en ligne...";
+            btn.innerHTML = "⏳ Analyse des images...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
 
             try {
                 const cvPage = document.getElementById('cvPage');
+                const imagesBlocks = document.querySelectorAll('.img-container img');
+                
+                // 1. On uploade chaque nouvelle image en Base64 vers Storage pour alléger le JSON
+                for (let img of imagesBlocks) {
+                    if (img.src.startsWith('data:image')) {
+                        const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`);
+                        await uploadString(sRef, img.src, 'data_url');
+                        img.src = await getDownloadURL(sRef); // On remplace le texte lourd par une URL légère
+                    }
+                }
+
+                btn.innerHTML = "⏳ Génération du Press Kit...";
+
+                // 2. Capture HD du rendu final
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff', 
@@ -628,10 +642,12 @@
                     style: { transform: 'scale(2)', transformOrigin: 'top left' }
                 });
                 
-                const sRef = ref(storage, `presskit/zcard_public.png`);
-                await uploadString(sRef, dataUrl, 'data_url');
-                const publicUrl = await getDownloadURL(sRef);
+                // 3. Envoi du PNG public
+                const publicSRef = ref(storage, `presskit/zcard_public.png`);
+                await uploadString(publicSRef, dataUrl, 'data_url');
+                const publicUrl = await getDownloadURL(publicSRef);
 
+                // 4. Sauvegarde Firestore (Le HTML est maintenant léger car il ne contient que des URLs)
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
@@ -641,13 +657,19 @@
                     annexVisible: document.getElementById('toggleAnnex').checked,
                     publicUrl: publicUrl
                 };
-                await setDoc(doc(db, "site_data", "zcard_project"), projectData);
                 
-                alert("✅ Z-Card générée et mise à jour sur le site public !");
-            } catch(e) { console.error(e); alert("Erreur lors de la sauvegarde."); } 
-            finally { document.body.classList.remove('is-exporting'); btn.innerHTML = originalText; btn.disabled = false; }
+                await setDoc(doc(db, "site_data", "zcard_project"), projectData);
+                alert("✅ Z-Card publiée avec succès !");
+                
+            } catch(e) { 
+                console.error(e); 
+                alert("Erreur : Le projet est peut-être encore trop lourd ou connexion perdue."); 
+            } finally { 
+                document.body.classList.remove('is-exporting'); 
+                btn.innerHTML = originalText; 
+                btn.disabled = false; 
+            }
         });
-
         // --- IMPORT MANUEL ---
         document.getElementById('importProject').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -705,4 +727,5 @@
     </script>
 </body>
 </html>
+
 
