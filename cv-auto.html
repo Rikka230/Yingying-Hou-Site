@@ -629,12 +629,20 @@
                 await uploadString(sRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(sRef);
 
+                const nomPrenom = document.querySelector('#headerCard h1').innerText || 'Antony';
+                const titrePoste = document.querySelector('#headerCard h2').innerText || 'Directeur Artistique';
+                const accroche = document.querySelector('#headerCard p').innerText || '';
+
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     accent: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#2563eb',
                     bg: document.documentElement.style.getPropertyValue('--bg-page').trim() || '#f3f4f6',
                     hasPhoto: document.getElementById('togglePhoto').checked,
                     publicUrl: publicUrl
+                    seo: {
+                        title: `${nomPrenom} | ${titrePoste}`,
+                    description: accroche
+        }
                 };
                 await setDoc(doc(db, "site_data", "cv_project"), projectData);
                 
@@ -725,5 +733,6 @@
     </script>
 </body>
 </html>
+
 
 
