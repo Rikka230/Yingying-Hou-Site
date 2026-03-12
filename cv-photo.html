@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Card DA - Canvas Figma & Sécurisé</title>
+    <title>Z-Card DA - Plein Écran & Baking Actif</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
@@ -55,7 +55,7 @@
         .toggle-label-text { font-size: 12px; color: var(--ui-text); }
 
         /* =========================================
-           ESPACE DE TRAVAIL (Moteur de Rendu Figma)
+           ESPACE DE TRAVAIL & SCALING
         ========================================= */
         .workspace { 
             flex-grow: 1; 
@@ -68,20 +68,16 @@
         }
 
         .page-a4 { 
-            /* Taille FIXE parfaite (Standard A4 Paysage à 96dpi) */
             width: 1123px; 
             height: 794px; 
-            
             background-color: var(--bg-page); 
             box-sizing: border-box; 
-            padding: 10mm; /* Marge interne classique */
+            padding: 10mm;
             display: flex; 
             gap: var(--gutter); 
             box-shadow: 0 20px 80px rgba(0,0,0,0.9); 
             position: relative; 
-            flex-shrink: 0; /* Empêche le navigateur de l'écraser */
-            
-            /* L'origine du zoom se fait depuis le centre */
+            flex-shrink: 0; 
             transform-origin: center center;
             transition: transform 0.1s ease-out;
         }
@@ -98,7 +94,7 @@
         .pattern-circles { background-image: radial-gradient(circle, color-mix(in srgb, var(--accent-color) 20%, transparent) 2px, transparent 2px); background-size: 15px 15px; }
         .pattern-none { background-image: none; }
 
-        /* --- COLONNE TEXTE (Taille Rétablie à l'original) --- */
+        /* --- COLONNE TEXTE --- */
         .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: var(--text-color);}
         .text-content-wrapper { padding: 5mm; display: flex; flex-direction: column; gap: 10px; transition: gap 0.3s; flex-shrink: 0; }
         
@@ -344,9 +340,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
-        // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
             authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -373,21 +368,19 @@
         let draggedBlock = null; 
 
         // ==========================================
-        // LE MOTEUR DE ZOOM (CANVAS FIGMA)
+        // MOTEUR DE ZOOM (CANVAS FIGMA)
         // ==========================================
         function resizeWorkspace() {
             const workspace = document.getElementById('workspace');
             const cvPage = document.getElementById('cvPage');
             if (!workspace || !cvPage) return;
             
-            // Sur mobile, on applique un zoom fixe et on laisse le scroll faire le travail
             if (window.innerWidth <= 768) {
                 cvPage.style.transform = 'scale(0.85)';
                 return;
             }
             
-            // Sur PC : On calcule exactement le zoom pour que le A4 (1123x794) remplisse l'écran
-            const padding = 40; // Marge de sécurité de 20px de chaque côté
+            const padding = 40; 
             const scaleX = (workspace.clientWidth - padding) / 1123;
             const scaleY = (workspace.clientHeight - padding) / 794;
             const scale = Math.min(scaleX, scaleY);
@@ -395,10 +388,8 @@
             cvPage.style.transform = `scale(${scale})`;
         }
 
-        // On active le zoom au chargement et au redimensionnement de la fenêtre
         window.addEventListener('resize', resizeWorkspace);
         document.addEventListener('DOMContentLoaded', resizeWorkspace);
-        // ==========================================
 
         // --- VERIFICATION ET CHARGEMENT FIREBASE ---
         onAuthStateChanged(auth, async (user) => {
@@ -435,7 +426,6 @@
                 }
             } catch (error) { console.error("Erreur Firebase:", error); }
             
-            // Forcer le calcul du zoom après le chargement des données
             setTimeout(resizeWorkspace, 100);
         });
 
@@ -542,7 +532,6 @@
 
                 let lastValidCols = startColSpan, lastValidRows = startRowSpan;
                 function onMouseMove(e) {
-                    // INFO : On divise par le "scale" actuel pour que la souris suive parfaitement le cadre même zoomé !
                     const currentScale = parseFloat(document.getElementById('cvPage').style.transform.replace('scale(', '').replace(')', '')) || 1;
                     const deltaX = (e.clientX - startX) / currentScale;
                     const deltaY = (e.clientY - startY) / currentScale;
@@ -559,7 +548,85 @@
             });
         }
 
-        // --- COMPRESSION INTERNE LOCALE ---
+        // ==========================================
+        // LA MAGIE DU BAKING ("APLATISSEMENT")
+        // ==========================================
+        function bakeContainerToBase64(container) {
+            return new Promise((resolve) => {
+                const img = container.querySelector('img');
+                if (!img || !img.src) return resolve(null);
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Résolution x2 pour un export HD parfait
+                canvas.width = container.clientWidth * 2;
+                canvas.height = container.clientHeight * 2;
+                
+                const originalImg = new Image();
+                originalImg.crossOrigin = "anonymous";
+                originalImg.onload = () => {
+                    const imgRatio = originalImg.naturalWidth / originalImg.naturalHeight;
+                    const canvasRatio = canvas.width / canvas.height;
+                    
+                    let drawWidth, drawHeight;
+                    if (imgRatio > canvasRatio) {
+                        drawHeight = canvas.height;
+                        drawWidth = originalImg.naturalWidth * (canvas.height / originalImg.naturalHeight);
+                    } else {
+                        drawWidth = canvas.width;
+                        drawHeight = originalImg.naturalHeight * (canvas.width / originalImg.naturalWidth);
+                    }
+                    
+                    // Récupération des données du slider CSS
+                    const scale = parseFloat(img.dataset.scale) || 1;
+                    drawWidth *= scale;
+                    drawHeight *= scale;
+                    
+                    const panX = parseFloat(img.dataset.panX) || 50;
+                    const panY = parseFloat(img.dataset.panY) || 50;
+                    
+                    // Calcul de la zone visible
+                    const maxOffsetX = drawWidth - canvas.width;
+                    const maxOffsetY = drawHeight - canvas.height;
+                    const dx = - (maxOffsetX * (panX / 100));
+                    const dy = - (maxOffsetY * (panY / 100));
+                    
+                    ctx.fillStyle = document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(originalImg, dx, dy, drawWidth, drawHeight);
+                    
+                    resolve(canvas.toDataURL('image/jpeg', 0.85)); // Retourne l'image aplatie !
+                };
+                originalImg.onerror = () => resolve(null);
+                originalImg.src = img.src;
+            });
+        }
+
+        // Fonction qui nettoie toutes les images avant l'export
+        async function prepareImagesForExport() {
+            const imagesBlocks = document.querySelectorAll('.img-container.has-image');
+            for (let block of imagesBlocks) {
+                const img = block.querySelector('img');
+                // On ne bake que si l'image a été modifiée par les sliders ou vient d'être ajoutée (Base64)
+                const scale = parseFloat(img.dataset.scale) || 1;
+                const panX = parseFloat(img.dataset.panX) || 50;
+                const panY = parseFloat(img.dataset.panY) || 50;
+                
+                if (scale !== 1 || panX !== 50 || panY !== 50 || img.src.startsWith('data:image')) {
+                    const bakedUrl = await bakeContainerToBase64(block);
+                    if (bakedUrl) {
+                        img.src = bakedUrl;
+                        img.dataset.scale = '1';
+                        img.dataset.panX = '50';
+                        img.dataset.panY = '50';
+                        updateImageTransform(img); // Remet le code CSS à zéro !
+                    }
+                }
+            }
+        }
+        // ==========================================
+
         function compresserImage(file, maxWidth = 1000, quality = 0.75) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader(); reader.readAsDataURL(file);
@@ -639,38 +706,38 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
-        // --- SAUVEGARDE SÉCURISÉE 3 ÉTAPES (ANTI-LIMITE 1Mo) ---
+        // --- SAUVEGARDE ULTIME ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ Création du Press Kit HD...";
+            btn.innerHTML = "⏳ Aplatissement des images...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
 
             try {
+                // ETAPE 1 : On efface les calculs CSS en créant de vraies photos
+                await prepareImagesForExport();
+
+                // ETAPE 2 : Capture HD sans bug possible
+                btn.innerHTML = "⏳ Création du Press Kit HD...";
                 const cvPage = document.getElementById('cvPage');
-                const imagesBlocks = document.querySelectorAll('.img-container img');
-                
-                // ÉTAPE 1 : Capture HD (On force la taille de capture pour qu'elle soit parfaite même si l'écran est petit)
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
-                    width: 1123 * 2, // 2246px de large
-                    height: 794 * 2, // 1588px de haut
-                    style: { 
-                        transform: 'scale(2)', 
-                        transformOrigin: 'top left',
-                        margin: 0
-                    }
+                    width: 1123 * 2, 
+                    height: 794 * 2, 
+                    style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
-                btn.innerHTML = "⏳ Envoi de l'image au site public...";
+                // ETAPE 3 : Envoi de l'image au site public
+                btn.innerHTML = "⏳ Envoi de l'image finale...";
                 const publicSRef = ref(storage, `presskit/zcard_public.png`);
                 await uploadString(publicSRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(publicSRef);
 
-                // ÉTAPE 2 : On allège le projet en transformant les images Base64 en vrais liens internet
-                btn.innerHTML = "⏳ Allègement de la sauvegarde...";
+                // ETAPE 4 : On allège Firebase en déplaçant les images de la grille vers le Storage
+                btn.innerHTML = "⏳ Sauvegarde des données...";
+                const imagesBlocks = document.querySelectorAll('.img-container.has-image img');
                 for (let img of imagesBlocks) {
                     if (img.src.startsWith('data:image')) {
                         const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 5)}.jpg`);
@@ -679,7 +746,7 @@
                     }
                 }
 
-                // ÉTAPE 3 : On enregistre !
+                // ETAPE 5 : L'enregistrement dans la base de données (Ultra léger)
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
@@ -695,7 +762,7 @@
                 
             } catch(e) { 
                 console.error("Erreur détaillée :", e);
-                alert("Erreur critique. " + e.message); 
+                alert("Erreur critique : " + e.message); 
             } finally { 
                 document.body.classList.remove('is-exporting'); 
                 btn.innerHTML = originalText; 
@@ -734,14 +801,17 @@
             reader.readAsText(file);
         });
 
-        // --- EXPORT IMAGE MANUEL (TELECHARGEMENT LIBRE) ---
-        window.exportImage = function() {
+        // --- EXPORT IMAGE MANUEL ---
+        window.exportImage = async function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ Création HD en cours..."; btn.disabled = true;
+            btn.innerHTML = "⏳ Aplatissement & Création HD..."; btn.disabled = true;
             document.body.classList.add('is-exporting');
-            const cvPage = document.getElementById('cvPage');
+            
+            // On s'assure que tout est propre avant l'export
+            await prepareImagesForExport();
 
+            const cvPage = document.getElementById('cvPage');
             setTimeout(() => {
                 domtoimage.toPng(cvPage, { 
                     quality: 1, 
