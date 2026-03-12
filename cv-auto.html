@@ -46,18 +46,35 @@
         .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-color); }
         .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); background-color: #fff; }
 
-        /* --- ESPACE DE TRAVAIL --- */
-        .workspace { flex-grow: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 40px; }
+        /* --- ESPACE DE TRAVAIL : Centrage total --- */
+.workspace { 
+    flex-grow: 1; 
+    overflow: auto; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; /* Centre verticalement si l'écran est très haut */
+    padding: 20px; 
+    background: #0f0f0f;
+}
 
-        /* --- PAGE A4 PORTRAIT --- */
-        .page-a4 { 
-            width: 210mm; height: 297mm;
-            background-color: var(--bg-page); 
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5); 
-            padding: 12mm; box-sizing: border-box; 
-            display: flex; flex-direction: column;
-            transition: box-shadow 0.3s;
-        }
+/* --- PAGE DYNAMIQUE : Utilise 95% de la hauteur ou largeur dispo --- */
+.page-a4 { 
+    /* Calcule la taille optimale pour remplir l'écran sans déformer le A4 */
+    width: min(95vw - 340px, (95vh * 210) / 297); 
+    height: min(95vh, ((95vw - 340px) * 297) / 210);
+    
+    background-color: var(--bg-page); 
+    position: relative; 
+    display: flex; 
+    flex-direction: column;
+    padding: 4%; /* Padding en % pour qu'il s'adapte à la taille */
+    box-sizing: border-box; 
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    transition: all 0.3s ease;
+}
+
+/* On ajuste les textes pour qu'ils suivent la taille de la page */
+.page-a4 { font-size: 1.1cqw; } /* Utilise les Container Queries units */
 
         /* --- GRILLE BENTO --- */
         .bento-grid {
@@ -708,3 +725,4 @@
     </script>
 </body>
 </html>
+
