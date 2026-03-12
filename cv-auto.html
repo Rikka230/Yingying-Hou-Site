@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur CV Bento - Pro & ATS Friendly</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
+    <style>
+        :root {
+            --bg-page: #f3f4f6;
+            --accent-color: #2563eb;
+            --accent-light: rgba(37, 99, 235, 0.1);
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --radius: 16px;
+            --gutter: 12px;
+            
+            /* UI Tools */
+            --ui-bg: #161616; --ui-panel: #222222; --ui-border: #333333; --ui-text: #e0e0e0;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 320px; background: var(--ui-bg); padding: 25px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box; color: var(--ui-text);}
+        .sidebar h2 { margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; border-bottom: 1px solid var(--ui-border); padding-bottom: 10px;}
+        
+        .control-group { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #ccc;}
+        .color-row { display: flex; gap: 10px; }
+        .color-box { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .color-btn { height: 32px; border-radius: 6px; border: 1px solid var(--ui-border); display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; cursor: pointer; position: relative; overflow: hidden;}
+        .color-btn input[type="color"] { position: absolute; top: -10px; left: -10px; width: 200%; height: 200%; cursor: pointer; opacity: 0; }
+        .color-btn::after { content: '✎'; color: #fff; font-size: 12px; mix-blend-mode: difference;}
+
+        .btn-action { background: var(--ui-panel); color: var(--ui-text); border: 1px solid var(--ui-border); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;}
+        .btn-action:hover { background: #2a2a2a; border-color: #555; }
+        
+        /* Toggle */
+        .toggle-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--ui-border); transition: .3s; border-radius: 20px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-color); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); background-color: #fff; }
+
+        /* --- ESPACE DE TRAVAIL --- */
+        .workspace { flex-grow: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 40px; }
+
+        /* --- PAGE A4 PORTRAIT --- */
+        .page-a4 { 
+            width: 210mm; height: 297mm;
+            background-color: var(--bg-page); 
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5); 
+            padding: 12mm; box-sizing: border-box; 
+            display: flex; flex-direction: column;
+            transition: box-shadow 0.3s;
+        }
+
+        /* --- GRILLE BENTO --- */
+        .bento-grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: var(--gutter); height: 100%;
+        }
+
+        .bento-card {
+            background: #ffffff; border-radius: var(--radius); padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); position: relative;
+        }
+
+        [contenteditable="true"] { outline: none; transition: background 0.2s; border-radius: 4px; }
+        [contenteditable="true"]:hover { background: rgba(0,0,0,0.03); }
+        [contenteditable="true"]:empty:before { content: attr(data-placeholder); color: #aaa; }
+
+        /* 1. Header */
+        .card-header { grid-column: span 9; display: flex; flex-direction: column; justify-content: center;}
+        .card-header h1 { margin: 0 0 5px 0; font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text-main); }
+        .card-header h2 { margin: 0 0 10px 0; font-size: 1.2rem; font-weight: 500; color: var(--accent-color); }
+        .card-header p { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* 2. Photo (Optimisée pour le cadrage et Drag&Drop) */
+        .card-photo { grid-column: span 3; padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #e5e7eb; transition: border 0.2s;}
+        .card-photo.dragover { border: 2px solid var(--accent-color); }
+        .card-photo img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1;}
+        .card-photo .placeholder { color: #9ca3af; font-size: 0.8rem; font-weight: 600; text-align: center; pointer-events: none;}
+        
+        .upload-zone { position: absolute; inset: 0; cursor: pointer; z-index: 5; }
+        .card-photo.has-image .upload-zone { display: none; }
+        
+        .photo-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s; z-index: 10;}
+        .card-photo.has-image:hover .photo-controls { opacity: 1; }
+        .action-btn-small { background: rgba(0,0,0,0.7); color: white; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; }
+        .action-btn-small:hover { background: #000; }
+        .action-btn-small.delete-btn:hover { background: #ef4444; }
+
+        /* 3. Contact */
+        .card-contact { grid-column: span 4; font-size: 0.8rem; line-height: 1.8; color: var(--text-main); }
+        .contact-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px;}
+        .contact-icon { color: var(--accent-color); font-weight: bold; width: 16px;}
+
+        /* 4. Expériences */
+        .card-exp { grid-column: span 8; grid-row: span 3; display: flex; flex-direction: column; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 15px 0; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
+        
+        .timeline { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; }
+        .tl-item { position: relative; padding-left: 15px; border-left: 2px solid var(--accent-light); }
+        .tl-item::before { content: ''; position: absolute; left: -5px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); }
+        
+        .tl-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px;}
+        .tl-title { font-weight: 700; font-size: 0.95rem; margin: 0;}
+        .tl-date { font-size: 0.75rem; color: var(--accent-color); font-weight: 600; background: var(--accent-light); padding: 2px 8px; border-radius: 12px;}
+        .tl-company { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+        .tl-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
+
+        /* 5. Compétences (Avec Mode Nuage Auto-Compact intelligent) */
+        .card-skills { grid-column: span 4; }
+        .skills-container { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;}
+        .skill-badge { background: var(--accent-light); color: var(--accent-color); font-size: 0.75rem; font-weight: 600; padding: 5px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; position: relative;}
+        
+        /* Auto-Compact dynamique */
+        .skills-container.compact-cloud { gap: 4px; }
+        .skills-container.compact-cloud .skill-badge { font-size: 0.6rem; padding: 4px 8px; border-radius: 6px; letter-spacing: -0.2px; }
+        .skills-container.compact-cloud .skill-badge .del-btn { width: 12px; height: 12px; font-size: 7px; margin-left: 2px;}
+
+        /* 6. Formations */
+        .card-edu { grid-column: span 4; }
+        .edu-item { margin-bottom: 12px; }
+        .edu-item:last-child { margin-bottom: 0; }
+        .edu-degree { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px;}
+        .edu-school { font-size: 0.75rem; color: var(--text-muted);}
+
+        /* 7. Langues / Outils (Fix de l'espace insécable) */
+        .card-tools { grid-column: span 12; display: flex; gap: 40px; align-items: flex-start; }
+        .tool-group { display: flex; gap: 8px; font-size: 0.8rem; align-items: baseline; line-height: 1.4;}
+        .tool-group strong { color: var(--accent-color); white-space: nowrap; flex-shrink: 0; }
+
+        /* Boutons d'édition */
+        .add-btn { background: #f3f4f6; color: #4b5563; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;}
+        .add-btn:hover { background: var(--accent-color); color: white; }
+        .del-btn { position: absolute; right: 0; top: 0; background: #ef4444; color: white; border: none; width: 16px; height: 16px; border-radius: 4px; cursor: pointer; font-size: 10px; display: none; align-items: center; justify-content: center;}
+        .tl-item:hover .del-btn, .edu-item:hover .del-btn, .skill-badge:hover .del-btn { display: flex; }
+
+        /* Menu Popup d'édition Image */
+        .popup-menu { position: absolute; background: rgba(15,15,15,0.95); padding: 15px; border-radius: 8px; display: none; flex-direction: column; gap: 12px; z-index: 100; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; width: 200px; }
+        .popup-menu label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 2px; display: block;}
+        .popup-menu input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-color); -webkit-appearance: none; background: transparent;}
+        .popup-menu input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: #444; border-radius: 2px; }
+        .popup-menu input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--accent-color); margin-top: -5px; }
+
+        #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
+
+        /* --- IMPRESSION (ATS FRIENDLY) --- */
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sidebar, .no-print, #alert-box, .popup-menu { display: none !important; }
+            .workspace { padding: 0; overflow: visible; display: block; }
+            .page-a4 { box-shadow: none !important; width: 210mm; height: 297mm; padding: 12mm;}
+            
+            .bento-card { box-shadow: none !important; border: 1px solid #e5e7eb; }
+            .card-photo:not(.has-image) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="alert-box">⚠️ Action annulée : Le CV déborde de la page A4 !</div>
+    <input type="file" id="photoInput" accept="image/*" style="display: none;">
+
+    <div class="sidebar">
+        <h2>Design Bento</h2>
+        
+        <div class="color-row">
+            <div class="color-box">Couleur Principale
+                <div class="color-btn" id="accentBtnDisplay" style="background: var(--accent-color);"><input type="color" id="accentColor" value="#2563eb"></div>
+            </div>
+            <div class="color-box">Fond Page
+                <div class="color-btn" id="bgBtnDisplay" style="background: var(--bg-page);"><input type="color" id="bgColor" value="#f3f4f6"></div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="toggle-wrapper">
+                <div class="toggle-switch">
+                    <input type="checkbox" id="togglePhoto" checked>
+                    <span class="toggle-slider"></span>
+                </div>
+                Afficher le bloc Photo
+            </label>
+        </div>
+
+        <hr style="margin: 10px 0; border-color: var(--ui-border);">
+
+        <h2>Fichier & Export</h2>
+        <p style="font-size: 11px; line-height: 1.4; color: #888; margin: 0;">
+            L'export utilise la fonction d'impression native pour générer un <strong>véritable PDF textuel</strong>, indispensable pour être lu par les algorithmes RH (ATS).
+        </p>
+
+        <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Charger CV</button>
+        <input type="file" id="importProject" style="display:none" accept=".json">
+        <button class="btn-action" id="saveProject">💾 Sauvegarder (Modifiable)</button>
+        
+        <button class="btn-action" onclick="window.print()" style="background: #2563eb; border-color: #1d4ed8; color: white; margin-top: 10px;">
+            📄 Exporter PDF (ATS Friendly)
+        </button>
+
+        <button class="btn-action" id="btnExportImg" onclick="exportImage()" style="background: #1a8a34; border-color: #146c29; color: white; margin-top: 5px;">
+            🖼️ Exporter Image (PNG)
+        </button>
+    </div>
+
+    <div class="workspace">
+        <div class="page-a4" id="cvPage">
+            <div class="bento-grid">
+                
+                <div class="bento-card card-header" id="headerCard">
+                    <h1 contenteditable="true" data-placeholder="PRÉNOM NOM">JEAN DUPONT</h1>
+                    <h2 contenteditable="true" data-placeholder="Titre du poste">Directeur Artistique & Designer</h2>
+                    <p contenteditable="true" data-placeholder="Phrase d'accroche (profil / objectif)...">Créatif et passionné avec plus de 8 ans d'expérience dans la conception d'identités visuelles et la direction de projets digitaux. Orienté résultats et expérience utilisateur.</p>
+                </div>
+
+                <div class="bento-card card-photo" id="photoCard">
+                    <div class="placeholder no-print">+ Photo<br><span style="font-size:10px; font-weight:normal;">Glisser ou cliquer</span></div>
+                    <div class="upload-zone"></div>
+                    <div class="photo-controls no-print">
+                        <button class="action-btn-small edit-btn" title="Cadrage">⚙️</button>
+                        <button class="action-btn-small delete-btn" title="Supprimer la photo">🗑️</button>
+                    </div>
+                </div>
+
+                <div class="bento-card card-contact">
+                    <div class="section-title" style="font-size: 0.9rem;">Contact</div>
+                    <div class="contact-item"><span class="contact-icon">📍</span><span contenteditable="true">Paris, France</span></div>
+                    <div class="contact-item"><span class="contact-icon">📱</span><span contenteditable="true">06 12 34 56 78</span></div>
+                    <div class="contact-item"><span class="contact-icon">✉️</span><span contenteditable="true">jean.dupont@email.com</span></div>
+                    <div class="contact-item"><span class="contact-icon">🔗</span><span contenteditable="true">linkedin.com/in/jeandupont</span></div>
+                </div>
+
+                <div class="bento-card card-exp">
+                    <div class="section-title">Expériences <button class="no-print add-btn" onclick="addExp()">+</button></div>
+                    <div class="timeline" id="expList">
+                        <div class="tl-item">
+                            <div class="tl-header">
+                                <div class="tl-title" contenteditable="true">Directeur Artistique Senior</div>
+                                <div class="tl-date" contenteditable="true">2020 - Présent</div>
+                            </div>
+                            <div class="tl-company" contenteditable="true">Agence Créative Paris</div>
+                            <p class="tl-desc" contenteditable="true">Direction créative de campagnes 360 pour des marques de luxe. Management d'une équipe de 5 designers. Refonte complète de l'identité visuelle de 3 clients majeurs.</p>
+                            <button class="no-print del-btn" onclick="removeItem(this)">X</button>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-header">
+                                <div class="tl-title" contenteditable="true">Lead UI/UX Designer</div>
+                                <div class="tl-date" contenteditable="true">2017 - 2020</div>
+                            </div>
+                            <div class="tl-company" contenteditable="true">Tech Startup Inc.</div>
+                            <p class="tl-desc" contenteditable="true">Conception de l'interface de l'application SaaS principale. Augmentation du taux de conversion utilisateur de 25% suite à l'optimisation des parcours (UX).</p>
+                            <button class="no-print del-btn" onclick="removeItem(this)">X</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bento-card card-skills">
+                    <div class="section-title" style="font-size: 0.9rem;">Compétences <button class="no-print add-btn" onclick="addSkill()">+</button></div>
+                    <div class="skills-container" id="skillsList">
+                        <span class="skill-badge"><span contenteditable="true">Direction Artistique</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button></span>
+                        <span class="skill-badge"><span contenteditable="true">Figma & UI/UX</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button></span>
+                        <span class="skill-badge"><span contenteditable="true">Suite Adobe</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button></span>
+                        <span class="skill-badge"><span contenteditable="true">Management</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button></span>
+                    </div>
+                </div>
+
+                <div class="bento-card card-edu">
+                    <div class="section-title" style="font-size: 0.9rem;">Formation <button class="no-print add-btn" onclick="addEdu()">+</button></div>
+                    <div id="eduList">
+                        <div class="edu-item" style="position: relative;">
+                            <div class="edu-degree" contenteditable="true">Master Design Global</div>
+                            <div class="edu-school" contenteditable="true">École Supérieure d'Art (2015 - 2017)</div>
+                            <button class="no-print del-btn" onclick="removeItem(this)">X</button>
+                        </div>
+                        <div class="edu-item" style="position: relative;">
+                            <div class="edu-degree" contenteditable="true">Licence Arts Appliqués</div>
+                            <div class="edu-school" contenteditable="true">Université Paris 8 (2012 - 2015)</div>
+                            <button class="no-print del-btn" onclick="removeItem(this)">X</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bento-card card-tools">
+                    <div class="tool-group">
+                        <strong>Langues&nbsp;:</strong> <span contenteditable="true">Anglais (Courant), Espagnol (Scolaire)</span>
+                    </div>
+                    <div class="tool-group">
+                        <strong>Intérêts&nbsp;:</strong> <span contenteditable="true">Photographie argentique, Architecture, Randonnée</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-menu" id="popupMenu">
+        <div><label>Échelle (Zoom)</label><input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1"></div>
+        <div><label>Pan X (Gauche/Droite)</label><input type="range" id="panXSlider" min="0" max="100" step="1" value="50"></div>
+        <div><label>Pan Y (Haut/Bas)</label><input type="range" id="panYSlider" min="0" max="100" step="1" value="50"></div>
+    </div>
+
+    <script>
+        const cvPage = document.getElementById('cvPage');
+        const alertBox = document.getElementById('alert-box');
+        const photoCard = document.getElementById('photoCard');
+        const popup = document.getElementById('popupMenu');
+        let activeImg = null;
+
+        // --- SÉCURITÉ DÉBORDEMENT INTELLIGENTE (AUTO-COMPACT) ---
+        function checkOverflow() {
+            const skillsContainer = document.getElementById('skillsList');
+
+            // 1. On retire le mode compact pour mesurer la hauteur "naturelle"
+            skillsContainer.classList.remove('compact-cloud');
+            const naturalHeight = cvPage.scrollHeight;
+
+            // 2. Si le CV naturel déborde de la page A4 (297mm converti en pixels + marge de sécu)
+            if (naturalHeight > cvPage.clientHeight + 5) {
+                
+                // On active la compression du bloc compétences pour essayer de sauver la mise en page
+                skillsContainer.classList.add('compact-cloud');
+                const compactedHeight = cvPage.scrollHeight;
+
+                // Si la compression n'a STRICTEMENT RIEN CHANGÉ à la hauteur totale du CV
+                // Cela veut dire que l'excès de taille vient d'une autre colonne (ex: Expériences trop longues)
+                if (compactedHeight === naturalHeight) {
+                    // La compression est inutile, on remet les compétences normales pour que ce soit joli
+                    skillsContainer.classList.remove('compact-cloud');
+                }
+
+                // Vérification finale : est-ce que le CV déborde toujours après nos tentatives ?
+                if (cvPage.scrollHeight > cvPage.clientHeight + 5) {
+                    // Alerte Rouge
+                    cvPage.style.boxShadow = "0 0 0 4px #ef4444, 0 15px 50px rgba(0,0,0,0.5)";
+                    alertBox.style.display = 'block';
+                    setTimeout(() => alertBox.style.display = 'none', 3000);
+                    return true;
+                } else {
+                    // La compression a suffi à tout faire rentrer !
+                    cvPage.style.boxShadow = "0 15px 50px rgba(0,0,0,0.5)";
+                    return false;
+                }
+            } else {
+                // Tout rentre sans forcer
+                cvPage.style.boxShadow = "0 15px 50px rgba(0,0,0,0.5)";
+                return false;
+            }
+        }
+        
+        cvPage.addEventListener('input', checkOverflow);
+
+        // --- COULEURS ---
+        function hexToRgba(hex, alpha) {
+            let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        document.getElementById('accentColor').addEventListener('input', (e) => {
+            const hex = e.target.value;
+            document.documentElement.style.setProperty('--accent-color', hex);
+            document.documentElement.style.setProperty('--accent-light', hexToRgba(hex, 0.1));
+            document.getElementById('accentBtnDisplay').style.background = hex;
+        });
+
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--bg-page', e.target.value);
+            document.getElementById('bgBtnDisplay').style.background = e.target.value;
+        });
+
+        // --- TOGGLE PHOTO ---
+        document.getElementById('togglePhoto').addEventListener('change', (e) => {
+            const headerCard = document.getElementById('headerCard');
+            if (e.target.checked) {
+                photoCard.style.display = 'flex';
+                headerCard.style.gridColumn = 'span 9';
+            } else {
+                photoCard.style.display = 'none';
+                headerCard.style.gridColumn = 'span 12';
+            }
+            checkOverflow();
+        });
+
+        // --- GESTION PHOTO ---
+        function processCvPhoto(file) {
+            const photoCard = document.getElementById('photoCard');
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                let img = photoCard.querySelector('img');
+                if (!img) { 
+                    img = document.createElement('img'); 
+                    photoCard.appendChild(img); 
+                }
+                img.src = event.target.result;
+                img.dataset.scale = '1';
+                img.dataset.panX = '50';
+                img.dataset.panY = '50';
+                photoCard.classList.add('has-image');
+                updatePhotoTransform(img);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function bindPhotoEvents() {
+            const photoCard = document.getElementById('photoCard');
+            if (!photoCard) return;
+
+            const newPhotoCard = photoCard.cloneNode(true);
+            photoCard.parentNode.replaceChild(newPhotoCard, photoCard);
+
+            newPhotoCard.addEventListener('dragover', e => { e.preventDefault(); newPhotoCard.classList.add('dragover'); });
+            newPhotoCard.addEventListener('dragleave', () => newPhotoCard.classList.remove('dragover'));
+            newPhotoCard.addEventListener('drop', e => {
+                e.preventDefault();
+                newPhotoCard.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) processCvPhoto(file);
+            });
+
+            const upZone = newPhotoCard.querySelector('.upload-zone');
+            if(upZone) upZone.onclick = () => document.getElementById('photoInput').click();
+            
+            const delBtn = newPhotoCard.querySelector('.delete-btn');
+            if(delBtn) delBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const img = newPhotoCard.querySelector('img');
+                if(img) img.remove();
+                newPhotoCard.classList.remove('has-image');
+                popup.style.display = 'none';
+            };
+            
+            const edBtn = newPhotoCard.querySelector('.edit-btn');
+            if(edBtn) edBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const img = newPhotoCard.querySelector('img');
+                if(img) {
+                    activeImg = img;
+                    popup.style.display = 'flex';
+                    let leftPos = ev.pageX + 15;
+                    if (leftPos + 220 > window.innerWidth) leftPos = ev.pageX - 220;
+                    popup.style.left = leftPos + 'px';
+                    popup.style.top = ev.pageY + 'px';
+                    document.getElementById('zoomSlider').value = img.dataset.scale || 1;
+                    document.getElementById('panXSlider').value = img.dataset.panX || 50;
+                    document.getElementById('panYSlider').value = img.dataset.panY || 50;
+                }
+            };
+        }
+        
+        bindPhotoEvents(); // Initialisation
+
+        document.getElementById('photoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processCvPhoto(file);
+                e.target.value = '';
+            }
+        });
+
+        function updatePhotoTransform(img) { 
+            const scale = parseFloat(img.dataset.scale);
+            img.style.width = '100%'; 
+            img.style.height = '100%';
+            img.style.transform = `scale(${scale})`;
+            img.style.transformOrigin = `${img.dataset.panX}% ${img.dataset.panY}%`;
+            img.style.objectPosition = `${img.dataset.panX}% ${img.dataset.panY}%`; 
+        }
+
+        document.getElementById('zoomSlider').addEventListener('input', (e) => { if (activeImg) { activeImg.dataset.scale = e.target.value; updatePhotoTransform(activeImg); }});
+        document.getElementById('panXSlider').addEventListener('input', (e) => { if (activeImg) { activeImg.dataset.panX = e.target.value; updatePhotoTransform(activeImg); }});
+        document.getElementById('panYSlider').addEventListener('input', (e) => { if (activeImg) { activeImg.dataset.panY = e.target.value; updatePhotoTransform(activeImg); }});
+
+        document.addEventListener('click', (e) => { 
+            if (!e.target.closest('.photo-controls') && !e.target.closest('.popup-menu')) {
+                popup.style.display = 'none'; 
+            }
+        });
+
+        // --- GESTION DES LISTES DYNAMIQUES ---
+        function addExp() {
+            const div = document.createElement('div'); div.className = 'tl-item';
+            div.innerHTML = `
+                <div class="tl-header"><div class="tl-title" contenteditable="true">Titre du Poste</div><div class="tl-date" contenteditable="true">Date</div></div>
+                <div class="tl-company" contenteditable="true">Nom Entreprise</div>
+                <p class="tl-desc" contenteditable="true">Description des missions accomplies.</p>
+                <button class="no-print del-btn" onclick="removeItem(this)">X</button>
+            `;
+            document.getElementById('expList').appendChild(div);
+            if (checkOverflow()) div.remove();
+        }
+
+        function addEdu() {
+            const div = document.createElement('div'); div.className = 'edu-item'; div.style.position = 'relative';
+            div.innerHTML = `
+                <div class="edu-degree" contenteditable="true">Nom du Diplôme</div>
+                <div class="edu-school" contenteditable="true">Établissement (Année)</div>
+                <button class="no-print del-btn" onclick="removeItem(this)">X</button>
+            `;
+            document.getElementById('eduList').appendChild(div);
+            if (checkOverflow()) div.remove();
+        }
+
+        function addSkill() {
+            const div = document.createElement('span'); div.className = 'skill-badge';
+            // FIX : onclick="removeItem(this)" pour supprimer uniquement le badge, pas le conteneur entier !
+            div.innerHTML = `<span contenteditable="true">Nouvelle Compétence</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button>`;
+            document.getElementById('skillsList').appendChild(div);
+            if (checkOverflow()) div.remove();
+        }
+
+        function removeItem(btn) {
+            // "btn" est le bouton qui a été cliqué. 
+            // parentElement est le <div> de l'expérience, le <div> de l'éducation, ou le <span> de la compétence.
+            btn.parentElement.remove();
+            checkOverflow(); // On re-vérifie la place pour désactiver le mode Nuage si besoin !
+        }
+
+        // --- SAUVEGARDE & CHARGEMENT JSON ---
+        document.getElementById('saveProject').addEventListener('click', () => {
+            const projectData = {
+                html: document.getElementById('cvPage').innerHTML,
+                accent: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#2563eb',
+                bg: document.documentElement.style.getPropertyValue('--bg-page').trim() || '#f3f4f6',
+                hasPhoto: document.getElementById('togglePhoto').checked
+            };
+            const a = document.createElement('a');
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData));
+            a.download = "cv_bento_projet.json";
+            a.click();
+        });
+
+        document.getElementById('importProject').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = JSON.parse(event.target.result);
+                document.getElementById('cvPage').innerHTML = data.html;
+                
+                if(data.accent) {
+                    document.documentElement.style.setProperty('--accent-color', data.accent);
+                    document.documentElement.style.setProperty('--accent-light', hexToRgba(data.accent, 0.1));
+                    document.getElementById('accentColor').value = data.accent;
+                    document.getElementById('accentBtnDisplay').style.background = data.accent;
+                }
+                if(data.bg) {
+                    document.documentElement.style.setProperty('--bg-page', data.bg);
+                    document.getElementById('bgColor').value = data.bg;
+                    document.getElementById('bgBtnDisplay').style.background = data.bg;
+                }
+                if(data.hasPhoto !== undefined) {
+                    document.getElementById('togglePhoto').checked = data.hasPhoto;
+                    document.getElementById('togglePhoto').dispatchEvent(new Event('change'));
+                }
+
+                bindPhotoEvents();
+                checkOverflow();
+                e.target.value = ''; 
+            };
+            reader.readAsText(file);
+        });
+
+        // --- EXPORT IMAGE DOM-TO-IMAGE ---
+        function exportImage() {
+            const btn = document.getElementById('btnExportImg');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = "⏳ Création HD en cours...";
+            btn.disabled = true;
+            
+            document.body.classList.add('is-exporting');
+            
+            setTimeout(() => {
+                domtoimage.toPng(cvPage, { 
+                    quality: 1,
+                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6',
+                    width: cvPage.clientWidth * 2, 
+                    height: cvPage.clientHeight * 2,
+                    style: {
+                        transform: 'scale(2)',
+                        transformOrigin: 'top left'
+                    }
+                })
+                .then(function (dataUrl) {
+                    const link = document.createElement('a');
+                    link.download = 'CV_Bento.png';
+                    link.href = dataUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    document.body.classList.remove('is-exporting');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                })
+                .catch(function (error) {
+                    console.error('Erreur export:', error);
+                    alert("Erreur lors de l'export. Essayez de recharger la page.");
+                    document.body.classList.remove('is-exporting');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            }, 300);
+        }
+    </script>
+</body>
+</html>

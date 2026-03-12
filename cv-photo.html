@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Card DA - Sécurités Corrigées & Export Image</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
+    <style>
+        :root {
+            --bg-page: #f4f4f5;
+            --accent-color: #fce844;
+            --text-color: #1a1a1a;
+            --radius: 8px;
+            --gutter: 15px;
+            
+            /* Couleurs Sidebar UI Pro */
+            --ui-bg: #161616;
+            --ui-panel: #222222;
+            --ui-border: #333333;
+            --ui-text: #e0e0e0;
+            --ui-text-muted: #888888;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR UI PRO --- */
+        .sidebar { width: 300px; background: var(--ui-bg); padding: 20px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box;}
+        
+        .btn-add-block { background: var(--ui-panel); color: var(--ui-text); border: 1px solid var(--ui-border); padding: 12px; border-radius: 6px; width: 100%; text-align: left; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;}
+        .btn-add-block:hover { background: #2a2a2a; border-color: #555; }
+
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ui-text-muted); }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; }
+        input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--ui-border); border-radius: 2px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #ffffff; margin-top: -5px; box-shadow: 0 0 5px rgba(0,0,0,0.5);}
+
+        .color-row { display: flex; gap: 10px; }
+        .color-box { flex: 1; display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: var(--ui-text-muted); }
+        .color-btn { height: 32px; border-radius: 6px; border: 1px solid var(--ui-border); display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; cursor: pointer; position: relative; overflow: hidden;}
+        .color-btn input[type="color"] { position: absolute; top: -10px; left: -10px; width: 200%; height: 200%; cursor: pointer; opacity: 0; }
+        .color-btn::after { content: '✎'; color: #000; font-size: 12px; opacity: 0.5; pointer-events: none;}
+
+        select { background: var(--ui-panel); color: var(--ui-text); border: 1px solid var(--ui-border); padding: 10px; border-radius: 6px; width: 100%; font-size: 12px; outline: none; cursor: pointer;}
+        hr { border: none; border-top: 1px solid var(--ui-border); margin: 0; width: 100%; }
+
+        .bottom-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+        .btn-action { background: transparent; color: var(--ui-text); border: 1px solid var(--ui-border); padding: 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-action:hover { background: var(--ui-panel); border-color: #555; }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- TOGGLE SWITCH PRO --- */
+        .toggle-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--ui-border); transition: .3s; border-radius: 20px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-color); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); background-color: #000; }
+        .toggle-label-text { font-size: 12px; color: var(--ui-text); }
+
+        /* --- ESPACE DE TRAVAIL --- */
+        .workspace { flex-grow: 1; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 30px; }
+
+        /* --- PAGE A4 --- */
+        .page-a4 { width: 297mm; height: 210mm; background-color: var(--bg-page); position: relative; color: var(--text-color); display: flex; gap: var(--gutter); padding: 10mm; box-sizing: border-box; overflow: hidden; transition: background 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+
+        /* --- MOTIFS CSS SIMPLES (Version Web) --- */
+        .pattern-halo { background-image: radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--accent-color) 80%, transparent) 0%, transparent 60%); }
+        .pattern-grid { background-image: linear-gradient(to right, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px); background-size: 40px 40px; }
+        .pattern-dots { background-image: radial-gradient(color-mix(in srgb, var(--accent-color) 40%, transparent) 2px, transparent 2px); background-size: 20px 20px; }
+        .pattern-diag { background-image: repeating-linear-gradient(45deg, color-mix(in srgb, var(--accent-color) 20%, transparent) 0, color-mix(in srgb, var(--accent-color) 20%, transparent) 1px, transparent 1px, transparent 15px); }
+        .pattern-lines-h { background-image: repeating-linear-gradient(0deg, color-mix(in srgb, var(--accent-color) 30%, transparent) 0, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px, transparent 20px); }
+        .pattern-lines-v { background-image: repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent-color) 30%, transparent) 0, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px, transparent 20px); }
+        .pattern-cross { background-image: linear-gradient(45deg, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px), linear-gradient(-45deg, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px); background-size: 30px 30px; }
+        .pattern-check { background-image: conic-gradient(color-mix(in srgb, var(--accent-color) 15%, transparent) 90deg, transparent 90deg 180deg, color-mix(in srgb, var(--accent-color) 15%, transparent) 180deg 270deg, transparent 270deg); background-size: 20px 20px; }
+        .pattern-circles { background-image: radial-gradient(circle, color-mix(in srgb, var(--accent-color) 20%, transparent) 2px, transparent 2px); background-size: 15px 15px; }
+        .pattern-none { background-image: none; }
+
+        /* --- COLONNE TEXTE (Tailles Réduites) --- */
+        .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        
+        /* FIX PROTECTION : flex-shrink: 0 empêche le texte de s'écraser, garantissant le déclenchement de l'alerte */
+        .text-content-wrapper { padding: 5mm; display: flex; flex-direction: column; gap: 10px; transition: gap 0.3s; flex-shrink: 0; }
+        
+        [contenteditable] { outline: none; border-radius: 4px; transition: background 0.2s; }
+        [contenteditable]:hover { background: rgba(0,0,0,0.05); }
+        [contenteditable]:empty:before { content: attr(data-placeholder); color: #aaa; pointer-events: none; }
+        
+        .nom-complet { margin: 0; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; line-height: 1; transition: font-size 0.3s;}
+        .contact { font-size: 0.75rem; color: #555; transition: font-size 0.3s;}
+        .details { font-size: 0.7rem; line-height: 1.4; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
+
+        /* --- EXPERIENCES (Tailles Réduites) --- */
+        .experiences-container { display: flex; flex-direction: column; gap: 6px; }
+        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 4px;}
+        .exp-header h3 { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #333; }
+        .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 18px; height: 18px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
+        .exp-list { display: flex; flex-direction: column; gap: 6px; transition: gap 0.3s;}
+        .exp-item { display: flex; gap: 6px; font-size: 0.7rem; position: relative; transition: font-size 0.3s;}
+        .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; }
+        .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
+        
+        /* FIX LISIBILITÉ : Utilisation de color-mix à 30% d'opacité pour un effet "Pastel" */
+        .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
+        
+        .exp-role-film { font-weight: 700; color: #111;}
+        .exp-film { font-style: italic; color: #444; }
+        .exp-dir { font-size: 0.65rem; color: #666; }
+        .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center;}
+        .exp-item:hover .remove-exp-btn { display: flex; }
+
+        /* --- ANNEXE (NOUVEAU BLOC) --- */
+        .annex-block { display: none; animation: fadeIn 0.3s ease; margin-bottom: 0;}
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MODE COMPACT (Tailles Ultra-Réduites pour Annexe) --- */
+        .text-column.has-annex .text-content-wrapper { gap: 6px; }
+        .text-column.has-annex .nom-complet { font-size: 1.5rem; }
+        .text-column.has-annex .contact { font-size: 0.7rem; }
+        .text-column.has-annex .details { padding: 6px 8px; font-size: 0.65rem; margin-bottom: 0; }
+        .text-column.has-annex .exp-list { gap: 4px; }
+        .text-column.has-annex .exp-item { font-size: 0.6rem; }
+        .text-column.has-annex .exp-cat { font-size: 0.5rem; padding: 1px 4px; }
+        .text-column.has-annex .exp-header h3 { font-size: 0.7rem; }
+        .text-column.has-annex .annex-block .details { font-size: 0.6rem; line-height: 1.3; }
+
+        /* --- GRILLE MODULAIRE --- */
+        .photo-grid {
+            width: 62%; height: 100%; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr);
+            grid-auto-flow: dense; gap: var(--gutter); overflow: hidden; position: relative;
+            /* FIX PROTECTION : Force les lignes supplémentaires à prendre de la place pour déclencher l'alerte */
+            grid-auto-rows: 10px; 
+        }
+
+        .img-container { 
+            background: rgba(255,255,255,0.4); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; 
+            border: 2px dashed #bbb; transition: all 0.2s; grid-column-end: span 4; grid-row-end: span 6;
+        }
+        .img-container.has-image { border: none; background: transparent; box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .placeholder-text { color: #888; font-weight: bold; pointer-events: none; font-size: 0.9rem;}
+        .img-container.has-image .placeholder-text { display: none; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
+
+        /* --- OUTILS INTERACTIFS --- */
+        .block-controls { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.2s; border: 2px solid var(--accent-color); border-radius: var(--radius); background: rgba(0,0,0,0.15);}
+        .img-container:hover .block-controls { opacity: 1; }
+        .img-container.is-dragging { opacity: 0.4; border-style: solid; }
+        
+        .mover { position: absolute; top: 5px; left: 5px; width: 26px; height: 26px; background: rgba(0,0,0,0.8); color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: grab; pointer-events: auto; font-size: 14px;}
+        .mover:active { cursor: grabbing; }
+
+        .resizer { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; background: var(--accent-color); cursor: nwse-resize; pointer-events: auto; border-top-left-radius: 10px; border-bottom-right-radius: var(--radius); z-index: 11;}
+
+        .actions-panel { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; pointer-events: auto; }
+        .action-btn { background: rgba(0,0,0,0.8); color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: background 0.2s;}
+        .action-btn:hover { background: #000; }
+        .action-btn.delete-btn:hover { background: #cc2936; }
+        
+        .img-container.has-image .upload-btn { display: none; } 
+        .img-container:not(.has-image) .edit-btn { display: none; } 
+
+        body.is-dragging *, body.is-resizing * { user-select: none; }
+        body.is-resizing .img-container { transition: none !important; }
+
+        /* --- CSS SPECIFIQUE PENDANT L'EXPORT IMAGE --- */
+        body.is-exporting .img-container:not(.has-image) { border-color: transparent !important; background: transparent !important; box-shadow: none !important; }
+        body.is-exporting .placeholder-text { display: none !important; }
+        body.is-exporting .block-controls, body.is-exporting .no-print { display: none !important; }
+        body.is-exporting .page-a4 { box-shadow: none !important; border-radius: 0 !important; }
+
+        /* --- MENU POPUP D'ÉDITION --- */
+        .popup-menu { position: absolute; background: rgba(15,15,15,0.95); padding: 15px; border-radius: 8px; display: none; flex-direction: column; gap: 12px; z-index: 100; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; width: 200px; }
+        .popup-menu label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 2px; display: block;}
+        .popup-menu input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-color);}
+
+        #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ff4444; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.4);}
+    </style>
+</head>
+<body>
+
+    <div id="alert-box">⚠️ Action annulée : Débordement de la page A4 ou taille limite atteinte !</div>
+    <input type="file" id="globalFileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+
+    <div class="sidebar">
+        <button class="btn-add-block" onclick="addBlockSafe()">
+            + Ajouter Cadre Photo <span>⊞</span>
+        </button>
+
+        <hr>
+
+        <div class="control-group">
+            <div class="control-header"><label>Gouttière (px)</label><span id="gutterValue">15px</span></div>
+            <input type="range" id="gutterSlider" min="0" max="30" step="1" value="15">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header"><label>Informations</label></div>
+            <label class="toggle-wrapper">
+                <div class="toggle-switch">
+                    <input type="checkbox" id="toggleAnnex">
+                    <span class="toggle-slider"></span>
+                </div>
+                <span class="toggle-label-text">Bloc "Compétences / Sports"</span>
+            </label>
+        </div>
+
+        <div class="color-row">
+            <div class="color-box">
+                Accentuation
+                <div class="color-btn" style="background: var(--accent-color);" id="accentBtnDisplay"><input type="color" id="accentColor" value="#fce844"></div>
+            </div>
+            <div class="color-box">
+                Fond de page
+                <div class="color-btn" style="background: var(--bg-page); color: black;" id="bgBtnDisplay"><input type="color" id="bgColor" value="#f4f4f5"></div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Motifs & Patterns</label>
+            <select id="bgPatternSelect">
+                <option value="pattern-halo">1. Halo Lumineux</option>
+                <option value="pattern-grid">2. Grille Architecte</option>
+                <option value="pattern-dots">3. Pois Graphiques</option>
+                <option value="pattern-diag">4. Diagonales</option>
+                <option value="pattern-lines-h">5. Lignes Horizontales</option>
+                <option value="pattern-lines-v">6. Lignes Verticales</option>
+                <option value="pattern-cross">7. Croisillons</option>
+                <option value="pattern-check">8. Damier Discret</option>
+                <option value="pattern-circles">9. Bulles/Cercles</option>
+                <option value="pattern-none">10. Uni (Minimaliste)</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <div class="bottom-actions">
+            <div class="control-header"><label>Projets</label></div>
+            <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Charger Projet</button>
+            <input type="file" id="importProject" style="display:none" accept=".json">
+            <button class="btn-action" id="saveProject">💾 Sauvegarder</button>
+            
+            <button class="btn-action" id="btnExportImg" onclick="exportImage()" style="background: #1a8a34; border-color: #146c29; color: white;">
+                🖼️ Exporter Image (PNG)
+            </button>
+        </div>
+    </div>
+
+    <div class="workspace" id="workspace">
+        <div class="page-a4 pattern-halo" id="cvPage">
+            
+            <div class="text-column" id="textColumn">
+                <div class="text-content-wrapper" id="textContentWrapper">
+                    
+                    <div>
+                        <div class="nom-complet" contenteditable="true" data-placeholder="PRÉNOM NOM">PRÉNOM NOM</div>
+                        <div class="contact" contenteditable="true">Tel : 06 25 31 60 93 | Email : contact@email.fr</div>
+                    </div>
+                    
+                    <div class="details" contenteditable="true">
+                        <strong>Langues :</strong> Français, Anglais, Japonais<br>
+                        <strong>Mensurations :</strong> 1m60 / 50Kg / Yeux marron<br>
+                        <strong>Confection :</strong> Haut S / Bas 34 / Pointure 37<br>
+                        <strong>Lieux :</strong> Paris / Nice
+                    </div>
+                    
+                    <div class="experiences-container">
+                        <div class="exp-header">
+                            <h3>Parcours / Rôles</h3>
+                            <button class="no-print add-exp-btn" onclick="addExperience()">+</button>
+                        </div>
+                        <div class="exp-list" id="expList">
+                            <div class="exp-item">
+                                <div class="exp-year" contenteditable="true">2025</div>
+                                <div class="exp-content">
+                                    <select class="exp-cat">
+                                        <option value="Court-métrage" selected>Court-métrage</option>
+                                        <option value="Long-métrage">Long-métrage</option>
+                                        <option value="Série TV">Série TV</option>
+                                        <option value="Publicité">Publicité</option>
+                                        <option value="Modèle Photo">Modèle Photo</option>
+                                    </select>
+                                    <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle Principal</span> - <span class="exp-film" contenteditable="true">Titre du Film</span></div>
+                                    <div class="exp-dir" contenteditable="true">Réal : J. Dupont</div>
+                                </div>
+                                <button class="no-print remove-exp-btn" onclick="removeExperience(this)">X</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="annex-block" id="annexBlock">
+                        <div class="exp-header">
+                            <h3>Compétences / Infos</h3>
+                        </div>
+                        <div class="details" contenteditable="true" style="margin-top: 8px; margin-bottom: 0;">
+                            <strong>Permis :</strong> B (Véhiculée)<br>
+                            <strong>Sports :</strong> Équitation (Galop 5), Natation<br>
+                            <strong>Musique :</strong> Piano (Bon niveau)<br>
+                            <strong>Particularités :</strong> Aucun tatouage
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="photo-grid" id="photoGrid"></div>
+
+        </div>
+    </div>
+
+    <div class="popup-menu" id="popupMenu">
+        <div><label>Échelle (Zoom)</label><input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1"></div>
+        <div><label>Pan X (Gauche/Droite)</label><input type="range" id="panXSlider" min="0" max="100" step="1" value="50"></div>
+        <div><label>Pan Y (Haut/Bas)</label><input type="range" id="panYSlider" min="0" max="100" step="1" value="50"></div>
+        <button onclick="removeImageFromBlock()" style="background: #222; border:1px solid #444; padding: 6px; font-size: 10px; border-radius:4px; color:white; cursor:pointer; margin-top:5px;">Vider la case</button>
+    </div>
+
+    <script>
+        // VARIABLES GLOBALES (Passées en 'let' pour pouvoir les réassigner au chargement)
+        let photoGrid = document.getElementById('photoGrid');
+        let textCol = document.getElementById('textColumn');
+        let textWrap = document.getElementById('textContentWrapper');
+        const popup = document.getElementById('popupMenu');
+        const globalFileInput = document.getElementById('globalFileInput');
+        const alertBox = document.getElementById('alert-box');
+        
+        let activeBlock = null; 
+        let targetUploadBlock = null;
+        let draggedBlock = null; 
+
+        // Init avec blocs par défaut
+        window.onload = () => { addBlock(6, 12); addBlock(6, 6); addBlock(6, 6); };
+
+        function showAlert() {
+            alertBox.style.display = 'block';
+            setTimeout(() => alertBox.style.display = 'none', 3000);
+        }
+
+        // --- SÉCURITÉS ---
+        function checkGridOverflow() {
+            if (photoGrid.scrollHeight > photoGrid.clientHeight + 5) return true;
+            return false;
+        }
+
+        function checkTextOverflow() {
+            if (textWrap.scrollHeight > textCol.clientHeight) { textCol.style.boxShadow = "inset 0 0 0 4px #ff4444"; showAlert(); return true;}
+            else { textCol.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)"; return false;}
+        }
+
+        // --- RE-BINDING DES ÉVÉNEMENTS (Solution au bug d'import) ---
+        function bindTextEvents() {
+            textWrap.addEventListener('input', checkTextOverflow);
+        }
+        bindTextEvents(); // Au lancement
+
+        function bindGridEvents() {
+            photoGrid.addEventListener('dragover', e => { 
+                if(draggedBlock) e.preventDefault(); 
+            });
+
+            photoGrid.addEventListener('drop', e => {
+                if(!draggedBlock) return;
+                e.preventDefault();
+
+                const blocks = Array.from(photoGrid.querySelectorAll('.img-container:not(.is-dragging)'));
+                let closestBlock = null;
+                let minDistance = Infinity;
+
+                blocks.forEach(block => {
+                    const rect = block.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const dist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+                    
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestBlock = block;
+                    }
+                });
+
+                if (closestBlock) {
+                    const rect = closestBlock.getBoundingClientRect();
+                    if (e.clientY < rect.top + rect.height / 2) {
+                        closestBlock.before(draggedBlock);
+                    } else {
+                        closestBlock.after(draggedBlock);
+                    }
+                } else {
+                    photoGrid.appendChild(draggedBlock);
+                }
+            });
+        }
+        bindGridEvents(); // Au lancement
+
+
+        // --- GESTION DU BLOC ANNEXE ---
+        document.getElementById('toggleAnnex').addEventListener('change', (e) => {
+            const annex = document.getElementById('annexBlock');
+            if (e.target.checked) {
+                annex.style.display = 'block';
+                textCol.classList.add('has-annex');
+            } else {
+                annex.style.display = 'none';
+                textCol.classList.remove('has-annex');
+            }
+            setTimeout(checkTextOverflow, 50); 
+        });
+
+
+        // --- UI GOUTTIÈRE & COULEURS ---
+        document.getElementById('gutterSlider').addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--gutter', e.target.value + 'px');
+            document.getElementById('gutterValue').textContent = e.target.value + 'px';
+        });
+        document.getElementById('accentColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--accent-color', e.target.value); document.getElementById('accentBtnDisplay').style.background = e.target.value; });
+        document.getElementById('bgColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--bg-page', e.target.value); document.getElementById('bgBtnDisplay').style.background = e.target.value; });
+
+        // --- CRÉATION DE BLOC ---
+        function addBlockSafe() {
+            const addedDiv = addBlock(4, 6);
+            if (checkGridOverflow()) { addedDiv.remove(); showAlert(); }
+        }
+
+        function addBlock(colSpan = 4, rowSpan = 6) {
+            const div = document.createElement('div');
+            div.className = 'img-container';
+            div.style.gridColumnEnd = `span ${colSpan}`;
+            div.style.gridRowEnd = `span ${rowSpan}`;
+            
+            div.innerHTML = `
+                <div class="placeholder-text">+ Photo</div>
+                <div class="block-controls no-print">
+                    <div class="mover" draggable="true" title="Déplacer">✥</div>
+                    <div class="actions-panel">
+                        <button class="action-btn upload-btn" title="Ajouter photo">📷</button>
+                        <button class="action-btn edit-btn" title="Cadrage">⚙️</button>
+                        <button class="action-btn delete-btn" title="Supprimer la case">🗑️</button>
+                    </div>
+                    <div class="resizer" title="Redimensionner"></div>
+                </div>
+            `;
+            
+            attachBlockEvents(div);
+            photoGrid.appendChild(div);
+            return div;
+        }
+
+        // --- ÉVÉNEMENTS DU BLOC ---
+        function attachBlockEvents(block) {
+            
+            block.querySelector('.upload-btn').addEventListener('click', (e) => { e.stopPropagation(); targetUploadBlock = block; globalFileInput.click(); });
+            block.querySelector('.delete-btn').addEventListener('click', (e) => { e.stopPropagation(); block.remove(); popup.style.display = 'none'; });
+
+            block.querySelector('.edit-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); activeBlock = block; popup.style.display = 'flex';
+                let leftPos = e.pageX + 15; if (leftPos + 220 > window.innerWidth) leftPos = e.pageX - 220;
+                popup.style.left = leftPos + 'px'; popup.style.top = e.pageY + 'px';
+                
+                const img = block.querySelector('img');
+                if (img) {
+                    document.getElementById('zoomSlider').value = img.dataset.scale || 1;
+                    document.getElementById('panXSlider').value = img.dataset.panX || 50;
+                    document.getElementById('panYSlider').value = img.dataset.panY || 50;
+                }
+            });
+
+            block.addEventListener('dragover', e => { 
+                if(!draggedBlock) { e.preventDefault(); block.style.borderColor = "var(--accent-color)"; }
+            });
+            block.addEventListener('dragleave', () => block.style.borderColor = "");
+            block.addEventListener('drop', e => {
+                if(!draggedBlock) {
+                    e.preventDefault(); block.style.borderColor = "";
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) processImageFile(file, block);
+                }
+            });
+
+            // Déplacement
+            const mover = block.querySelector('.mover');
+            mover.addEventListener('dragstart', (e) => {
+                document.body.classList.add('is-dragging'); 
+                e.dataTransfer.effectAllowed = 'move';
+                draggedBlock = block; 
+                setTimeout(() => block.classList.add('is-dragging'), 0);
+            });
+            mover.addEventListener('dragend', () => { 
+                document.body.classList.remove('is-dragging'); 
+                block.classList.remove('is-dragging'); 
+                draggedBlock = null; 
+            });
+
+            // Redimensionnement Sécurisé
+            const resizer = block.querySelector('.resizer');
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault(); document.body.classList.add('is-resizing');
+                const startX = e.clientX; const startY = e.clientY;
+                const startColSpan = parseInt(block.style.gridColumnEnd.replace('span ', '')) || 4;
+                const startRowSpan = parseInt(block.style.gridRowEnd.replace('span ', '')) || 6;
+                const style = window.getComputedStyle(photoGrid);
+                const gap = parseFloat(style.gap) || 0;
+                const colWidth = (photoGrid.clientWidth - (gap * 11)) / 12;
+                const rowHeight = (photoGrid.clientHeight - (gap * 11)) / 12;
+
+                let lastValidCols = startColSpan;
+                let lastValidRows = startRowSpan;
+
+                function onMouseMove(e) {
+                    let newCols = Math.max(4, Math.min(startColSpan + Math.round((e.clientX - startX) / (colWidth + gap)), 12));
+                    let newRows = Math.max(4, Math.min(startRowSpan + Math.round((e.clientY - startY) / (rowHeight + gap)), 12));
+                    
+                    block.style.gridColumnEnd = `span ${newCols}`;
+                    block.style.gridRowEnd = `span ${newRows}`;
+
+                    if (checkGridOverflow()) {
+                        block.style.gridColumnEnd = `span ${lastValidCols}`;
+                        block.style.gridRowEnd = `span ${lastValidRows}`;
+                        showAlert();
+                    } else {
+                        lastValidCols = newCols;
+                        lastValidRows = newRows;
+                    }
+                }
+                function onMouseUp() { document.body.classList.remove('is-resizing'); document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
+                document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+            });
+        }
+
+        // --- TRAITEMENT FICHIER IMAGE ---
+        globalFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && targetUploadBlock) {
+                processImageFile(file, targetUploadBlock);
+                globalFileInput.value = ''; targetUploadBlock = null;
+            }
+        });
+
+        function processImageFile(file, block) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                let img = block.querySelector('img');
+                if (!img) { img = document.createElement('img'); block.appendChild(img); }
+                img.src = event.target.result; img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
+                block.classList.add('has-image'); updateImageTransform(img);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- CADRAGE ---
+        function updateImageTransform(img) { 
+            const scale = parseFloat(img.dataset.scale);
+            img.style.width = '100%'; 
+            img.style.height = '100%';
+            img.style.transform = `scale(${scale})`;
+            img.style.transformOrigin = `${img.dataset.panX}% ${img.dataset.panY}%`;
+            img.style.objectPosition = `${img.dataset.panX}% ${img.dataset.panY}%`; 
+        }
+
+        document.getElementById('zoomSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { let img = activeBlock.querySelector('img'); img.dataset.scale = e.target.value; updateImageTransform(img); }});
+        document.getElementById('panXSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { let img = activeBlock.querySelector('img'); img.dataset.panX = e.target.value; updateImageTransform(img); }});
+        document.getElementById('panYSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { let img = activeBlock.querySelector('img'); img.dataset.panY = e.target.value; updateImageTransform(img); }});
+        function removeImageFromBlock() { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').remove(); activeBlock.classList.remove('has-image'); popup.style.display = 'none'; } }
+        document.addEventListener('click', (e) => { if (!e.target.closest('.block-controls') && !e.target.closest('.popup-menu')) popup.style.display = 'none'; });
+
+        // --- EXPERIENCES & SAUVEGARDE ---
+        function addExperience() {
+            const div = document.createElement('div'); div.className = 'exp-item';
+            div.innerHTML = `
+                <div class="exp-year" contenteditable="true">An</div>
+                <div class="exp-content">
+                    <select class="exp-cat">
+                        <option value="Court-métrage">Court-métrage</option>
+                        <option value="Long-métrage">Long-métrage</option>
+                        <option value="Série TV">Série TV</option>
+                        <option value="Publicité">Publicité</option>
+                        <option value="Modèle Photo">Modèle Photo</option>
+                    </select>
+                    <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle</span> - <span class="exp-film" contenteditable="true">Film</span></div>
+                    <div class="exp-dir" contenteditable="true">Réal</div>
+                </div>
+                <button class="no-print remove-exp-btn" onclick="removeExperience(this)">X</button>
+            `;
+            document.getElementById('expList').appendChild(div);
+            // Sécurité : Supprime l'ajout si ça dépasse
+            if (checkTextOverflow()) div.remove();
+        }
+
+        function removeExperience(btn) { btn.parentElement.remove(); checkTextOverflow(); }
+        document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
+        document.getElementById('bgPatternSelect').addEventListener('change', (e) => { document.getElementById('cvPage').className = 'page-a4 ' + e.target.value; });
+
+        document.getElementById('saveProject').addEventListener('click', () => {
+            const projectData = { 
+                html: document.getElementById('cvPage').innerHTML, pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
+                gutter: document.getElementById('gutterSlider').value, accent: document.documentElement.style.getPropertyValue('--accent-color'), bg: document.documentElement.style.getPropertyValue('--bg-page'),
+                annexVisible: document.getElementById('toggleAnnex').checked
+            };
+            const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData)); a.download = "zcard_pro.json"; a.click();
+        });
+
+        // --- IMPORT DE FICHIER SÉCURISÉ ---
+        document.getElementById('importProject').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = JSON.parse(event.target.result);
+                document.getElementById('cvPage').innerHTML = data.html;
+                
+                // === RÉPARATION DES SÉCURITÉS ===
+                photoGrid = document.getElementById('photoGrid');
+                textCol = document.getElementById('textColumn');
+                textWrap = document.getElementById('textContentWrapper');
+                
+                bindGridEvents();
+                bindTextEvents();
+                // ================================
+
+                if(data.pattern) { document.getElementById('cvPage').className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
+                if(data.accent) { 
+                    document.documentElement.style.setProperty('--accent-color', data.accent); 
+                    document.getElementById('accentColor').value = data.accent; 
+                    document.getElementById('accentBtnDisplay').style.background = data.accent; 
+                }
+                if(data.bg) { 
+                    document.documentElement.style.setProperty('--bg-page', data.bg); 
+                    document.getElementById('bgColor').value = data.bg; 
+                    document.getElementById('bgBtnDisplay').style.background = data.bg; 
+                }
+                if(data.gutter) { document.documentElement.style.setProperty('--gutter', data.gutter + 'px'); document.getElementById('gutterSlider').value = data.gutter; document.getElementById('gutterValue').textContent = data.gutter + 'px';}
+                if(data.annexVisible !== undefined) { 
+                    document.getElementById('toggleAnnex').checked = data.annexVisible;
+                    document.getElementById('annexBlock').style.display = data.annexVisible ? 'block' : 'none';
+                    if(data.annexVisible) textCol.classList.add('has-annex');
+                    else textCol.classList.remove('has-annex');
+                }
+                
+                document.querySelectorAll('.img-container').forEach(attachBlockEvents);
+                checkTextOverflow();
+                
+                // Autorise le rechargement immédiat
+                e.target.value = ''; 
+            };
+            reader.readAsText(file);
+        });
+
+        // --- EXPORT IMAGE DOM-TO-IMAGE ---
+        function exportImage() {
+            const btn = document.getElementById('btnExportImg');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = "⏳ Création HD en cours...";
+            btn.disabled = true;
+            
+            document.body.classList.add('is-exporting');
+            const cvPage = document.getElementById('cvPage');
+
+            setTimeout(() => {
+                domtoimage.toPng(cvPage, { 
+                    quality: 1,
+                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
+                    width: cvPage.clientWidth * 2, 
+                    height: cvPage.clientHeight * 2,
+                    style: {
+                        transform: 'scale(2)',
+                        transformOrigin: 'top left'
+                    }
+                })
+                .then(function (dataUrl) {
+                    const link = document.createElement('a');
+                    link.download = 'Z-Card_Portfolio.png';
+                    link.href = dataUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    document.body.classList.remove('is-exporting');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                })
+                .catch(function (error) {
+                    console.error('Erreur export:', error);
+                    alert("Erreur lors de l'export. Essayez de recharger la page et de vous assurer que vos photos sont bien chargées.");
+                    document.body.classList.remove('is-exporting');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            }, 300);
+        }
+    </script>
+</body>
+</html>
