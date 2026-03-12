@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Card DA - Plein Écran & Sécurisé</title>
+    <title>Z-Card DA - Canvas Figma & Sécurisé</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
@@ -16,21 +16,15 @@
             --gutter: 15px;
             
             /* Couleurs Sidebar UI Pro */
-            --ui-bg: #161616;
-            --ui-panel: #222222;
-            --ui-border: #333333;
-            --ui-text: #e0e0e0;
-            --ui-text-muted: #888888;
+            --ui-bg: #161616; --ui-panel: #222222; --ui-border: #333333; --ui-text: #e0e0e0; --ui-text-muted: #888888;
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* --- SIDEBAR UI PRO --- */
         .sidebar { width: 320px; background: var(--ui-bg); padding: 20px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box; flex-shrink: 0;}
-        
         .btn-add-block { background: var(--ui-panel); color: var(--ui-text); border: 1px solid var(--ui-border); padding: 12px; border-radius: 6px; width: 100%; text-align: left; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;}
         .btn-add-block:hover { background: #2a2a2a; border-color: #555; }
-
         .control-group { display: flex; flex-direction: column; gap: 8px; }
         .control-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ui-text-muted); }
         
@@ -43,7 +37,6 @@
         .color-btn { height: 32px; border-radius: 6px; border: 1px solid var(--ui-border); display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; cursor: pointer; position: relative; overflow: hidden;}
         .color-btn input[type="color"] { position: absolute; top: -10px; left: -10px; width: 200%; height: 200%; cursor: pointer; opacity: 0; }
         .color-btn::after { content: '✎'; color: #000; font-size: 12px; opacity: 0.5; pointer-events: none;}
-
         select { background: var(--ui-panel); color: var(--ui-text); border: 1px solid var(--ui-border); padding: 10px; border-radius: 6px; width: 100%; font-size: 12px; outline: none; cursor: pointer;}
         hr { border: none; border-top: 1px solid var(--ui-border); margin: 0; width: 100%; }
 
@@ -52,7 +45,6 @@
         .btn-action:hover { background: var(--ui-panel); border-color: #555; }
         .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* --- TOGGLE SWITCH --- */
         .toggle-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -63,31 +55,35 @@
         .toggle-label-text { font-size: 12px; color: var(--ui-text); }
 
         /* =========================================
-           ESPACE DE TRAVAIL & SCALING DYNAMIQUE
+           ESPACE DE TRAVAIL (Moteur de Rendu Figma)
         ========================================= */
         .workspace { 
             flex-grow: 1; 
             height: 100vh;
-            overflow: hidden; /* Pas de scroll autour du CV */
+            overflow: hidden; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            padding: 20px; 
             background: #0d0d0d;
         }
 
         .page-a4 { 
-            height: 94vh; /* Prend 94% de l'écran en hauteur */
-            aspect-ratio: 297 / 210; /* Ratio parfait Paysage */
+            /* Taille FIXE parfaite (Standard A4 Paysage à 96dpi) */
+            width: 1123px; 
+            height: 794px; 
+            
             background-color: var(--bg-page); 
             box-sizing: border-box; 
-            padding: 3%; /* Marges proportionnelles */
+            padding: 10mm; /* Marge interne classique */
             display: flex; 
             gap: var(--gutter); 
             box-shadow: 0 20px 80px rgba(0,0,0,0.9); 
             position: relative; 
-            /* LA MAGIE DU TEXTE : La taille de base du texte grandit avec la hauteur de l'écran ! */
-            font-size: 1.45vh; 
+            flex-shrink: 0; /* Empêche le navigateur de l'écraser */
+            
+            /* L'origine du zoom se fait depuis le centre */
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
         }
 
         /* --- MOTIFS CSS --- */
@@ -102,49 +98,47 @@
         .pattern-circles { background-image: radial-gradient(circle, color-mix(in srgb, var(--accent-color) 20%, transparent) 2px, transparent 2px); background-size: 15px 15px; }
         .pattern-none { background-image: none; }
 
-        /* --- COLONNE TEXTE (Unités en EM pour s'adapter à la taille de l'écran) --- */
+        /* --- COLONNE TEXTE (Taille Rétablie à l'original) --- */
         .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: var(--text-color);}
-        .text-content-wrapper { padding: 2em; display: flex; flex-direction: column; gap: 1em; transition: gap 0.3s; flex-shrink: 0; }
+        .text-content-wrapper { padding: 5mm; display: flex; flex-direction: column; gap: 10px; transition: gap 0.3s; flex-shrink: 0; }
         
         [contenteditable] { outline: none; border-radius: 4px; transition: background 0.2s; }
         [contenteditable]:hover { background: rgba(0,0,0,0.05); }
         [contenteditable]:empty:before { content: attr(data-placeholder); color: #aaa; pointer-events: none; }
         
-        .nom-complet { margin: 0; font-size: 3em; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; line-height: 1; transition: font-size 0.3s;}
-        .contact { font-size: 1em; color: #555; transition: font-size 0.3s;}
-        .details { font-size: 0.95em; line-height: 1.5; padding: 1em; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
+        .nom-complet { margin: 0; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; line-height: 1; transition: font-size 0.3s;}
+        .contact { font-size: 0.75rem; color: #555; transition: font-size 0.3s;}
+        .details { font-size: 0.7rem; line-height: 1.4; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
 
         /* --- EXPERIENCES --- */
-        .experiences-container { display: flex; flex-direction: column; gap: 0.8em; }
-        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 0.3em;}
-        .exp-header h3 { margin: 0; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1px; color: #333; }
-        .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 22px; height: 22px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
-        .exp-list { display: flex; flex-direction: column; gap: 0.8em; transition: gap 0.3s;}
-        .exp-item { display: flex; gap: 1em; font-size: 0.95em; position: relative; transition: font-size 0.3s;}
-        .exp-year { font-weight: 800; width: 3em; flex-shrink: 0; padding-top: 2px; }
-        .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 0.3em; }
+        .experiences-container { display: flex; flex-direction: column; gap: 6px; }
+        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 4px;}
+        .exp-header h3 { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #333; }
+        .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 18px; height: 18px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
+        .exp-list { display: flex; flex-direction: column; gap: 6px; transition: gap 0.3s;}
+        .exp-item { display: flex; gap: 6px; font-size: 0.7rem; position: relative; transition: font-size 0.3s;}
+        .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; }
+        .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
         
-        .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.75em; padding: 0.3em 0.8em; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
+        .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
         .exp-role-film { font-weight: 700; color: #111;}
         .exp-film { font-style: italic; color: #444; }
-        .exp-dir { font-size: 0.85em; color: #666; }
-        .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center;}
+        .exp-dir { font-size: 0.65rem; color: #666; }
+        .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center;}
         .exp-item:hover .remove-exp-btn { display: flex; }
 
-        /* --- ANNEXE --- */
         .annex-block { display: none; animation: fadeIn 0.3s ease; margin-bottom: 0;}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- MODE COMPACT (S'adapte dynamiquement) --- */
-        .text-column.has-annex .text-content-wrapper { gap: 0.6em; }
-        .text-column.has-annex .nom-complet { font-size: 2.2em; }
-        .text-column.has-annex .contact { font-size: 0.85em; }
-        .text-column.has-annex .details { padding: 0.8em; font-size: 0.8em; margin-bottom: 0; }
-        .text-column.has-annex .exp-list { gap: 0.5em; }
-        .text-column.has-annex .exp-item { font-size: 0.85em; }
-        .text-column.has-annex .exp-cat { font-size: 0.7em; padding: 0.2em 0.6em; }
-        .text-column.has-annex .exp-header h3 { font-size: 0.95em; }
-        .text-column.has-annex .annex-block .details { font-size: 0.8em; line-height: 1.4; }
+        .text-column.has-annex .text-content-wrapper { gap: 6px; }
+        .text-column.has-annex .nom-complet { font-size: 1.5rem; }
+        .text-column.has-annex .contact { font-size: 0.7rem; }
+        .text-column.has-annex .details { padding: 6px 8px; font-size: 0.65rem; margin-bottom: 0; }
+        .text-column.has-annex .exp-list { gap: 4px; }
+        .text-column.has-annex .exp-item { font-size: 0.6rem; }
+        .text-column.has-annex .exp-cat { font-size: 0.5rem; padding: 1px 4px; }
+        .text-column.has-annex .exp-header h3 { font-size: 0.7rem; }
+        .text-column.has-annex .annex-block .details { font-size: 0.6rem; line-height: 1.3; }
 
         /* --- GRILLE MODULAIRE --- */
         .photo-grid {
@@ -156,7 +150,7 @@
             border: 2px dashed #bbb; transition: all 0.2s; grid-column-end: span 4; grid-row-end: span 6;
         }
         .img-container.has-image { border: none; background: transparent; box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
-        .placeholder-text { color: #888; font-weight: bold; pointer-events: none; font-size: 1.2em;}
+        .placeholder-text { color: #888; font-weight: bold; pointer-events: none; font-size: 0.9rem;}
         .img-container.has-image .placeholder-text { display: none; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
 
@@ -165,13 +159,13 @@
         .img-container:hover .block-controls { opacity: 1; }
         .img-container.is-dragging { opacity: 0.4; border-style: solid; }
         
-        .mover { position: absolute; top: 5px; left: 5px; width: 30px; height: 30px; background: rgba(0,0,0,0.8); color: white; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: grab; pointer-events: auto; font-size: 16px;}
+        .mover { position: absolute; top: 5px; left: 5px; width: 26px; height: 26px; background: rgba(0,0,0,0.8); color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: grab; pointer-events: auto; font-size: 14px;}
         .mover:active { cursor: grabbing; }
 
-        .resizer { position: absolute; bottom: -2px; right: -2px; width: 28px; height: 28px; background: var(--accent-color); cursor: nwse-resize; pointer-events: auto; border-top-left-radius: 12px; border-bottom-right-radius: var(--radius); z-index: 11;}
+        .resizer { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; background: var(--accent-color); cursor: nwse-resize; pointer-events: auto; border-top-left-radius: 10px; border-bottom-right-radius: var(--radius); z-index: 11;}
 
         .actions-panel { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; pointer-events: auto; }
-        .action-btn { background: rgba(0,0,0,0.8); color: white; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background 0.2s;}
+        .action-btn { background: rgba(0,0,0,0.8); color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: background 0.2s;}
         .action-btn:hover { background: #000; }
         .action-btn.delete-btn:hover { background: #cc2936; }
         
@@ -194,31 +188,13 @@
 
         #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ff4444; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.4);}
         
-        /* --- RESPONSIVE MOBILE : Scroll Horizontal Naturel --- */
+        /* --- RESPONSIVE MOBILE --- */
         .mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
-        
         @media (max-width: 768px) {
             body { flex-direction: column; overflow: auto; height: auto;}
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
-            
-            .workspace { 
-                padding: 10px; 
-                display: block; 
-                height: auto;
-                overflow-x: auto; 
-                -webkit-overflow-scrolling: touch; 
-            }
-            
-            .page-a4 { 
-                /* On fige une taille en pixels pour le mobile pour permettre le défilement tactile */
-                height: 700px; 
-                width: 990px; 
-                aspect-ratio: auto;
-                font-size: 12px; 
-                flex-shrink: 0;
-                margin-bottom: 20px;
-            }
-            
+            .workspace { padding: 10px; display: block; height: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .page-a4 { transform-origin: top left; margin-bottom: 20px; }
             .photo-controls { display: none !important; }
             .mobile-warning { display: block; }
         }
@@ -396,6 +372,34 @@
         let targetUploadBlock = null;
         let draggedBlock = null; 
 
+        // ==========================================
+        // LE MOTEUR DE ZOOM (CANVAS FIGMA)
+        // ==========================================
+        function resizeWorkspace() {
+            const workspace = document.getElementById('workspace');
+            const cvPage = document.getElementById('cvPage');
+            if (!workspace || !cvPage) return;
+            
+            // Sur mobile, on applique un zoom fixe et on laisse le scroll faire le travail
+            if (window.innerWidth <= 768) {
+                cvPage.style.transform = 'scale(0.85)';
+                return;
+            }
+            
+            // Sur PC : On calcule exactement le zoom pour que le A4 (1123x794) remplisse l'écran
+            const padding = 40; // Marge de sécurité de 20px de chaque côté
+            const scaleX = (workspace.clientWidth - padding) / 1123;
+            const scaleY = (workspace.clientHeight - padding) / 794;
+            const scale = Math.min(scaleX, scaleY);
+            
+            cvPage.style.transform = `scale(${scale})`;
+        }
+
+        // On active le zoom au chargement et au redimensionnement de la fenêtre
+        window.addEventListener('resize', resizeWorkspace);
+        document.addEventListener('DOMContentLoaded', resizeWorkspace);
+        // ==========================================
+
         // --- VERIFICATION ET CHARGEMENT FIREBASE ---
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'admin.html'; return; }
@@ -429,7 +433,10 @@
                 } else {
                     window.addBlock(6, 12); window.addBlock(6, 6); window.addBlock(6, 6);
                 }
-            } catch (error) { console.error("Erreur de chargement Firebase:", error); }
+            } catch (error) { console.error("Erreur Firebase:", error); }
+            
+            // Forcer le calcul du zoom après le chargement des données
+            setTimeout(resizeWorkspace, 100);
         });
 
         function showAlert() {
@@ -437,7 +444,6 @@
             setTimeout(() => alertBox.style.display = 'none', 3000);
         }
 
-        // --- SÉCURITÉS ---
         function checkGridOverflow() { return photoGrid.scrollHeight > photoGrid.clientHeight + 5; }
         function checkTextOverflow() {
             if (textWrap.scrollHeight > textCol.clientHeight) { textCol.style.boxShadow = "inset 0 0 0 4px #ff4444"; showAlert(); return true;}
@@ -465,7 +471,6 @@
         }
         bindTextEvents(); bindGridEvents();
 
-        // --- GESTION DU BLOC ANNEXE ---
         document.getElementById('toggleAnnex').addEventListener('change', (e) => {
             const annex = document.getElementById('annexBlock');
             if (e.target.checked) { annex.style.display = 'block'; textCol.classList.add('has-annex'); } 
@@ -473,13 +478,11 @@
             setTimeout(checkTextOverflow, 50); 
         });
 
-        // --- UI GOUTTIÈRE & COULEURS ---
         document.getElementById('gutterSlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--gutter', e.target.value + 'px'); document.getElementById('gutterValue').textContent = e.target.value + 'px'; });
         document.getElementById('accentColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--accent-color', e.target.value); document.getElementById('accentBtnDisplay').style.background = e.target.value; });
         document.getElementById('bgColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--bg-page', e.target.value); document.getElementById('bgBtnDisplay').style.background = e.target.value; });
         document.getElementById('bgPatternSelect').addEventListener('change', (e) => { document.getElementById('cvPage').className = 'page-a4 ' + e.target.value; });
 
-        // --- GESTION DES BLOCS RENDUES GLOBALES ---
         window.addBlockSafe = function() {
             const addedDiv = window.addBlock(4, 6);
             if (checkGridOverflow()) { addedDiv.remove(); showAlert(); }
@@ -539,8 +542,14 @@
 
                 let lastValidCols = startColSpan, lastValidRows = startRowSpan;
                 function onMouseMove(e) {
-                    let newCols = Math.max(4, Math.min(startColSpan + Math.round((e.clientX - startX) / (colWidth + gap)), 12));
-                    let newRows = Math.max(4, Math.min(startRowSpan + Math.round((e.clientY - startY) / (rowHeight + gap)), 12));
+                    // INFO : On divise par le "scale" actuel pour que la souris suive parfaitement le cadre même zoomé !
+                    const currentScale = parseFloat(document.getElementById('cvPage').style.transform.replace('scale(', '').replace(')', '')) || 1;
+                    const deltaX = (e.clientX - startX) / currentScale;
+                    const deltaY = (e.clientY - startY) / currentScale;
+
+                    let newCols = Math.max(4, Math.min(startColSpan + Math.round(deltaX / (colWidth + gap)), 12));
+                    let newRows = Math.max(4, Math.min(startRowSpan + Math.round(deltaY / (rowHeight + gap)), 12));
+                    
                     block.style.gridColumnEnd = `span ${newCols}`; block.style.gridRowEnd = `span ${newRows}`;
                     if (checkGridOverflow()) { block.style.gridColumnEnd = `span ${lastValidCols}`; block.style.gridRowEnd = `span ${lastValidRows}`; showAlert(); } 
                     else { lastValidCols = newCols; lastValidRows = newRows; }
@@ -562,8 +571,6 @@
                         if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         canvas.width = width; canvas.height = height;
                         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                        
-                        // L'image reste encodée localement pour que la capture d'écran fonctionne !
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
                     img.onerror = error => reject(error);
@@ -580,7 +587,6 @@
             block.querySelector('.placeholder-text').textContent = "⏳ Traitement...";
             try {
                 const base64Data = await compresserImage(file, 1000, 0.75);
-
                 let img = block.querySelector('img');
                 if (!img) { img = document.createElement('img'); block.appendChild(img); }
                 
@@ -633,7 +639,7 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
-        // --- SAUVEGARDE EN 3 TEMPS (EVITE L'ERREUR DE 1Mo) ---
+        // --- SAUVEGARDE SÉCURISÉE 3 ÉTAPES (ANTI-LIMITE 1Mo) ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
@@ -645,19 +651,16 @@
                 const cvPage = document.getElementById('cvPage');
                 const imagesBlocks = document.querySelectorAll('.img-container img');
                 
-                // ÉTAPE 1 : Capture HD (Pendant que les images sont locales et sans bug de sécurité !)
-                // On force la taille de capture pour éviter qu'elle soit floue sur un petit écran
+                // ÉTAPE 1 : Capture HD (On force la taille de capture pour qu'elle soit parfaite même si l'écran est petit)
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
-                    width: 2480, 
-                    height: 1748, 
+                    width: 1123 * 2, // 2246px de large
+                    height: 794 * 2, // 1588px de haut
                     style: { 
-                        transform: 'scale(1)', 
-                        width: '2480px', 
-                        height: '1748px', 
-                        display: 'flex',
-                        fontSize: '24.5px' // Force l'échelle des textes proportionnellement !
+                        transform: 'scale(2)', 
+                        transformOrigin: 'top left',
+                        margin: 0
                     }
                 });
                 
@@ -666,17 +669,17 @@
                 await uploadString(publicSRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(publicSRef);
 
-                // ÉTAPE 2 : On transforme les images locales lourdes en Liens Web Légers
+                // ÉTAPE 2 : On allège le projet en transformant les images Base64 en vrais liens internet
                 btn.innerHTML = "⏳ Allègement de la sauvegarde...";
                 for (let img of imagesBlocks) {
                     if (img.src.startsWith('data:image')) {
                         const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 5)}.jpg`);
                         await uploadString(sRef, img.src, 'data_url');
-                        img.src = await getDownloadURL(sRef); // Remplacement dans le HTML
+                        img.src = await getDownloadURL(sRef); 
                     }
                 }
 
-                // ÉTAPE 3 : On enregistre le projet (Le code HTML pèse maintenant moins de 10 Ko)
+                // ÉTAPE 3 : On enregistre !
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
@@ -731,7 +734,7 @@
             reader.readAsText(file);
         });
 
-        // --- EXPORT IMAGE MANUEL (TELECHARGEMENT) ---
+        // --- EXPORT IMAGE MANUEL (TELECHARGEMENT LIBRE) ---
         window.exportImage = function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
@@ -743,8 +746,8 @@
                 domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
-                    width: 2480, height: 1748,
-                    style: { transform: 'scale(1)', width: '2480px', height: '1748px', display: 'flex', fontSize: '24.5px' }
+                    width: 1123 * 2, height: 794 * 2,
+                    style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 }).then(function (dataUrl) {
                     const link = document.createElement('a'); link.download = 'Z-Card_Portfolio.png'; link.href = dataUrl;
                     document.body.appendChild(link); link.click(); document.body.removeChild(link);
