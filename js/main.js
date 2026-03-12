@@ -435,3 +435,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// Ouvre et ferme la modale
+const modal = document.getElementById('presskitModal');
+document.getElementById('btn-open-presskit')?.addEventListener('click', async () => {
+    modal.showModal();
+    
+    // Récupère dynamiquement les derniers liens générés depuis l'Admin
+    try {
+        const cvDoc = await getDoc(doc(db, "site_data", "cv_project"));
+        if (cvDoc.exists() && cvDoc.data().publicUrl) {
+            document.getElementById('link-dl-cv').href = cvDoc.data().publicUrl;
+        }
+        
+        const zcardDoc = await getDoc(doc(db, "site_data", "zcard_project"));
+        if (zcardDoc.exists() && zcardDoc.data().publicUrl) {
+            document.getElementById('link-dl-zcard').href = zcardDoc.data().publicUrl;
+        }
+    } catch(e) { console.error("Erreur récupération liens:", e); }
+});
+
+document.getElementById('btn-close-presskit')?.addEventListener('click', () => modal.close());
