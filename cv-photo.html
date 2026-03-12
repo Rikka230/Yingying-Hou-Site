@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Card DA - Plein Écran & Baking Actif</title>
+    <title>Z-Card DA - Auto Cleanup & CORS Ready</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
@@ -55,7 +55,7 @@
         .toggle-label-text { font-size: 12px; color: var(--ui-text); }
 
         /* =========================================
-           ESPACE DE TRAVAIL & SCALING
+           ESPACE DE TRAVAIL
         ========================================= */
         .workspace { 
             flex-grow: 1; 
@@ -340,7 +340,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+        // AJOUT DE listAll ET deleteObject POUR LE NETTOYEUR !
+        import { getStorage, ref, uploadString, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
@@ -420,6 +421,12 @@
                     }
                     
                     document.querySelectorAll('.img-container').forEach(attachBlockEvents);
+                    
+                    // FIX CORS : On s'assure que les images chargées depuis Firebase ont la balise crossorigin !
+                    document.querySelectorAll('.img-container img').forEach(img => {
+                        img.crossOrigin = "anonymous";
+                    });
+
                     checkTextOverflow();
                 } else {
                     window.addBlock(6, 12); window.addBlock(6, 6); window.addBlock(6, 6);
@@ -559,12 +566,11 @@
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Résolution x2 pour un export HD parfait
                 canvas.width = container.clientWidth * 2;
                 canvas.height = container.clientHeight * 2;
                 
                 const originalImg = new Image();
-                originalImg.crossOrigin = "anonymous";
+                originalImg.crossOrigin = "anonymous"; // CRUCIAL POUR LE CORS
                 originalImg.onload = () => {
                     const imgRatio = originalImg.naturalWidth / originalImg.naturalHeight;
                     const canvasRatio = canvas.width / canvas.height;
@@ -578,7 +584,6 @@
                         drawHeight = originalImg.naturalHeight * (canvas.width / originalImg.naturalWidth);
                     }
                     
-                    // Récupération des données du slider CSS
                     const scale = parseFloat(img.dataset.scale) || 1;
                     drawWidth *= scale;
                     drawHeight *= scale;
@@ -586,7 +591,6 @@
                     const panX = parseFloat(img.dataset.panX) || 50;
                     const panY = parseFloat(img.dataset.panY) || 50;
                     
-                    // Calcul de la zone visible
                     const maxOffsetX = drawWidth - canvas.width;
                     const maxOffsetY = drawHeight - canvas.height;
                     const dx = - (maxOffsetX * (panX / 100));
@@ -596,19 +600,17 @@
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(originalImg, dx, dy, drawWidth, drawHeight);
                     
-                    resolve(canvas.toDataURL('image/jpeg', 0.85)); // Retourne l'image aplatie !
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
                 };
                 originalImg.onerror = () => resolve(null);
                 originalImg.src = img.src;
             });
         }
 
-        // Fonction qui nettoie toutes les images avant l'export
         async function prepareImagesForExport() {
             const imagesBlocks = document.querySelectorAll('.img-container.has-image');
             for (let block of imagesBlocks) {
                 const img = block.querySelector('img');
-                // On ne bake que si l'image a été modifiée par les sliders ou vient d'être ajoutée (Base64)
                 const scale = parseFloat(img.dataset.scale) || 1;
                 const panX = parseFloat(img.dataset.panX) || 50;
                 const panY = parseFloat(img.dataset.panY) || 50;
@@ -620,7 +622,7 @@
                         img.dataset.scale = '1';
                         img.dataset.panX = '50';
                         img.dataset.panY = '50';
-                        updateImageTransform(img); // Remet le code CSS à zéro !
+                        updateImageTransform(img);
                     }
                 }
             }
@@ -657,15 +659,13 @@
                 let img = block.querySelector('img');
                 if (!img) { img = document.createElement('img'); block.appendChild(img); }
                 
+                img.crossOrigin = "anonymous"; // FIX CORS
                 img.src = base64Data; 
                 img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
                 block.classList.add('has-image'); 
                 updateImageTransform(img);
-            } catch(e) { 
-                alert("Erreur lors du chargement de l'image."); 
-            } finally { 
-                block.querySelector('.placeholder-text').textContent = "+ Photo"; 
-            }
+            } catch(e) { alert("Erreur lors du chargement de l'image."); 
+            } finally { block.querySelector('.placeholder-text').textContent = "+ Photo"; }
         }
 
         function updateImageTransform(img) { 
@@ -682,7 +682,6 @@
         window.removeImageFromBlock = function() { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').remove(); activeBlock.classList.remove('has-image'); popup.style.display = 'none'; } }
         document.addEventListener('click', (e) => { if (!e.target.closest('.block-controls') && !e.target.closest('.popup-menu')) popup.style.display = 'none'; });
 
-        // --- EXPERIENCES ---
         window.addExperience = function() {
             const div = document.createElement('div'); div.className = 'exp-item';
             div.innerHTML = `
@@ -706,7 +705,7 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
-        // --- SAUVEGARDE ULTIME ---
+        // --- SAUVEGARDE & GARBAGE COLLECTOR ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
@@ -715,27 +714,22 @@
             document.body.classList.add('is-exporting');
 
             try {
-                // ETAPE 1 : On efface les calculs CSS en créant de vraies photos
                 await prepareImagesForExport();
 
-                // ETAPE 2 : Capture HD sans bug possible
                 btn.innerHTML = "⏳ Création du Press Kit HD...";
                 const cvPage = document.getElementById('cvPage');
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
-                    width: 1123 * 2, 
-                    height: 794 * 2, 
+                    width: 1123 * 2, height: 794 * 2, 
                     style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
-                // ETAPE 3 : Envoi de l'image au site public
                 btn.innerHTML = "⏳ Envoi de l'image finale...";
                 const publicSRef = ref(storage, `presskit/zcard_public.png`);
                 await uploadString(publicSRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(publicSRef);
 
-                // ETAPE 4 : On allège Firebase en déplaçant les images de la grille vers le Storage
                 btn.innerHTML = "⏳ Sauvegarde des données...";
                 const imagesBlocks = document.querySelectorAll('.img-container.has-image img');
                 for (let img of imagesBlocks) {
@@ -746,7 +740,6 @@
                     }
                 }
 
-                // ETAPE 5 : L'enregistrement dans la base de données (Ultra léger)
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
@@ -758,11 +751,38 @@
                 };
                 
                 await setDoc(doc(db, "site_data", "zcard_project"), projectData);
-                alert("✅ Z-Card publiée avec succès !");
+
+                // --- NEW : NETTOYAGE DES ANCIENNES PHOTOS (Garbage Collector) ---
+                btn.innerHTML = "⏳ Nettoyage du serveur...";
+                try {
+                    const usedFilenames = [];
+                    document.querySelectorAll('.img-container.has-image img').forEach(img => {
+                        if (img.src.includes('firebasestorage')) {
+                            // Extrait le vrai nom du fichier depuis l'URL Firebase
+                            const match = decodeURIComponent(img.src).match(/presskit\/assets\/([^?]+)/);
+                            if (match) usedFilenames.push(match[1]);
+                        }
+                    });
+
+                    const listRef = ref(storage, 'presskit/assets');
+                    const res = await listAll(listRef);
+                    
+                    for (let itemRef of res.items) {
+                        // Si l'image sur le serveur n'est plus dans la grille du CV, on la supprime !
+                        if (!usedFilenames.includes(itemRef.name)) {
+                            await deleteObject(itemRef);
+                            console.log("Image supprimée :", itemRef.name);
+                        }
+                    }
+                } catch(cleanupError) {
+                    console.warn("Le nettoyage automatique a été ignoré (Sans gravité) :", cleanupError);
+                }
+                
+                alert("✅ Z-Card publiée avec succès ! Le serveur a été nettoyé.");
                 
             } catch(e) { 
                 console.error("Erreur détaillée :", e);
-                alert("Erreur critique : " + e.message); 
+                alert("Erreur critique : N'oubliez pas d'autoriser le script dans le Cloud Shell Google !"); 
             } finally { 
                 document.body.classList.remove('is-exporting'); 
                 btn.innerHTML = originalText; 
@@ -770,45 +790,13 @@
             }
         });
 
-        // --- IMPORT MANUEL ---
-        document.getElementById('importProject').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const data = JSON.parse(event.target.result);
-                document.getElementById('cvPage').innerHTML = data.html;
-                
-                photoGrid = document.getElementById('photoGrid');
-                textCol = document.getElementById('textColumn');
-                textWrap = document.getElementById('textContentWrapper');
-                bindGridEvents(); bindTextEvents();
-
-                if(data.pattern) { document.getElementById('cvPage').className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
-                if(data.accent) { document.documentElement.style.setProperty('--accent-color', data.accent); document.getElementById('accentColor').value = data.accent; document.getElementById('accentBtnDisplay').style.background = data.accent; }
-                if(data.bg) { document.documentElement.style.setProperty('--bg-page', data.bg); document.getElementById('bgColor').value = data.bg; document.getElementById('bgBtnDisplay').style.background = data.bg; }
-                if(data.gutter) { document.documentElement.style.setProperty('--gutter', data.gutter + 'px'); document.getElementById('gutterSlider').value = data.gutter; document.getElementById('gutterValue').textContent = data.gutter + 'px';}
-                if(data.annexVisible !== undefined) { 
-                    document.getElementById('toggleAnnex').checked = data.annexVisible;
-                    document.getElementById('annexBlock').style.display = data.annexVisible ? 'block' : 'none';
-                    if(data.annexVisible) textCol.classList.add('has-annex');
-                    else textCol.classList.remove('has-annex');
-                }
-                
-                document.querySelectorAll('.img-container').forEach(attachBlockEvents);
-                checkTextOverflow(); e.target.value = ''; 
-            };
-            reader.readAsText(file);
-        });
-
-        // --- EXPORT IMAGE MANUEL ---
+        // --- EXPORT IMAGE MANUEL (TELECHARGEMENT) ---
         window.exportImage = async function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
             btn.innerHTML = "⏳ Aplatissement & Création HD..."; btn.disabled = true;
             document.body.classList.add('is-exporting');
             
-            // On s'assure que tout est propre avant l'export
             await prepareImagesForExport();
 
             const cvPage = document.getElementById('cvPage');
@@ -823,7 +811,7 @@
                     document.body.appendChild(link); link.click(); document.body.removeChild(link);
                     document.body.classList.remove('is-exporting'); btn.innerHTML = originalText; btn.disabled = false;
                 }).catch(function (error) {
-                    console.error('Erreur export:', error); alert("Erreur lors de l'export.");
+                    console.error('Erreur export:', error); alert("Erreur : N'oubliez pas d'autoriser le script dans le Cloud Shell Google !");
                     document.body.classList.remove('is-exporting'); btn.innerHTML = originalText; btn.disabled = false;
                 });
             }, 300);
