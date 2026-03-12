@@ -655,16 +655,16 @@
                 // 2. Capture HD du rendu final
                 const dataUrl = await domtoimage.toPng(cvPage, { 
     quality: 1, 
-    bgcolor: document.documentElement.style.getPropertyValue('--bg-page'),
-    // On force une largeur de 2500px pour que le PNG soit toujours net
-    width: 2500, 
-    height: (cvPage.id === 'cvPage' && cvPage.classList.contains('pattern-halo')) ? 1767 : 3535, 
-    style: { 
-        transform: 'scale(1)', 
-        transformOrigin: 'top left',
-        width: '2500px',
-        height: 'auto',
-        display: 'flex'
+    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6',
+    // On force la haute définition pour le fichier final
+    width: 2480, 
+    height: 3508, 
+    style: {
+        transform: 'scale(1)',
+        width: '2480px',
+        height: '3508px',
+        display: 'flex',
+        padding: '80px' // Ajoute une belle marge sur le PNG final
     }
 });
                 
@@ -753,6 +753,7 @@
     </script>
 </body>
 </html>
+
 
 
 
