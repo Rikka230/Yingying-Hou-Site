@@ -581,7 +581,7 @@
                 <p class="tl-desc" contenteditable="true">Description des missions accomplies.</p>
                 <button class="no-print del-btn" onclick="removeItem(this)">X</button>
             `;
-            document.getElementById('expList').appendChild(div);
+            document.getElementById('expList').prepend(div);
             if (checkOverflow()) div.remove();
         };
 
@@ -592,14 +592,14 @@
                 <div class="edu-school" contenteditable="true">Établissement (Année)</div>
                 <button class="no-print del-btn" onclick="removeItem(this)">X</button>
             `;
-            document.getElementById('eduList').appendChild(div);
+            document.getElementById('eduList').prepend(div);
             if (checkOverflow()) div.remove();
         };
 
         window.addSkill = function() {
             const div = document.createElement('span'); div.className = 'skill-badge';
             div.innerHTML = `<span contenteditable="true">Nouvelle Compétence</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button>`;
-            document.getElementById('skillsList').appendChild(div);
+            document.getElementById('skillsList').prepend(div);
             if (checkOverflow()) div.remove();
         };
 
@@ -725,4 +725,5 @@
     </script>
 </body>
 </html>
+
 
