@@ -538,16 +538,29 @@
             }
         });
 
-        function processImageFile(file, block) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                let img = block.querySelector('img');
-                if (!img) { img = document.createElement('img'); block.appendChild(img); }
-                img.src = event.target.result; img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
-                block.classList.add('has-image'); updateImageTransform(img);
-            };
-            reader.readAsDataURL(file);
+        async function processImageFile(file, block) {
+        // Affiche un indicateur de chargement
+        block.querySelector('.placeholder-text').textContent = "⏳ Upload...";
+        
+        try {
+            // Utilise la même fonction de compression que ton admin
+            const compressedFile = await compresserImage(file, 1200, 0.8);
+            const sRef = ref(storage, `presskit/zcard_${Date.now()}.jpg`);
+            await uploadBytes(sRef, compressedFile);
+            const url = await getDownloadURL(sRef);
+
+            let img = block.querySelector('img');
+            if (!img) { img = document.createElement('img'); block.appendChild(img); }
+            img.src = url; // On utilise l'URL Firebase, pas la Base64 !
+            img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
+            block.classList.add('has-image'); 
+            updateImageTransform(img);
+        } catch(e) {
+            alert("Erreur lors du chargement de l'image.");
+        } finally {
+            block.querySelector('.placeholder-text').textContent = "+ Photo";
         }
+    }
 
         // --- CADRAGE ---
         function updateImageTransform(img) { 
@@ -693,4 +706,5 @@
         }
     </script>
 </body>
+
 </html>
