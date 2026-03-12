@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Card DA - Sécurités Corrigées & Export Image</title>
+    <title>Z-Card DA - Plein Écran & Sécurisé</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
@@ -26,7 +26,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* --- SIDEBAR UI PRO --- */
-        .sidebar { width: 300px; background: var(--ui-bg); padding: 20px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box;}
+        .sidebar { width: 320px; background: var(--ui-bg); padding: 20px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box; flex-shrink: 0;}
         
         .btn-add-block { background: var(--ui-panel); color: var(--ui-text); border: 1px solid var(--ui-border); padding: 12px; border-radius: 6px; width: 100%; text-align: left; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;}
         .btn-add-block:hover { background: #2a2a2a; border-color: #555; }
@@ -48,11 +48,11 @@
         hr { border: none; border-top: 1px solid var(--ui-border); margin: 0; width: 100%; }
 
         .bottom-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-        .btn-action { background: transparent; color: var(--ui-text); border: 1px solid var(--ui-border); padding: 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-action { background: transparent; color: var(--ui-text); border: 1px solid var(--ui-border); padding: 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
         .btn-action:hover { background: var(--ui-panel); border-color: #555; }
         .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* --- TOGGLE SWITCH PRO --- */
+        /* --- TOGGLE SWITCH --- */
         .toggle-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -62,13 +62,35 @@
         .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); background-color: #000; }
         .toggle-label-text { font-size: 12px; color: var(--ui-text); }
 
-        /* --- ESPACE DE TRAVAIL --- */
-        .workspace { flex-grow: 1; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 30px; }
+        /* =========================================
+           ESPACE DE TRAVAIL & SCALING DYNAMIQUE
+        ========================================= */
+        .workspace { 
+            flex-grow: 1; 
+            height: 100vh;
+            overflow: hidden; /* Pas de scroll autour du CV */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+            background: #0d0d0d;
+        }
 
-        /* --- PAGE A4 --- */
-        .page-a4 { width: 297mm; height: 210mm; background-color: var(--bg-page); position: relative; color: var(--text-color); display: flex; gap: var(--gutter); padding: 10mm; box-sizing: border-box; overflow: hidden; transition: background 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .page-a4 { 
+            height: 94vh; /* Prend 94% de l'écran en hauteur */
+            aspect-ratio: 297 / 210; /* Ratio parfait Paysage */
+            background-color: var(--bg-page); 
+            box-sizing: border-box; 
+            padding: 3%; /* Marges proportionnelles */
+            display: flex; 
+            gap: var(--gutter); 
+            box-shadow: 0 20px 80px rgba(0,0,0,0.9); 
+            position: relative; 
+            /* LA MAGIE DU TEXTE : La taille de base du texte grandit avec la hauteur de l'écran ! */
+            font-size: 1.45vh; 
+        }
 
-        /* --- MOTIFS CSS SIMPLES --- */
+        /* --- MOTIFS CSS --- */
         .pattern-halo { background-image: radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--accent-color) 80%, transparent) 0%, transparent 60%); }
         .pattern-grid { background-image: linear-gradient(to right, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 30%, transparent) 1px, transparent 1px); background-size: 40px 40px; }
         .pattern-dots { background-image: radial-gradient(color-mix(in srgb, var(--accent-color) 40%, transparent) 2px, transparent 2px); background-size: 20px 20px; }
@@ -80,49 +102,49 @@
         .pattern-circles { background-image: radial-gradient(circle, color-mix(in srgb, var(--accent-color) 20%, transparent) 2px, transparent 2px); background-size: 15px 15px; }
         .pattern-none { background-image: none; }
 
-        /* --- COLONNE TEXTE --- */
-        .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
-        .text-content-wrapper { padding: 5mm; display: flex; flex-direction: column; gap: 10px; transition: gap 0.3s; flex-shrink: 0; }
+        /* --- COLONNE TEXTE (Unités en EM pour s'adapter à la taille de l'écran) --- */
+        .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: var(--text-color);}
+        .text-content-wrapper { padding: 2em; display: flex; flex-direction: column; gap: 1em; transition: gap 0.3s; flex-shrink: 0; }
         
         [contenteditable] { outline: none; border-radius: 4px; transition: background 0.2s; }
         [contenteditable]:hover { background: rgba(0,0,0,0.05); }
         [contenteditable]:empty:before { content: attr(data-placeholder); color: #aaa; pointer-events: none; }
         
-        .nom-complet { margin: 0; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; line-height: 1; transition: font-size 0.3s;}
-        .contact { font-size: 0.75rem; color: #555; transition: font-size 0.3s;}
-        .details { font-size: 0.7rem; line-height: 1.4; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
+        .nom-complet { margin: 0; font-size: 3em; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; line-height: 1; transition: font-size 0.3s;}
+        .contact { font-size: 1em; color: #555; transition: font-size 0.3s;}
+        .details { font-size: 0.95em; line-height: 1.5; padding: 1em; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
 
         /* --- EXPERIENCES --- */
-        .experiences-container { display: flex; flex-direction: column; gap: 6px; }
-        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 4px;}
-        .exp-header h3 { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #333; }
-        .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 18px; height: 18px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
-        .exp-list { display: flex; flex-direction: column; gap: 6px; transition: gap 0.3s;}
-        .exp-item { display: flex; gap: 6px; font-size: 0.7rem; position: relative; transition: font-size 0.3s;}
-        .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; }
-        .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
+        .experiences-container { display: flex; flex-direction: column; gap: 0.8em; }
+        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 0.3em;}
+        .exp-header h3 { margin: 0; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1px; color: #333; }
+        .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 22px; height: 22px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
+        .exp-list { display: flex; flex-direction: column; gap: 0.8em; transition: gap 0.3s;}
+        .exp-item { display: flex; gap: 1em; font-size: 0.95em; position: relative; transition: font-size 0.3s;}
+        .exp-year { font-weight: 800; width: 3em; flex-shrink: 0; padding-top: 2px; }
+        .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 0.3em; }
         
-        .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
+        .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.75em; padding: 0.3em 0.8em; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
         .exp-role-film { font-weight: 700; color: #111;}
         .exp-film { font-style: italic; color: #444; }
-        .exp-dir { font-size: 0.65rem; color: #666; }
-        .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center;}
+        .exp-dir { font-size: 0.85em; color: #666; }
+        .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center;}
         .exp-item:hover .remove-exp-btn { display: flex; }
 
         /* --- ANNEXE --- */
         .annex-block { display: none; animation: fadeIn 0.3s ease; margin-bottom: 0;}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- MODE COMPACT --- */
-        .text-column.has-annex .text-content-wrapper { gap: 6px; }
-        .text-column.has-annex .nom-complet { font-size: 1.5rem; }
-        .text-column.has-annex .contact { font-size: 0.7rem; }
-        .text-column.has-annex .details { padding: 6px 8px; font-size: 0.65rem; margin-bottom: 0; }
-        .text-column.has-annex .exp-list { gap: 4px; }
-        .text-column.has-annex .exp-item { font-size: 0.6rem; }
-        .text-column.has-annex .exp-cat { font-size: 0.5rem; padding: 1px 4px; }
-        .text-column.has-annex .exp-header h3 { font-size: 0.7rem; }
-        .text-column.has-annex .annex-block .details { font-size: 0.6rem; line-height: 1.3; }
+        /* --- MODE COMPACT (S'adapte dynamiquement) --- */
+        .text-column.has-annex .text-content-wrapper { gap: 0.6em; }
+        .text-column.has-annex .nom-complet { font-size: 2.2em; }
+        .text-column.has-annex .contact { font-size: 0.85em; }
+        .text-column.has-annex .details { padding: 0.8em; font-size: 0.8em; margin-bottom: 0; }
+        .text-column.has-annex .exp-list { gap: 0.5em; }
+        .text-column.has-annex .exp-item { font-size: 0.85em; }
+        .text-column.has-annex .exp-cat { font-size: 0.7em; padding: 0.2em 0.6em; }
+        .text-column.has-annex .exp-header h3 { font-size: 0.95em; }
+        .text-column.has-annex .annex-block .details { font-size: 0.8em; line-height: 1.4; }
 
         /* --- GRILLE MODULAIRE --- */
         .photo-grid {
@@ -134,7 +156,7 @@
             border: 2px dashed #bbb; transition: all 0.2s; grid-column-end: span 4; grid-row-end: span 6;
         }
         .img-container.has-image { border: none; background: transparent; box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
-        .placeholder-text { color: #888; font-weight: bold; pointer-events: none; font-size: 0.9rem;}
+        .placeholder-text { color: #888; font-weight: bold; pointer-events: none; font-size: 1.2em;}
         .img-container.has-image .placeholder-text { display: none; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
 
@@ -143,13 +165,13 @@
         .img-container:hover .block-controls { opacity: 1; }
         .img-container.is-dragging { opacity: 0.4; border-style: solid; }
         
-        .mover { position: absolute; top: 5px; left: 5px; width: 26px; height: 26px; background: rgba(0,0,0,0.8); color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: grab; pointer-events: auto; font-size: 14px;}
+        .mover { position: absolute; top: 5px; left: 5px; width: 30px; height: 30px; background: rgba(0,0,0,0.8); color: white; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: grab; pointer-events: auto; font-size: 16px;}
         .mover:active { cursor: grabbing; }
 
-        .resizer { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; background: var(--accent-color); cursor: nwse-resize; pointer-events: auto; border-top-left-radius: 10px; border-bottom-right-radius: var(--radius); z-index: 11;}
+        .resizer { position: absolute; bottom: -2px; right: -2px; width: 28px; height: 28px; background: var(--accent-color); cursor: nwse-resize; pointer-events: auto; border-top-left-radius: 12px; border-bottom-right-radius: var(--radius); z-index: 11;}
 
         .actions-panel { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; pointer-events: auto; }
-        .action-btn { background: rgba(0,0,0,0.8); color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: background 0.2s;}
+        .action-btn { background: rgba(0,0,0,0.8); color: white; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background 0.2s;}
         .action-btn:hover { background: #000; }
         .action-btn.delete-btn:hover { background: #cc2936; }
         
@@ -172,46 +194,30 @@
 
         #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ff4444; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.4);}
         
-        /* --- RESPONSIVE MOBILE FIXÉ --- */
+        /* --- RESPONSIVE MOBILE : Scroll Horizontal Naturel --- */
         .mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
         
         @media (max-width: 768px) {
-            body { display: block; overflow: auto; }
+            body { flex-direction: column; overflow: auto; height: auto;}
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
             
-            /* --- ESPACE DE TRAVAIL --- */
-.workspace { 
-    flex-grow: 1; 
-    height: 100vh;
-    overflow: hidden; /* Empêche le scroll de la page entière */
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    padding: 20px; /* Petite marge de sécurité autour */
-    background: #0f0f0f;
-}
-
-/* --- PAGE DYNAMIQUE (LE FIX) --- */
-.page-a4 { 
-    /* Calcule la taille pour être toujours au max de l'écran en gardant le ratio A4 */
-    /* On retire 340px pour laisser de la place à la sidebar sur PC */
-    height: 95vh; 
-    aspect-ratio: 210 / 297; /* Ratio A4 Portrait pour cv-auto */
-    
-    /* Pour cv-photo.html, inverse le ratio : aspect-ratio: 297 / 210; */
-
-    background-color: var(--bg-page); 
-    box-sizing: border-box; 
-    padding: 30px; 
-    display: flex; 
-    flex-direction: column;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.8);
-    position: relative;
-    overflow-y: auto; /* Permet de scroller à l'intérieur du CV si tu mets trop de texte */
-}
-
-/* On ajuste la taille de la police pour qu'elle suive la taille de la page */
-.page-a4 { font-size: 0.9vw; }
+            .workspace { 
+                padding: 10px; 
+                display: block; 
+                height: auto;
+                overflow-x: auto; 
+                -webkit-overflow-scrolling: touch; 
+            }
+            
+            .page-a4 { 
+                /* On fige une taille en pixels pour le mobile pour permettre le défilement tactile */
+                height: 700px; 
+                width: 990px; 
+                aspect-ratio: auto;
+                font-size: 12px; 
+                flex-shrink: 0;
+                margin-bottom: 20px;
+            }
             
             .photo-controls { display: none !important; }
             .mobile-warning { display: block; }
@@ -227,7 +233,7 @@
     <div class="sidebar">
         <a href="admin.html" class="btn-action" style="background: #333; color: white; text-decoration: none; margin-bottom: 10px; border: none;">⬅ Retour au Panel Admin</a>
 
-        <button class="btn-action" onclick="window.addBlockSafe()">
+        <button class="btn-add-block" onclick="window.addBlockSafe()">
             + Ajouter Cadre Photo <span>⊞</span>
         </button>
 
@@ -544,7 +550,7 @@
             });
         }
 
-        // --- COMPRESSION INTERNE (Évite les erreurs de sécurité de capture d'écran) ---
+        // --- COMPRESSION INTERNE LOCALE ---
         function compresserImage(file, maxWidth = 1000, quality = 0.75) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader(); reader.readAsDataURL(file);
@@ -557,7 +563,7 @@
                         canvas.width = width; canvas.height = height;
                         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
                         
-                        // On retourne l'image en code Base64 ultra-compressé au lieu d'un fichier lourd !
+                        // L'image reste encodée localement pour que la capture d'écran fonctionne !
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
                     img.onerror = error => reject(error);
@@ -573,19 +579,17 @@
         async function processImageFile(file, block) {
             block.querySelector('.placeholder-text').textContent = "⏳ Traitement...";
             try {
-                // On génère le Base64 compressé (fini les soucis avec Firebase Storage pour les cases)
                 const base64Data = await compresserImage(file, 1000, 0.75);
 
                 let img = block.querySelector('img');
                 if (!img) { img = document.createElement('img'); block.appendChild(img); }
                 
-                img.src = base64Data; // L'image est stockée localement, dom-to-image ne plantera plus !
+                img.src = base64Data; 
                 img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
                 block.classList.add('has-image'); 
                 updateImageTransform(img);
             } catch(e) { 
                 alert("Erreur lors du chargement de l'image."); 
-                console.error(e); 
             } finally { 
                 block.querySelector('.placeholder-text').textContent = "+ Photo"; 
             }
@@ -629,11 +633,11 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
-        // --- SAUVEGARDE SÉCURISÉE AVEC NETTOYAGE FORCE ---
+        // --- SAUVEGARDE EN 3 TEMPS (EVITE L'ERREUR DE 1Mo) ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ Nettoyage du projet...";
+            btn.innerHTML = "⏳ Création du Press Kit HD...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
 
@@ -641,36 +645,38 @@
                 const cvPage = document.getElementById('cvPage');
                 const imagesBlocks = document.querySelectorAll('.img-container img');
                 
-                // ÉTAPE 1 : On remplace TOUT le Base64 par des liens Storage
-                for (let img of imagesBlocks) {
-                    if (img.src.startsWith('data:image')) {
-                        btn.innerHTML = "⏳ Envoi d'une photo lourde...";
-                        const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 5)}.jpg`);
-                        await uploadString(sRef, img.src, 'data_url');
-                        const downloadUrl = await getDownloadURL(sRef);
-                        img.src = downloadUrl; // REMPLACEMENT CRUCIAL
-                    }
-                }
-
-                // ÉTAPE 2 : On attend un court instant que le DOM soit à jour
-                await new Promise(resolve => setTimeout(resolve, 500));
-                btn.innerHTML = "⏳ Création du Press Kit HD...";
-
-                // ÉTAPE 3 : Capture HD pour le site public
-                // Note : On force une largeur fixe pour éviter les erreurs de calcul
+                // ÉTAPE 1 : Capture HD (Pendant que les images sont locales et sans bug de sécurité !)
+                // On force la taille de capture pour éviter qu'elle soit floue sur un petit écran
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
                     width: 2480, 
                     height: 1748, 
-                    style: { transform: 'scale(1)', width: '2480px', height: '1748px', display: 'flex' }
+                    style: { 
+                        transform: 'scale(1)', 
+                        width: '2480px', 
+                        height: '1748px', 
+                        display: 'flex',
+                        fontSize: '24.5px' // Force l'échelle des textes proportionnellement !
+                    }
                 });
                 
+                btn.innerHTML = "⏳ Envoi de l'image au site public...";
                 const publicSRef = ref(storage, `presskit/zcard_public.png`);
                 await uploadString(publicSRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(publicSRef);
 
-                // ÉTAPE 4 : Enregistrement final (Maintenant le HTML est ultra léger)
+                // ÉTAPE 2 : On transforme les images locales lourdes en Liens Web Légers
+                btn.innerHTML = "⏳ Allègement de la sauvegarde...";
+                for (let img of imagesBlocks) {
+                    if (img.src.startsWith('data:image')) {
+                        const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 5)}.jpg`);
+                        await uploadString(sRef, img.src, 'data_url');
+                        img.src = await getDownloadURL(sRef); // Remplacement dans le HTML
+                    }
+                }
+
+                // ÉTAPE 3 : On enregistre le projet (Le code HTML pèse maintenant moins de 10 Ko)
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
@@ -685,14 +691,15 @@
                 alert("✅ Z-Card publiée avec succès !");
                 
             } catch(e) { 
-                console.error("Détail de l'erreur :", e);
-                alert("Erreur critique. Essayez de supprimer une photo et de la remettre avant de sauvegarder."); 
+                console.error("Erreur détaillée :", e);
+                alert("Erreur critique. " + e.message); 
             } finally { 
                 document.body.classList.remove('is-exporting'); 
                 btn.innerHTML = originalText; 
                 btn.disabled = false; 
             }
         });
+
         // --- IMPORT MANUEL ---
         document.getElementById('importProject').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -724,7 +731,7 @@
             reader.readAsText(file);
         });
 
-        // --- EXPORT IMAGE MANUEL ---
+        // --- EXPORT IMAGE MANUEL (TELECHARGEMENT) ---
         window.exportImage = function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
@@ -734,9 +741,10 @@
 
             setTimeout(() => {
                 domtoimage.toPng(cvPage, { 
-                    quality: 1, bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
-                    width: cvPage.clientWidth * 2, height: cvPage.clientHeight * 2,
-                    style: { transform: 'scale(2)', transformOrigin: 'top left' }
+                    quality: 1, 
+                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
+                    width: 2480, height: 1748,
+                    style: { transform: 'scale(1)', width: '2480px', height: '1748px', display: 'flex', fontSize: '24.5px' }
                 }).then(function (dataUrl) {
                     const link = document.createElement('a'); link.download = 'Z-Card_Portfolio.png'; link.href = dataUrl;
                     document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -750,10 +758,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
