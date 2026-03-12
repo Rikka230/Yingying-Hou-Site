@@ -194,17 +194,28 @@
         </div>
       </div>
       <div id="tab-presskit" class="tab-content">
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div class="admin-card" style="text-align: center;">
-      <h3>CV Bento</h3>
-      <p style="color: #888; font-size: 0.9rem;">Gérez le CV textuel (idéal pour les agents et directeurs de casting).</p>
-      <a href="cv-auto.html" class="btn" style="text-decoration: none; display: inline-block; margin-top: 10px;">Ouvrir l'Éditeur CV</a>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+    
+    <div class="admin-card" style="text-align: center; display: flex; flex-direction: column; justify-content: space-between; padding: 30px;">
+      <div>
+        <h3 style="margin-top: 0; font-size: 1.2rem;">📄 CV Bento (Détaillé)</h3>
+        <p style="color: #888; font-size: 0.9rem; line-height: 1.5; margin-bottom: 25px;">
+          Gérez votre CV textuel complet. Format optimisé pour les directeurs de casting et les algorithmes de recherche.
+        </p>
+      </div>
+      <a href="cv-auto.html" class="btn" style="text-decoration: none; width: 100%; box-sizing: border-box;">Ouvrir l'Éditeur CV</a>
     </div>
-    <div class="admin-card" style="text-align: center;">
-      <h3>Z-Card / Photo</h3>
-      <p style="color: #888; font-size: 0.9rem;">Gérez la carte de visite visuelle et les mensurations.</p>
-      <a href="cv-photo.html" class="btn" style="text-decoration: none; display: inline-block; margin-top: 10px;">Ouvrir l'Éditeur Z-Card</a>
+
+    <div class="admin-card" style="text-align: center; display: flex; flex-direction: column; justify-content: space-between; padding: 30px;">
+      <div>
+        <h3 style="margin-top: 0; font-size: 1.2rem;">📸 Z-Card (Photos)</h3>
+        <p style="color: #888; font-size: 0.9rem; line-height: 1.5; margin-bottom: 25px;">
+          Gérez votre carte de visite visuelle. Un format très visuel mettant en avant vos mensurations et vos portraits.
+        </p>
+      </div>
+      <a href="cv-photo.html" class="btn outline" style="text-decoration: none; width: 100%; box-sizing: border-box;">Ouvrir l'Éditeur Z-Card</a>
     </div>
+
   </div>
 </div>
     </section>
@@ -562,6 +573,7 @@
   </script>
 </body>
 </html>
+
 
 
 
