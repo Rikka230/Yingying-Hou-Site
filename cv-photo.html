@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Card DA - Sécurités Corrigées & Export Image</title>
+    <title>Z-Card DA - Connecté Firebase</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
@@ -83,7 +83,6 @@
         /* --- COLONNE TEXTE (Tailles Réduites) --- */
         .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
         
-        /* FIX PROTECTION : flex-shrink: 0 empêche le texte de s'écraser, garantissant le déclenchement de l'alerte */
         .text-content-wrapper { padding: 5mm; display: flex; flex-direction: column; gap: 10px; transition: gap 0.3s; flex-shrink: 0; }
         
         [contenteditable] { outline: none; border-radius: 4px; transition: background 0.2s; }
@@ -94,7 +93,7 @@
         .contact { font-size: 0.75rem; color: #555; transition: font-size 0.3s;}
         .details { font-size: 0.7rem; line-height: 1.4; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
 
-        /* --- EXPERIENCES (Tailles Réduites) --- */
+        /* --- EXPERIENCES --- */
         .experiences-container { display: flex; flex-direction: column; gap: 6px; }
         .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 4px;}
         .exp-header h3 { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #333; }
@@ -104,7 +103,6 @@
         .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; }
         .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
         
-        /* FIX LISIBILITÉ : Utilisation de color-mix à 30% d'opacité pour un effet "Pastel" */
         .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
         
         .exp-role-film { font-weight: 700; color: #111;}
@@ -117,7 +115,7 @@
         .annex-block { display: none; animation: fadeIn 0.3s ease; margin-bottom: 0;}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- MODE COMPACT (Tailles Ultra-Réduites pour Annexe) --- */
+        /* --- MODE COMPACT --- */
         .text-column.has-annex .text-content-wrapper { gap: 6px; }
         .text-column.has-annex .nom-complet { font-size: 1.5rem; }
         .text-column.has-annex .contact { font-size: 0.7rem; }
@@ -131,9 +129,7 @@
         /* --- GRILLE MODULAIRE --- */
         .photo-grid {
             width: 62%; height: 100%; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr);
-            grid-auto-flow: dense; gap: var(--gutter); overflow: hidden; position: relative;
-            /* FIX PROTECTION : Force les lignes supplémentaires à prendre de la place pour déclencher l'alerte */
-            grid-auto-rows: 10px; 
+            grid-auto-flow: dense; gap: var(--gutter); overflow: hidden; position: relative; grid-auto-rows: 10px; 
         }
 
         .img-container { 
@@ -178,20 +174,27 @@
         .popup-menu input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-color);}
 
         #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ff4444; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.4);}
+        
+        .mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
+            .workspace { padding: 10px; display: block; overflow: visible;}
+            .page-a4 { transform: scale(0.9); transform-origin: top left; margin-bottom: 50px; }
+            .mobile-warning { display: block; }
+        }
     </style>
 </head>
 <body>
     <div class="mobile-warning">📱 Mode Mobile : Modification du texte uniquement. Passez sur ordinateur pour la photo.</div>
-<div class="top-bar-admin">
-    <a href="admin.html">⬅ Retour Admin</a>
-    <span style="color: #888; font-size: 12px;">Éditeur de CV Connecté</span>
-</div>
 
     <div id="alert-box">⚠️ Action annulée : Débordement de la page A4 ou taille limite atteinte !</div>
     <input type="file" id="globalFileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
 
     <div class="sidebar">
-        <button class="btn-add-block" onclick="addBlockSafe()">
+        <a href="admin.html" class="btn-action" style="background: #333; color: white; text-decoration: none; border: none;">⬅ Retour au Panel Admin</a>
+
+        <button class="btn-action" onclick="window.addBlockSafe()">
             + Ajouter Cadre Photo <span>⊞</span>
         </button>
 
@@ -243,13 +246,12 @@
         <hr>
 
         <div class="bottom-actions">
-            <div class="control-header"><label>Projets</label></div>
-            <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Charger Projet</button>
+            <div class="control-header"><label>Mise en ligne & Exports</label></div>
+            <button class="btn-action" id="saveProject" style="background: #2563eb; border-color: #1d4ed8; color: white;">💾 Sauvegarder & Publier sur le site</button>
+            <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Importer une sauvegarde manuelle (.json)</button>
             <input type="file" id="importProject" style="display:none" accept=".json">
-            <button class="btn-action" id="saveProject">💾 Sauvegarder</button>
-            
-            <button class="btn-action" id="btnExportImg" onclick="exportImage()" style="background: #1a8a34; border-color: #146c29; color: white;">
-                🖼️ Exporter Image (PNG)
+            <button class="btn-action" id="btnExportImg" onclick="window.exportImage()" style="margin-top: 5px;">
+                🖼️ Téléchargement libre (Image)
             </button>
         </div>
     </div>
@@ -275,7 +277,7 @@
                     <div class="experiences-container">
                         <div class="exp-header">
                             <h3>Parcours / Rôles</h3>
-                            <button class="no-print add-exp-btn" onclick="addExperience()">+</button>
+                            <button class="no-print add-exp-btn" onclick="window.addExperience()">+</button>
                         </div>
                         <div class="exp-list" id="expList">
                             <div class="exp-item">
@@ -291,7 +293,7 @@
                                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle Principal</span> - <span class="exp-film" contenteditable="true">Titre du Film</span></div>
                                     <div class="exp-dir" contenteditable="true">Réal : J. Dupont</div>
                                 </div>
-                                <button class="no-print remove-exp-btn" onclick="removeExperience(this)">X</button>
+                                <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
                             </div>
                         </div>
                     </div>
@@ -320,11 +322,31 @@
         <div><label>Échelle (Zoom)</label><input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1"></div>
         <div><label>Pan X (Gauche/Droite)</label><input type="range" id="panXSlider" min="0" max="100" step="1" value="50"></div>
         <div><label>Pan Y (Haut/Bas)</label><input type="range" id="panYSlider" min="0" max="100" step="1" value="50"></div>
-        <button onclick="removeImageFromBlock()" style="background: #222; border:1px solid #444; padding: 6px; font-size: 10px; border-radius:4px; color:white; cursor:pointer; margin-top:5px;">Vider la case</button>
+        <button onclick="window.removeImageFromBlock()" style="background: #222; border:1px solid #444; padding: 6px; font-size: 10px; border-radius:4px; color:white; cursor:pointer; margin-top:5px;">Vider la case</button>
     </div>
 
-    <script>
-        // VARIABLES GLOBALES (Passées en 'let' pour pouvoir les réassigner au chargement)
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+            authDomain: "kukyying-f1c95.firebaseapp.com",
+            projectId: "kukyying-f1c95",
+            storageBucket: "kukyying-f1c95.firebasestorage.app",
+            messagingSenderId: "681899915263",
+            appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // Variables DOM Globales
         let photoGrid = document.getElementById('photoGrid');
         let textCol = document.getElementById('textColumn');
         let textWrap = document.getElementById('textContentWrapper');
@@ -336,8 +358,43 @@
         let targetUploadBlock = null;
         let draggedBlock = null; 
 
-        // Init avec blocs par défaut
-        window.onload = () => { addBlock(6, 12); addBlock(6, 6); addBlock(6, 6); };
+        // --- VERIFICATION ET CHARGEMENT FIREBASE ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'admin.html'; return; }
+            
+            try {
+                const docSnap = await getDoc(doc(db, "site_data", "zcard_project"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('cvPage').innerHTML = data.html;
+                    
+                    // Restauration des variables après injection HTML
+                    photoGrid = document.getElementById('photoGrid');
+                    textCol = document.getElementById('textColumn');
+                    textWrap = document.getElementById('textContentWrapper');
+                    
+                    bindGridEvents();
+                    bindTextEvents();
+
+                    if(data.pattern) { document.getElementById('cvPage').className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
+                    if(data.accent) { document.documentElement.style.setProperty('--accent-color', data.accent); document.getElementById('accentColor').value = data.accent; document.getElementById('accentBtnDisplay').style.background = data.accent; }
+                    if(data.bg) { document.documentElement.style.setProperty('--bg-page', data.bg); document.getElementById('bgColor').value = data.bg; document.getElementById('bgBtnDisplay').style.background = data.bg; }
+                    if(data.gutter) { document.documentElement.style.setProperty('--gutter', data.gutter + 'px'); document.getElementById('gutterSlider').value = data.gutter; document.getElementById('gutterValue').textContent = data.gutter + 'px';}
+                    if(data.annexVisible !== undefined) { 
+                        document.getElementById('toggleAnnex').checked = data.annexVisible;
+                        document.getElementById('annexBlock').style.display = data.annexVisible ? 'block' : 'none';
+                        if(data.annexVisible) textCol.classList.add('has-annex');
+                        else textCol.classList.remove('has-annex');
+                    }
+                    
+                    document.querySelectorAll('.img-container').forEach(attachBlockEvents);
+                    checkTextOverflow();
+                } else {
+                    // Si aucune sauvegarde n'existe, on initialise avec quelques blocs
+                    window.addBlock(6, 12); window.addBlock(6, 6); window.addBlock(6, 6);
+                }
+            } catch (error) { console.error("Erreur de chargement Firebase:", error); }
+        });
 
         function showAlert() {
             alertBox.style.display = 'block';
@@ -345,96 +402,55 @@
         }
 
         // --- SÉCURITÉS ---
-        function checkGridOverflow() {
-            if (photoGrid.scrollHeight > photoGrid.clientHeight + 5) return true;
-            return false;
-        }
-
+        function checkGridOverflow() { return photoGrid.scrollHeight > photoGrid.clientHeight + 5; }
         function checkTextOverflow() {
             if (textWrap.scrollHeight > textCol.clientHeight) { textCol.style.boxShadow = "inset 0 0 0 4px #ff4444"; showAlert(); return true;}
             else { textCol.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)"; return false;}
         }
 
-        // --- RE-BINDING DES ÉVÉNEMENTS (Solution au bug d'import) ---
-        function bindTextEvents() {
-            textWrap.addEventListener('input', checkTextOverflow);
-        }
-        bindTextEvents(); // Au lancement
-
+        function bindTextEvents() { textWrap.addEventListener('input', checkTextOverflow); }
         function bindGridEvents() {
-            photoGrid.addEventListener('dragover', e => { 
-                if(draggedBlock) e.preventDefault(); 
-            });
-
+            photoGrid.addEventListener('dragover', e => { if(draggedBlock) e.preventDefault(); });
             photoGrid.addEventListener('drop', e => {
                 if(!draggedBlock) return;
                 e.preventDefault();
-
                 const blocks = Array.from(photoGrid.querySelectorAll('.img-container:not(.is-dragging)'));
-                let closestBlock = null;
-                let minDistance = Infinity;
-
+                let closestBlock = null; let minDistance = Infinity;
                 blocks.forEach(block => {
                     const rect = block.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-                    const dist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
-                    
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        closestBlock = block;
-                    }
+                    const dist = Math.hypot(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2));
+                    if (dist < minDistance) { minDistance = dist; closestBlock = block; }
                 });
-
                 if (closestBlock) {
-                    const rect = closestBlock.getBoundingClientRect();
-                    if (e.clientY < rect.top + rect.height / 2) {
-                        closestBlock.before(draggedBlock);
-                    } else {
-                        closestBlock.after(draggedBlock);
-                    }
-                } else {
-                    photoGrid.appendChild(draggedBlock);
-                }
+                    if (e.clientY < closestBlock.getBoundingClientRect().top + closestBlock.getBoundingClientRect().height / 2) closestBlock.before(draggedBlock);
+                    else closestBlock.after(draggedBlock);
+                } else { photoGrid.appendChild(draggedBlock); }
             });
         }
-        bindGridEvents(); // Au lancement
-
+        bindTextEvents(); bindGridEvents();
 
         // --- GESTION DU BLOC ANNEXE ---
         document.getElementById('toggleAnnex').addEventListener('change', (e) => {
             const annex = document.getElementById('annexBlock');
-            if (e.target.checked) {
-                annex.style.display = 'block';
-                textCol.classList.add('has-annex');
-            } else {
-                annex.style.display = 'none';
-                textCol.classList.remove('has-annex');
-            }
+            if (e.target.checked) { annex.style.display = 'block'; textCol.classList.add('has-annex'); } 
+            else { annex.style.display = 'none'; textCol.classList.remove('has-annex'); }
             setTimeout(checkTextOverflow, 50); 
         });
 
-
         // --- UI GOUTTIÈRE & COULEURS ---
-        document.getElementById('gutterSlider').addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--gutter', e.target.value + 'px');
-            document.getElementById('gutterValue').textContent = e.target.value + 'px';
-        });
+        document.getElementById('gutterSlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--gutter', e.target.value + 'px'); document.getElementById('gutterValue').textContent = e.target.value + 'px'; });
         document.getElementById('accentColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--accent-color', e.target.value); document.getElementById('accentBtnDisplay').style.background = e.target.value; });
         document.getElementById('bgColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--bg-page', e.target.value); document.getElementById('bgBtnDisplay').style.background = e.target.value; });
+        document.getElementById('bgPatternSelect').addEventListener('change', (e) => { document.getElementById('cvPage').className = 'page-a4 ' + e.target.value; });
 
-        // --- CRÉATION DE BLOC ---
-        function addBlockSafe() {
-            const addedDiv = addBlock(4, 6);
+        // --- GESTION DES BLOCS RENDUES GLOBALES ---
+        window.addBlockSafe = function() {
+            const addedDiv = window.addBlock(4, 6);
             if (checkGridOverflow()) { addedDiv.remove(); showAlert(); }
         }
 
-        function addBlock(colSpan = 4, rowSpan = 6) {
-            const div = document.createElement('div');
-            div.className = 'img-container';
-            div.style.gridColumnEnd = `span ${colSpan}`;
-            div.style.gridRowEnd = `span ${rowSpan}`;
-            
+        window.addBlock = function(colSpan = 4, rowSpan = 6) {
+            const div = document.createElement('div'); div.className = 'img-container'; div.style.gridColumnEnd = `span ${colSpan}`; div.style.gridRowEnd = `span ${rowSpan}`;
             div.innerHTML = `
                 <div class="placeholder-text">+ Photo</div>
                 <div class="block-controls no-print">
@@ -447,34 +463,23 @@
                     <div class="resizer" title="Redimensionner"></div>
                 </div>
             `;
-            
             attachBlockEvents(div);
             photoGrid.appendChild(div);
             return div;
         }
 
-        // --- ÉVÉNEMENTS DU BLOC ---
         function attachBlockEvents(block) {
-            
             block.querySelector('.upload-btn').addEventListener('click', (e) => { e.stopPropagation(); targetUploadBlock = block; globalFileInput.click(); });
             block.querySelector('.delete-btn').addEventListener('click', (e) => { e.stopPropagation(); block.remove(); popup.style.display = 'none'; });
-
             block.querySelector('.edit-btn').addEventListener('click', (e) => {
                 e.stopPropagation(); activeBlock = block; popup.style.display = 'flex';
                 let leftPos = e.pageX + 15; if (leftPos + 220 > window.innerWidth) leftPos = e.pageX - 220;
                 popup.style.left = leftPos + 'px'; popup.style.top = e.pageY + 'px';
-                
                 const img = block.querySelector('img');
-                if (img) {
-                    document.getElementById('zoomSlider').value = img.dataset.scale || 1;
-                    document.getElementById('panXSlider').value = img.dataset.panX || 50;
-                    document.getElementById('panYSlider').value = img.dataset.panY || 50;
-                }
+                if (img) { document.getElementById('zoomSlider').value = img.dataset.scale || 1; document.getElementById('panXSlider').value = img.dataset.panX || 50; document.getElementById('panYSlider').value = img.dataset.panY || 50; }
             });
 
-            block.addEventListener('dragover', e => { 
-                if(!draggedBlock) { e.preventDefault(); block.style.borderColor = "var(--accent-color)"; }
-            });
+            block.addEventListener('dragover', e => { if(!draggedBlock) { e.preventDefault(); block.style.borderColor = "var(--accent-color)"; }});
             block.addEventListener('dragleave', () => block.style.borderColor = "");
             block.addEventListener('drop', e => {
                 if(!draggedBlock) {
@@ -486,105 +491,88 @@
 
             // Déplacement
             const mover = block.querySelector('.mover');
-            mover.addEventListener('dragstart', (e) => {
-                document.body.classList.add('is-dragging'); 
-                e.dataTransfer.effectAllowed = 'move';
-                draggedBlock = block; 
-                setTimeout(() => block.classList.add('is-dragging'), 0);
-            });
-            mover.addEventListener('dragend', () => { 
-                document.body.classList.remove('is-dragging'); 
-                block.classList.remove('is-dragging'); 
-                draggedBlock = null; 
-            });
+            mover.addEventListener('dragstart', (e) => { document.body.classList.add('is-dragging'); e.dataTransfer.effectAllowed = 'move'; draggedBlock = block; setTimeout(() => block.classList.add('is-dragging'), 0); });
+            mover.addEventListener('dragend', () => { document.body.classList.remove('is-dragging'); block.classList.remove('is-dragging'); draggedBlock = null; });
 
-            // Redimensionnement Sécurisé
+            // Redimensionnement
             const resizer = block.querySelector('.resizer');
             resizer.addEventListener('mousedown', (e) => {
                 e.preventDefault(); document.body.classList.add('is-resizing');
-                const startX = e.clientX; const startY = e.clientY;
-                const startColSpan = parseInt(block.style.gridColumnEnd.replace('span ', '')) || 4;
-                const startRowSpan = parseInt(block.style.gridRowEnd.replace('span ', '')) || 6;
-                const style = window.getComputedStyle(photoGrid);
-                const gap = parseFloat(style.gap) || 0;
-                const colWidth = (photoGrid.clientWidth - (gap * 11)) / 12;
-                const rowHeight = (photoGrid.clientHeight - (gap * 11)) / 12;
+                const startX = e.clientX, startY = e.clientY;
+                const startColSpan = parseInt(block.style.gridColumnEnd.replace('span ', '')) || 4, startRowSpan = parseInt(block.style.gridRowEnd.replace('span ', '')) || 6;
+                const gap = parseFloat(window.getComputedStyle(photoGrid).gap) || 0;
+                const colWidth = (photoGrid.clientWidth - (gap * 11)) / 12, rowHeight = (photoGrid.clientHeight - (gap * 11)) / 12;
 
-                let lastValidCols = startColSpan;
-                let lastValidRows = startRowSpan;
-
+                let lastValidCols = startColSpan, lastValidRows = startRowSpan;
                 function onMouseMove(e) {
                     let newCols = Math.max(4, Math.min(startColSpan + Math.round((e.clientX - startX) / (colWidth + gap)), 12));
                     let newRows = Math.max(4, Math.min(startRowSpan + Math.round((e.clientY - startY) / (rowHeight + gap)), 12));
-                    
-                    block.style.gridColumnEnd = `span ${newCols}`;
-                    block.style.gridRowEnd = `span ${newRows}`;
-
-                    if (checkGridOverflow()) {
-                        block.style.gridColumnEnd = `span ${lastValidCols}`;
-                        block.style.gridRowEnd = `span ${lastValidRows}`;
-                        showAlert();
-                    } else {
-                        lastValidCols = newCols;
-                        lastValidRows = newRows;
-                    }
+                    block.style.gridColumnEnd = `span ${newCols}`; block.style.gridRowEnd = `span ${newRows}`;
+                    if (checkGridOverflow()) { block.style.gridColumnEnd = `span ${lastValidCols}`; block.style.gridRowEnd = `span ${lastValidRows}`; showAlert(); } 
+                    else { lastValidCols = newCols; lastValidRows = newRows; }
                 }
                 function onMouseUp() { document.body.classList.remove('is-resizing'); document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
                 document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
             });
         }
 
-        // --- TRAITEMENT FICHIER IMAGE ---
+        // --- COMPRESSION ET UPLOAD D'IMAGES SUR FIREBASE STORAGE ---
+        function compresserImage(file, maxWidth = 1200, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image(); img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                        canvas.width = width; canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        canvas.toBlob((blob) => { resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' })); }, 'image/jpeg', quality);
+                    };
+                    img.onerror = error => reject(error);
+                };
+            });
+        }
+
         globalFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file && targetUploadBlock) {
-                processImageFile(file, targetUploadBlock);
-                globalFileInput.value = ''; targetUploadBlock = null;
-            }
+            if (file && targetUploadBlock) { processImageFile(file, targetUploadBlock); globalFileInput.value = ''; targetUploadBlock = null; }
         });
 
         async function processImageFile(file, block) {
-        // Affiche un indicateur de chargement
-        block.querySelector('.placeholder-text').textContent = "⏳ Upload...";
-        
-        try {
-            // Utilise la même fonction de compression que ton admin
-            const compressedFile = await compresserImage(file, 1200, 0.8);
-            const sRef = ref(storage, `presskit/zcard_${Date.now()}.jpg`);
-            await uploadBytes(sRef, compressedFile);
-            const url = await getDownloadURL(sRef);
+            block.querySelector('.placeholder-text').textContent = "⏳ Upload...";
+            try {
+                const compressedFile = await compresserImage(file, 1200, 0.8);
+                const sRef = ref(storage, `presskit/zcard_${Date.now()}.jpg`);
+                await uploadBytes(sRef, compressedFile);
+                const url = await getDownloadURL(sRef);
 
-            let img = block.querySelector('img');
-            if (!img) { img = document.createElement('img'); block.appendChild(img); }
-            img.src = url; // On utilise l'URL Firebase, pas la Base64 !
-            img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
-            block.classList.add('has-image'); 
-            updateImageTransform(img);
-        } catch(e) {
-            alert("Erreur lors du chargement de l'image.");
-        } finally {
-            block.querySelector('.placeholder-text').textContent = "+ Photo";
+                let img = block.querySelector('img');
+                if (!img) { img = document.createElement('img'); block.appendChild(img); }
+                img.src = url; img.dataset.scale = '1'; img.dataset.panX = '50'; img.dataset.panY = '50';
+                block.classList.add('has-image'); 
+                updateImageTransform(img);
+            } catch(e) { alert("Erreur lors du chargement de l'image."); console.error(e); } 
+            finally { block.querySelector('.placeholder-text').textContent = "+ Photo"; }
         }
-    }
 
-        // --- CADRAGE ---
         function updateImageTransform(img) { 
-            const scale = parseFloat(img.dataset.scale);
-            img.style.width = '100%'; 
-            img.style.height = '100%';
-            img.style.transform = `scale(${scale})`;
+            img.style.width = '100%'; img.style.height = '100%';
+            img.style.transform = `scale(${parseFloat(img.dataset.scale)})`;
             img.style.transformOrigin = `${img.dataset.panX}% ${img.dataset.panY}%`;
             img.style.objectPosition = `${img.dataset.panX}% ${img.dataset.panY}%`; 
         }
 
-        document.getElementById('zoomSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { let img = activeBlock.querySelector('img'); img.dataset.scale = e.target.value; updateImageTransform(img); }});
-        document.getElementById('panXSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { let img = activeBlock.querySelector('img'); img.dataset.panX = e.target.value; updateImageTransform(img); }});
-        document.getElementById('panYSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { let img = activeBlock.querySelector('img'); img.dataset.panY = e.target.value; updateImageTransform(img); }});
-        function removeImageFromBlock() { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').remove(); activeBlock.classList.remove('has-image'); popup.style.display = 'none'; } }
+        document.getElementById('zoomSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').dataset.scale = e.target.value; updateImageTransform(activeBlock.querySelector('img')); }});
+        document.getElementById('panXSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').dataset.panX = e.target.value; updateImageTransform(activeBlock.querySelector('img')); }});
+        document.getElementById('panYSlider').addEventListener('input', (e) => { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').dataset.panY = e.target.value; updateImageTransform(activeBlock.querySelector('img')); }});
+        
+        window.removeImageFromBlock = function() { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').remove(); activeBlock.classList.remove('has-image'); popup.style.display = 'none'; } }
         document.addEventListener('click', (e) => { if (!e.target.closest('.block-controls') && !e.target.closest('.popup-menu')) popup.style.display = 'none'; });
 
-        // --- EXPERIENCES & SAUVEGARDE ---
-        function addExperience() {
+        // --- EXPERIENCES ---
+        window.addExperience = function() {
             const div = document.createElement('div'); div.className = 'exp-item';
             div.innerHTML = `
                 <div class="exp-year" contenteditable="true">An</div>
@@ -599,118 +587,75 @@
                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle</span> - <span class="exp-film" contenteditable="true">Film</span></div>
                     <div class="exp-dir" contenteditable="true">Réal</div>
                 </div>
-                <button class="no-print remove-exp-btn" onclick="removeExperience(this)">X</button>
+                <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
             `;
             document.getElementById('expList').appendChild(div);
-            // Sécurité : Supprime l'ajout si ça dépasse
             if (checkTextOverflow()) div.remove();
         }
-
-        function removeExperience(btn) { btn.parentElement.remove(); checkTextOverflow(); }
+        window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
-        document.getElementById('bgPatternSelect').addEventListener('change', (e) => { document.getElementById('cvPage').className = 'page-a4 ' + e.target.value; });
 
-        document.getElementById('saveProject').addEventListener('click', () => {
-            const projectData = { 
-                html: document.getElementById('cvPage').innerHTML, pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
-                gutter: document.getElementById('gutterSlider').value, accent: document.documentElement.style.getPropertyValue('--accent-color'), bg: document.documentElement.style.getPropertyValue('--bg-page'),
-                annexVisible: document.getElementById('toggleAnnex').checked
-            };
-            const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData)); a.download = "zcard_pro.json"; a.click();
+        // --- SAUVEGARDE FIREBASE (Z-CARD) ---
+        document.getElementById('saveProject').addEventListener('click', async () => {
+            const btn = document.getElementById('saveProject');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "⏳ Génération & Mise en ligne...";
+            btn.disabled = true;
+            document.body.classList.add('is-exporting');
+
+            try {
+                const cvPage = document.getElementById('cvPage');
+                const dataUrl = await domtoimage.toPng(cvPage, { 
+                    quality: 1, 
+                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff', 
+                    width: cvPage.clientWidth * 2, 
+                    height: cvPage.clientHeight * 2, 
+                    style: { transform: 'scale(2)', transformOrigin: 'top left' }
+                });
+                
+                const sRef = ref(storage, `presskit/zcard_public.png`);
+                await uploadString(sRef, dataUrl, 'data_url');
+                const publicUrl = await getDownloadURL(sRef);
+
+                const projectData = {
+                    html: document.getElementById('cvPage').innerHTML,
+                    pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
+                    gutter: document.getElementById('gutterSlider').value,
+                    accent: document.documentElement.style.getPropertyValue('--accent-color'),
+                    bg: document.documentElement.style.getPropertyValue('--bg-page'),
+                    annexVisible: document.getElementById('toggleAnnex').checked,
+                    publicUrl: publicUrl
+                };
+                await setDoc(doc(db, "site_data", "zcard_project"), projectData);
+                
+                alert("✅ Z-Card générée et mise à jour sur le site public !");
+            } catch(e) { console.error(e); alert("Erreur lors de la sauvegarde."); } 
+            finally { document.body.classList.remove('is-exporting'); btn.innerHTML = originalText; btn.disabled = false; }
         });
 
-        // --- IMPORT DE FICHIER SÉCURISÉ ---
-        document.getElementById('importProject').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const data = JSON.parse(event.target.result);
-                document.getElementById('cvPage').innerHTML = data.html;
-                
-                // === RÉPARATION DES SÉCURITÉS ===
-                photoGrid = document.getElementById('photoGrid');
-                textCol = document.getElementById('textColumn');
-                textWrap = document.getElementById('textContentWrapper');
-                
-                bindGridEvents();
-                bindTextEvents();
-                // ================================
-
-                if(data.pattern) { document.getElementById('cvPage').className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
-                if(data.accent) { 
-                    document.documentElement.style.setProperty('--accent-color', data.accent); 
-                    document.getElementById('accentColor').value = data.accent; 
-                    document.getElementById('accentBtnDisplay').style.background = data.accent; 
-                }
-                if(data.bg) { 
-                    document.documentElement.style.setProperty('--bg-page', data.bg); 
-                    document.getElementById('bgColor').value = data.bg; 
-                    document.getElementById('bgBtnDisplay').style.background = data.bg; 
-                }
-                if(data.gutter) { document.documentElement.style.setProperty('--gutter', data.gutter + 'px'); document.getElementById('gutterSlider').value = data.gutter; document.getElementById('gutterValue').textContent = data.gutter + 'px';}
-                if(data.annexVisible !== undefined) { 
-                    document.getElementById('toggleAnnex').checked = data.annexVisible;
-                    document.getElementById('annexBlock').style.display = data.annexVisible ? 'block' : 'none';
-                    if(data.annexVisible) textCol.classList.add('has-annex');
-                    else textCol.classList.remove('has-annex');
-                }
-                
-                document.querySelectorAll('.img-container').forEach(attachBlockEvents);
-                checkTextOverflow();
-                
-                // Autorise le rechargement immédiat
-                e.target.value = ''; 
-            };
-            reader.readAsText(file);
-        });
-
-        // --- EXPORT IMAGE DOM-TO-IMAGE ---
-        function exportImage() {
+        // --- EXPORT IMAGE DOM-TO-IMAGE MANUEL ---
+        window.exportImage = function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
-            
-            btn.innerHTML = "⏳ Création HD en cours...";
-            btn.disabled = true;
-            
+            btn.innerHTML = "⏳ Création HD en cours..."; btn.disabled = true;
             document.body.classList.add('is-exporting');
             const cvPage = document.getElementById('cvPage');
 
             setTimeout(() => {
                 domtoimage.toPng(cvPage, { 
-                    quality: 1,
-                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
-                    width: cvPage.clientWidth * 2, 
-                    height: cvPage.clientHeight * 2,
-                    style: {
-                        transform: 'scale(2)',
-                        transformOrigin: 'top left'
-                    }
-                })
-                .then(function (dataUrl) {
-                    const link = document.createElement('a');
-                    link.download = 'Z-Card_Portfolio.png';
-                    link.href = dataUrl;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                    document.body.classList.remove('is-exporting');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                })
-                .catch(function (error) {
-                    console.error('Erreur export:', error);
-                    alert("Erreur lors de l'export. Essayez de recharger la page et de vous assurer que vos photos sont bien chargées.");
-                    document.body.classList.remove('is-exporting');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                    quality: 1, bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
+                    width: cvPage.clientWidth * 2, height: cvPage.clientHeight * 2,
+                    style: { transform: 'scale(2)', transformOrigin: 'top left' }
+                }).then(function (dataUrl) {
+                    const link = document.createElement('a'); link.download = 'Z-Card_Portfolio.png'; link.href = dataUrl;
+                    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                    document.body.classList.remove('is-exporting'); btn.innerHTML = originalText; btn.disabled = false;
+                }).catch(function (error) {
+                    console.error('Erreur export:', error); alert("Erreur lors de l'export.");
+                    document.body.classList.remove('is-exporting'); btn.innerHTML = originalText; btn.disabled = false;
                 });
             }, 300);
         }
     </script>
 </body>
-
 </html>
-
