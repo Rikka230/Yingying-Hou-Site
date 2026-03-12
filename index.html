@@ -57,7 +57,7 @@
           <a class="btn" href="filmographie.html">Voir la filmographie</a>
           <a class="btn" href="galerie.html">Galerie Photo</a>
           <a class="btn ghost" href="contact.html">Réserver / Booking</a>
-          <a class="btn outline" href="press/CV_Photo_Ying_2025.pdf" target="_blank" rel="noopener">Press kit (PDF)</a>
+          <button class="btn outline" id="btn-open-presskit">Télécharger Press kit</button>
         </div>
       </div>
     </section>
@@ -308,5 +308,16 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-bottom-mobile"><path d="m7 13 5 5 5-5"/></svg>
     </div>
   </div>
+  <dialog id="presskitModal" style="border: none; border-radius: 16px; padding: 30px; max-width: 400px; box-shadow: var(--shadow); background: var(--bg);">
+  <h3 style="margin-top: 0;">Télécharger le Press Kit</h3>
+  <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 20px;">Choisissez le format souhaité :</p>
+  
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <a href="#" id="link-dl-cv" class="btn" target="_blank" download="CV_Yingying_HOU.png" style="text-align: center;">📄 CV Détaillé</a>
+    <a href="#" id="link-dl-zcard" class="btn ghost" target="_blank" download="ZCard_Yingying_HOU.png" style="text-align: center;">📸 Z-Card / Mensurations</a>
+  </div>
+  
+  <button id="btn-close-presskit" class="btn outline" style="width: 100%; margin-top: 20px;">Fermer</button>
+</dialog>
 </body>
 </html>
