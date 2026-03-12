@@ -161,9 +161,25 @@
             .bento-card { box-shadow: none !important; border: 1px solid #e5e7eb; }
             .card-photo:not(.has-image) { display: none; }
         }
+        .top-bar-admin { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ui-border); }
+.top-bar-admin a { color: white; text-decoration: none; font-size: 13px; font-weight: bold; background: #333; padding: 6px 12px; border-radius: 6px; }
+.mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
+@media (max-width: 768px) {
+    body { flex-direction: column; overflow: auto; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
+    .workspace { padding: 10px; }
+    .page-a4 { transform: scale(0.9); transform-origin: top center; margin-bottom: 50px; }
+    .photo-controls { display: none !important; }
+    .mobile-warning { display: block; }
+}
     </style>
 </head>
 <body>
+    <div class="mobile-warning">📱 Mode Mobile : Modification du texte uniquement. Passez sur ordinateur pour la photo.</div>
+<div class="top-bar-admin">
+    <a href="admin.html">⬅ Retour Admin</a>
+    <span style="color: #888; font-size: 12px;">Éditeur de CV Connecté</span>
+</div>
 
     <div id="alert-box">⚠️ Action annulée : Le CV déborde de la page A4 !</div>
     <input type="file" id="photoInput" accept="image/*" style="display: none;">
@@ -610,4 +626,5 @@
         }
     </script>
 </body>
+
 </html>
