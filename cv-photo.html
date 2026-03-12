@@ -179,20 +179,35 @@
             body { display: block; overflow: auto; }
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
             
-            /* Espace de travail avec défilement tactile */
-            .workspace { 
-                padding: 15px; 
-                display: block; 
-                overflow-x: auto; 
-                -webkit-overflow-scrolling: touch; 
-            }
-            
-            /* Alignement en haut à gauche et légère réduction */
-            .page-a4 { 
-                transform: scale(0.85); 
-                transform-origin: top left; 
-                margin-bottom: 20px; 
-            }
+            /* --- ESPACE DE TRAVAIL : Centrage total --- */
+.workspace { 
+    flex-grow: 1; 
+    overflow: auto; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; /* Centre verticalement si l'écran est très haut */
+    padding: 20px; 
+    background: #0f0f0f;
+}
+
+/* --- PAGE DYNAMIQUE : Utilise 95% de la hauteur ou largeur dispo --- */
+.page-a4 { 
+    /* Calcule la taille optimale pour remplir l'écran sans déformer le A4 */
+    width: min(95vw - 340px, (95vh * 210) / 297); 
+    height: min(95vh, ((95vw - 340px) * 297) / 210);
+    
+    background-color: var(--bg-page); 
+    position: relative; 
+    display: flex; 
+    flex-direction: column;
+    padding: 4%; /* Padding en % pour qu'il s'adapte à la taille */
+    box-sizing: border-box; 
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    transition: all 0.3s ease;
+}
+
+/* On ajuste les textes pour qu'ils suivent la taille de la page */
+.page-a4 { font-size: 1.1cqw; } /* Utilise les Container Queries units */
             
             .photo-controls { display: none !important; }
             .mobile-warning { display: block; }
@@ -727,5 +742,6 @@
     </script>
 </body>
 </html>
+
 
 
