@@ -629,11 +629,11 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
-        // --- SAUVEGARDE INTELLIGENTE (IMAGE PAR IMAGE POUR ÉVITER LA LIMITE 1MO) ---
+        // --- SAUVEGARDE SÉCURISÉE AVEC NETTOYAGE FORCE ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ Analyse des images...";
+            btn.innerHTML = "⏳ Nettoyage du projet...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
 
@@ -641,39 +641,36 @@
                 const cvPage = document.getElementById('cvPage');
                 const imagesBlocks = document.querySelectorAll('.img-container img');
                 
-                // 1. On uploade chaque nouvelle image en Base64 vers Storage pour alléger le JSON
+                // ÉTAPE 1 : On remplace TOUT le Base64 par des liens Storage
                 for (let img of imagesBlocks) {
                     if (img.src.startsWith('data:image')) {
-                        const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`);
+                        btn.innerHTML = "⏳ Envoi d'une photo lourde...";
+                        const sRef = ref(storage, `presskit/assets/${Date.now()}_${Math.random().toString(36).substr(2, 5)}.jpg`);
                         await uploadString(sRef, img.src, 'data_url');
-                        img.src = await getDownloadURL(sRef); // On remplace le texte lourd par une URL légère
+                        const downloadUrl = await getDownloadURL(sRef);
+                        img.src = downloadUrl; // REMPLACEMENT CRUCIAL
                     }
                 }
 
-                btn.innerHTML = "⏳ Génération du Press Kit...";
+                // ÉTAPE 2 : On attend un court instant que le DOM soit à jour
+                await new Promise(resolve => setTimeout(resolve, 500));
+                btn.innerHTML = "⏳ Création du Press Kit HD...";
 
-                // 2. Capture HD du rendu final
+                // ÉTAPE 3 : Capture HD pour le site public
+                // Note : On force une largeur fixe pour éviter les erreurs de calcul
                 const dataUrl = await domtoimage.toPng(cvPage, { 
-    quality: 1, 
-    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6',
-    // On force la haute définition pour le fichier final
-    width: 2480, 
-    height: 3508, 
-    style: {
-        transform: 'scale(1)',
-        width: '2480px',
-        height: '3508px',
-        display: 'flex',
-        padding: '80px' // Ajoute une belle marge sur le PNG final
-    }
-});
+                    quality: 1, 
+                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff',
+                    width: 2480, 
+                    height: 1748, 
+                    style: { transform: 'scale(1)', width: '2480px', height: '1748px', display: 'flex' }
+                });
                 
-                // 3. Envoi du PNG public
                 const publicSRef = ref(storage, `presskit/zcard_public.png`);
                 await uploadString(publicSRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(publicSRef);
 
-                // 4. Sauvegarde Firestore (Le HTML est maintenant léger car il ne contient que des URLs)
+                // ÉTAPE 4 : Enregistrement final (Maintenant le HTML est ultra léger)
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     pattern: document.getElementById('cvPage').className.replace('page-a4 ', ''),
@@ -688,8 +685,8 @@
                 alert("✅ Z-Card publiée avec succès !");
                 
             } catch(e) { 
-                console.error(e); 
-                alert("Erreur : Le projet est peut-être encore trop lourd ou connexion perdue."); 
+                console.error("Détail de l'erreur :", e);
+                alert("Erreur critique. Essayez de supprimer une photo et de la remettre avant de sauvegarder."); 
             } finally { 
                 document.body.classList.remove('is-exporting'); 
                 btn.innerHTML = originalText; 
@@ -753,6 +750,7 @@
     </script>
 </body>
 </html>
+
 
 
 
