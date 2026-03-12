@@ -650,12 +650,19 @@
 
                 // 2. Capture HD du rendu final
                 const dataUrl = await domtoimage.toPng(cvPage, { 
-                    quality: 1, 
-                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#ffffff', 
-                    width: cvPage.clientWidth * 2, 
-                    height: cvPage.clientHeight * 2, 
-                    style: { transform: 'scale(2)', transformOrigin: 'top left' }
-                });
+    quality: 1, 
+    bgcolor: document.documentElement.style.getPropertyValue('--bg-page'),
+    // On force une largeur de 2500px pour que le PNG soit toujours net
+    width: 2500, 
+    height: (cvPage.id === 'cvPage' && cvPage.classList.contains('pattern-halo')) ? 1767 : 3535, 
+    style: { 
+        transform: 'scale(1)', 
+        transformOrigin: 'top left',
+        width: '2500px',
+        height: 'auto',
+        display: 'flex'
+    }
+});
                 
                 // 3. Envoi du PNG public
                 const publicSRef = ref(storage, `presskit/zcard_public.png`);
@@ -742,6 +749,7 @@
     </script>
 </body>
 </html>
+
 
 
 
