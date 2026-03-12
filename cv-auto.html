@@ -79,7 +79,7 @@
         .card-header h2 { margin: 0 0 10px 0; font-size: 1.2rem; font-weight: 500; color: var(--accent-color); }
         .card-header p { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
 
-        /* 2. Photo (Optimisée pour le cadrage et Drag&Drop) */
+        /* 2. Photo */
         .card-photo { grid-column: span 3; padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #e5e7eb; transition: border 0.2s;}
         .card-photo.dragover { border: 2px solid var(--accent-color); }
         .card-photo img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1;}
@@ -113,12 +113,11 @@
         .tl-company { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
         .tl-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
 
-        /* 5. Compétences (Avec Mode Nuage Auto-Compact intelligent) */
+        /* 5. Compétences */
         .card-skills { grid-column: span 4; }
         .skills-container { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;}
         .skill-badge { background: var(--accent-light); color: var(--accent-color); font-size: 0.75rem; font-weight: 600; padding: 5px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; position: relative;}
         
-        /* Auto-Compact dynamique */
         .skills-container.compact-cloud { gap: 4px; }
         .skills-container.compact-cloud .skill-badge { font-size: 0.6rem; padding: 4px 8px; border-radius: 6px; letter-spacing: -0.2px; }
         .skills-container.compact-cloud .skill-badge .del-btn { width: 12px; height: 12px; font-size: 7px; margin-left: 2px;}
@@ -130,7 +129,7 @@
         .edu-degree { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px;}
         .edu-school { font-size: 0.75rem; color: var(--text-muted);}
 
-        /* 7. Langues / Outils (Fix de l'espace insécable) */
+        /* 7. Langues / Outils */
         .card-tools { grid-column: span 12; display: flex; gap: 40px; align-items: flex-start; }
         .tool-group { display: flex; gap: 8px; font-size: 0.8rem; align-items: baseline; line-height: 1.4;}
         .tool-group strong { color: var(--accent-color); white-space: nowrap; flex-shrink: 0; }
@@ -150,28 +149,42 @@
 
         #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
 
-        /* --- IMPRESSION (ATS FRIENDLY) --- */
+        /* --- IMPRESSION --- */
         @media print {
             @page { size: A4 portrait; margin: 0; }
             body { background: white; margin: 0; padding: 0; display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .sidebar, .no-print, #alert-box, .popup-menu { display: none !important; }
             .workspace { padding: 0; overflow: visible; display: block; }
             .page-a4 { box-shadow: none !important; width: 210mm; height: 297mm; padding: 12mm;}
-            
             .bento-card { box-shadow: none !important; border: 1px solid #e5e7eb; }
             .card-photo:not(.has-image) { display: none; }
         }
-        .top-bar-admin { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ui-border); }
-.top-bar-admin a { color: white; text-decoration: none; font-size: 13px; font-weight: bold; background: #333; padding: 6px 12px; border-radius: 6px; }
-.mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
-@media (max-width: 768px) {
-    body { flex-direction: column; overflow: auto; }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
-    .workspace { padding: 10px; }
-    .page-a4 { transform: scale(0.9); transform-origin: top center; margin-bottom: 50px; }
-    .photo-controls { display: none !important; }
-    .mobile-warning { display: block; }
-}
+
+        /* --- RESPONSIVE MOBILE FIXÉ --- */
+        .mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
+        
+        @media (max-width: 768px) {
+            body { display: block; overflow: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
+            
+            /* Espace de travail avec défilement tactile */
+            .workspace { 
+                padding: 15px; 
+                display: block; 
+                overflow-x: auto; 
+                -webkit-overflow-scrolling: touch; 
+            }
+            
+            /* Alignement en haut à gauche et légère réduction */
+            .page-a4 { 
+                transform: scale(0.85); 
+                transform-origin: top left; 
+                margin-bottom: 20px; 
+            }
+            
+            .photo-controls { display: none !important; }
+            .mobile-warning { display: block; }
+        }
     </style>
 </head>
 <body>
@@ -181,8 +194,8 @@
     <input type="file" id="photoInput" accept="image/*" style="display: none;">
 
     <div class="sidebar">
-        <a href="admin.html" class="btn-action" style="background: #333; color: white; text-decoration: none; margin-bottom: 20px; border: none;">⬅ Retour au Panel Admin</a>
-        
+        <a href="admin.html" class="btn-action" style="background: #333; color: white; text-decoration: none; margin-bottom: 10px; border: none;">⬅ Retour au Panel Admin</a>
+
         <h2>Design Bento</h2>
         
         <div class="color-row">
@@ -213,7 +226,7 @@
 
         <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Charger CV</button>
         <input type="file" id="importProject" style="display:none" accept=".json">
-        <button class="btn-action" id="saveProject">💾 Sauvegarder (Modifiable)</button>
+        <button class="btn-action" id="saveProject">💾 Sauvegarder & Publier</button>
         
         <button class="btn-action" onclick="window.print()" style="background: #2563eb; border-color: #1d4ed8; color: white; margin-top: 10px;">
             📄 Exporter PDF (ATS Friendly)
@@ -354,7 +367,6 @@
                 return; 
             }
             
-            // Chargement du projet sauvegardé
             try {
                 const docSnap = await getDoc(doc(db, "site_data", "cv_project"));
                 if (docSnap.exists()) {
@@ -377,7 +389,7 @@
                         document.getElementById('togglePhoto').dispatchEvent(new Event('change'));
                     }
                     
-                    bindPhotoEvents(); // Relance les événements après injection
+                    bindPhotoEvents(); 
                     checkOverflow();
                 }
             } catch (error) {
@@ -451,7 +463,7 @@
             checkOverflow();
         });
 
-        // --- GESTION PHOTO (Cadrage & DragDrop) ---
+        // --- GESTION PHOTO ---
         function processCvPhoto(file) {
             const pCard = document.getElementById('photoCard');
             const reader = new FileReader();
@@ -475,7 +487,6 @@
             const pCard = document.getElementById('photoCard');
             if (!pCard) return;
 
-            // Retire les anciens écouteurs en clonant le noeud
             const newPhotoCard = pCard.cloneNode(true);
             pCard.parentNode.replaceChild(newPhotoCard, pCard);
 
@@ -518,14 +529,11 @@
             };
         }
         
-        bindPhotoEvents(); // Lancement initial
+        bindPhotoEvents();
 
         document.getElementById('photoInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) {
-                processCvPhoto(file);
-                e.target.value = '';
-            }
+            if (file) { processCvPhoto(file); e.target.value = ''; }
         });
 
         function updatePhotoTransform(img) { 
@@ -547,7 +555,7 @@
             }
         });
 
-        // --- GESTION DES LISTES DYNAMIQUES (Rendues Globales pour le HTML) ---
+        // --- GESTION DES LISTES DYNAMIQUES (GLOBALES) ---
         window.addExp = function() {
             const div = document.createElement('div'); div.className = 'tl-item';
             div.innerHTML = `
@@ -583,7 +591,7 @@
             checkOverflow(); 
         };
 
-        // --- SAUVEGARDE & PUBLICATION SÉCURISÉE SUR FIREBASE ---
+        // --- SAUVEGARDE & PUBLICATION ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
@@ -592,7 +600,6 @@
             document.body.classList.add('is-exporting');
 
             try {
-                // 1. Capture HD de la page via domtoimage
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6', 
@@ -601,18 +608,16 @@
                     style: { transform: 'scale(2)', transformOrigin: 'top left' }
                 });
                 
-                // 2. Envoi du PNG sur Firebase Storage
                 const sRef = ref(storage, `presskit/cv_public.png`);
                 await uploadString(sRef, dataUrl, 'data_url');
                 const publicUrl = await getDownloadURL(sRef);
 
-                // 3. Sauvegarde du projet dans Firestore
                 const projectData = {
                     html: document.getElementById('cvPage').innerHTML,
                     accent: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#2563eb',
                     bg: document.documentElement.style.getPropertyValue('--bg-page').trim() || '#f3f4f6',
                     hasPhoto: document.getElementById('togglePhoto').checked,
-                    publicUrl: publicUrl // URL publique ajoutée !
+                    publicUrl: publicUrl
                 };
                 await setDoc(doc(db, "site_data", "cv_project"), projectData);
                 
@@ -627,7 +632,7 @@
             }
         });
 
-        // --- IMPORT JSON MANUEL (Optionnel, au cas où) ---
+        // --- IMPORT JSON MANUEL ---
         document.getElementById('importProject').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -659,7 +664,7 @@
             reader.readAsText(file);
         });
 
-        // --- EXPORT IMAGE MANUEL (Téléchargement direct) ---
+        // --- EXPORT IMAGE MANUEL ---
         window.exportImage = function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
@@ -702,8 +707,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
-
