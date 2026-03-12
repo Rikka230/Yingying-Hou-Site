@@ -699,7 +699,7 @@
                 </div>
                 <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
             `;
-            document.getElementById('expList').appendChild(div);
+            document.getElementById('expList').prepend(div);
             if (checkTextOverflow()) div.remove();
         }
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
@@ -819,3 +819,4 @@
     </script>
 </body>
 </html>
+
