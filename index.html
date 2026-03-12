@@ -57,7 +57,7 @@
           <a class="btn" href="filmographie.html">Voir la filmographie</a>
           <a class="btn" href="galerie.html">Galerie Photo</a>
           <a class="btn ghost" href="contact.html">Réserver / Booking</a>
-          <button class="btn outline" id="btn-open-presskit">Télécharger Press kit</button>
+          <button class="btn outline js-presskit">Télécharger Press kit</button>
         </div>
       </div>
     </section>
@@ -134,7 +134,7 @@
             <li><span>Cheveux</span><b>Brun</b></li>
             <li><span>Yeux</span><b>Marron</b></li>
           </ul>
-          <button class="btn outline" id="btn-open-presskit">Télécharger Press kit</button>
+          <button class="btn outline js-presskit">Télécharger Press kit</button>
         </aside>
       </div>
     </section>
@@ -283,33 +283,28 @@
       }
     }
 
-    // --- GESTION DE LA MODALE PRESS KIT ---
+    // --- GESTION DE LA MODALE PRESS KIT (MULTI-BOUTONS) ---
     const modalPresskit = document.getElementById('presskitModal');
-    const btnOpenPresskit = document.getElementById('btn-open-presskit');
+    const btnsPresskit = document.querySelectorAll('.js-presskit'); // Cible la classe
     const btnClosePresskit = document.getElementById('btn-close-presskit');
 
-    if (btnOpenPresskit && modalPresskit) {
-      btnOpenPresskit.addEventListener('click', async () => {
+    btnsPresskit.forEach(btn => {
+      btn.addEventListener('click', async () => {
         modalPresskit.showModal(); 
-        
-        // Va chercher les dernières URLs générées dans Firebase
         try {
           const cvDoc = await getDoc(doc(db, "site_data", "cv_project"));
           if (cvDoc.exists() && cvDoc.data().publicUrl) {
             document.getElementById('link-dl-cv').href = cvDoc.data().publicUrl;
           }
-          
           const zcardDoc = await getDoc(doc(db, "site_data", "zcard_project"));
           if (zcardDoc.exists() && zcardDoc.data().publicUrl) {
             document.getElementById('link-dl-zcard').href = zcardDoc.data().publicUrl;
           }
-        } catch(e) { 
-          console.error("Erreur de récupération des liens du Press Kit :", e); 
-        }
+        } catch(e) { console.error("Erreur Press Kit :", e); }
       });
-    }
+    });
 
-    if (btnClosePresskit && modalPresskit) {
+    if (btnClosePresskit) {
       btnClosePresskit.addEventListener('click', () => modalPresskit.close());
     }
     
