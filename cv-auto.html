@@ -322,54 +322,101 @@
         <div><label>Pan Y (Haut/Bas)</label><input type="range" id="panYSlider" min="0" max="100" step="1" value="50"></div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+        // Ta configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+            authDomain: "kukyying-f1c95.firebaseapp.com",
+            projectId: "kukyying-f1c95",
+            storageBucket: "kukyying-f1c95.firebasestorage.app",
+            messagingSenderId: "681899915263",
+            appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
         const cvPage = document.getElementById('cvPage');
         const alertBox = document.getElementById('alert-box');
         const photoCard = document.getElementById('photoCard');
         const popup = document.getElementById('popupMenu');
         let activeImg = null;
 
-        // --- SÉCURITÉ DÉBORDEMENT INTELLIGENTE (AUTO-COMPACT) ---
+        // --- VÉRIFICATION SÉCURITÉ & CHARGEMENT FIREBASE ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { 
+                window.location.href = 'admin.html'; // Redirige si non connecté
+                return; 
+            }
+            
+            // Chargement du projet sauvegardé
+            try {
+                const docSnap = await getDoc(doc(db, "site_data", "cv_project"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('cvPage').innerHTML = data.html;
+                    
+                    if (data.accent) {
+                        document.documentElement.style.setProperty('--accent-color', data.accent);
+                        document.documentElement.style.setProperty('--accent-light', hexToRgba(data.accent, 0.1));
+                        document.getElementById('accentColor').value = data.accent;
+                        document.getElementById('accentBtnDisplay').style.background = data.accent;
+                    }
+                    if (data.bg) {
+                        document.documentElement.style.setProperty('--bg-page', data.bg);
+                        document.getElementById('bgColor').value = data.bg;
+                        document.getElementById('bgBtnDisplay').style.background = data.bg;
+                    }
+                    if (data.hasPhoto !== undefined) {
+                        document.getElementById('togglePhoto').checked = data.hasPhoto;
+                        document.getElementById('togglePhoto').dispatchEvent(new Event('change'));
+                    }
+                    
+                    bindPhotoEvents(); // Relance les événements après injection
+                    checkOverflow();
+                }
+            } catch (error) {
+                console.error("Erreur de chargement du CV depuis Firebase :", error);
+            }
+        });
+
+        // --- SÉCURITÉ DÉBORDEMENT INTELLIGENTE ---
         function checkOverflow() {
             const skillsContainer = document.getElementById('skillsList');
+            if(!skillsContainer) return false;
 
-            // 1. On retire le mode compact pour mesurer la hauteur "naturelle"
             skillsContainer.classList.remove('compact-cloud');
             const naturalHeight = cvPage.scrollHeight;
 
-            // 2. Si le CV naturel déborde de la page A4 (297mm converti en pixels + marge de sécu)
             if (naturalHeight > cvPage.clientHeight + 5) {
-                
-                // On active la compression du bloc compétences pour essayer de sauver la mise en page
                 skillsContainer.classList.add('compact-cloud');
                 const compactedHeight = cvPage.scrollHeight;
 
-                // Si la compression n'a STRICTEMENT RIEN CHANGÉ à la hauteur totale du CV
-                // Cela veut dire que l'excès de taille vient d'une autre colonne (ex: Expériences trop longues)
                 if (compactedHeight === naturalHeight) {
-                    // La compression est inutile, on remet les compétences normales pour que ce soit joli
                     skillsContainer.classList.remove('compact-cloud');
                 }
 
-                // Vérification finale : est-ce que le CV déborde toujours après nos tentatives ?
                 if (cvPage.scrollHeight > cvPage.clientHeight + 5) {
-                    // Alerte Rouge
                     cvPage.style.boxShadow = "0 0 0 4px #ef4444, 0 15px 50px rgba(0,0,0,0.5)";
                     alertBox.style.display = 'block';
                     setTimeout(() => alertBox.style.display = 'none', 3000);
                     return true;
                 } else {
-                    // La compression a suffi à tout faire rentrer !
                     cvPage.style.boxShadow = "0 15px 50px rgba(0,0,0,0.5)";
                     return false;
                 }
             } else {
-                // Tout rentre sans forcer
                 cvPage.style.boxShadow = "0 15px 50px rgba(0,0,0,0.5)";
                 return false;
             }
         }
-        
         cvPage.addEventListener('input', checkOverflow);
 
         // --- COULEURS ---
@@ -393,42 +440,46 @@
         // --- TOGGLE PHOTO ---
         document.getElementById('togglePhoto').addEventListener('change', (e) => {
             const headerCard = document.getElementById('headerCard');
+            const pCard = document.getElementById('photoCard');
+            if (!headerCard || !pCard) return;
+
             if (e.target.checked) {
-                photoCard.style.display = 'flex';
+                pCard.style.display = 'flex';
                 headerCard.style.gridColumn = 'span 9';
             } else {
-                photoCard.style.display = 'none';
+                pCard.style.display = 'none';
                 headerCard.style.gridColumn = 'span 12';
             }
             checkOverflow();
         });
 
-        // --- GESTION PHOTO ---
+        // --- GESTION PHOTO (Cadrage & DragDrop) ---
         function processCvPhoto(file) {
-            const photoCard = document.getElementById('photoCard');
+            const pCard = document.getElementById('photoCard');
             const reader = new FileReader();
             reader.onload = (event) => {
-                let img = photoCard.querySelector('img');
+                let img = pCard.querySelector('img');
                 if (!img) { 
                     img = document.createElement('img'); 
-                    photoCard.appendChild(img); 
+                    pCard.appendChild(img); 
                 }
                 img.src = event.target.result;
                 img.dataset.scale = '1';
                 img.dataset.panX = '50';
                 img.dataset.panY = '50';
-                photoCard.classList.add('has-image');
+                pCard.classList.add('has-image');
                 updatePhotoTransform(img);
             };
             reader.readAsDataURL(file);
         }
 
         function bindPhotoEvents() {
-            const photoCard = document.getElementById('photoCard');
-            if (!photoCard) return;
+            const pCard = document.getElementById('photoCard');
+            if (!pCard) return;
 
-            const newPhotoCard = photoCard.cloneNode(true);
-            photoCard.parentNode.replaceChild(newPhotoCard, photoCard);
+            // Retire les anciens écouteurs en clonant le noeud
+            const newPhotoCard = pCard.cloneNode(true);
+            pCard.parentNode.replaceChild(newPhotoCard, pCard);
 
             newPhotoCard.addEventListener('dragover', e => { e.preventDefault(); newPhotoCard.classList.add('dragover'); });
             newPhotoCard.addEventListener('dragleave', () => newPhotoCard.classList.remove('dragover'));
@@ -469,7 +520,7 @@
             };
         }
         
-        bindPhotoEvents(); // Initialisation
+        bindPhotoEvents(); // Lancement initial
 
         document.getElementById('photoInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -498,20 +549,20 @@
             }
         });
 
-        // --- GESTION DES LISTES DYNAMIQUES ---
-        function addExp() {
+        // --- GESTION DES LISTES DYNAMIQUES (Rendues Globales pour le HTML) ---
+        window.addExp = function() {
             const div = document.createElement('div'); div.className = 'tl-item';
             div.innerHTML = `
-                <div class="tl-header"><div class="tl-title" contenteditable="true">Titre du Poste</div><div class="tl-date" contenteditable="true">Date</div></div>
-                <div class="tl-company" contenteditable="true">Nom Entreprise</div>
+                <div class="tl-header"><div class="tl-title" contenteditable="true">Nouveau Rôle / Poste</div><div class="tl-date" contenteditable="true">Date</div></div>
+                <div class="tl-company" contenteditable="true">Projet ou Entreprise</div>
                 <p class="tl-desc" contenteditable="true">Description des missions accomplies.</p>
                 <button class="no-print del-btn" onclick="removeItem(this)">X</button>
             `;
             document.getElementById('expList').appendChild(div);
             if (checkOverflow()) div.remove();
-        }
+        };
 
-        function addEdu() {
+        window.addEdu = function() {
             const div = document.createElement('div'); div.className = 'edu-item'; div.style.position = 'relative';
             div.innerHTML = `
                 <div class="edu-degree" contenteditable="true">Nom du Diplôme</div>
@@ -520,37 +571,65 @@
             `;
             document.getElementById('eduList').appendChild(div);
             if (checkOverflow()) div.remove();
-        }
+        };
 
-        function addSkill() {
+        window.addSkill = function() {
             const div = document.createElement('span'); div.className = 'skill-badge';
-            // FIX : onclick="removeItem(this)" pour supprimer uniquement le badge, pas le conteneur entier !
             div.innerHTML = `<span contenteditable="true">Nouvelle Compétence</span> <button class="no-print del-btn" style="position:relative; margin-left:3px; right:auto; top:auto;" onclick="removeItem(this)">X</button>`;
             document.getElementById('skillsList').appendChild(div);
             if (checkOverflow()) div.remove();
-        }
+        };
 
-        function removeItem(btn) {
-            // "btn" est le bouton qui a été cliqué. 
-            // parentElement est le <div> de l'expérience, le <div> de l'éducation, ou le <span> de la compétence.
+        window.removeItem = function(btn) {
             btn.parentElement.remove();
-            checkOverflow(); // On re-vérifie la place pour désactiver le mode Nuage si besoin !
-        }
+            checkOverflow(); 
+        };
 
-        // --- SAUVEGARDE & CHARGEMENT JSON ---
-        document.getElementById('saveProject').addEventListener('click', () => {
-            const projectData = {
-                html: document.getElementById('cvPage').innerHTML,
-                accent: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#2563eb',
-                bg: document.documentElement.style.getPropertyValue('--bg-page').trim() || '#f3f4f6',
-                hasPhoto: document.getElementById('togglePhoto').checked
-            };
-            const a = document.createElement('a');
-            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData));
-            a.download = "cv_bento_projet.json";
-            a.click();
+        // --- SAUVEGARDE & PUBLICATION SÉCURISÉE SUR FIREBASE ---
+        document.getElementById('saveProject').addEventListener('click', async () => {
+            const btn = document.getElementById('saveProject');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "⏳ Génération & Mise en ligne...";
+            btn.disabled = true;
+            document.body.classList.add('is-exporting');
+
+            try {
+                // 1. Capture HD de la page via domtoimage
+                const dataUrl = await domtoimage.toPng(cvPage, { 
+                    quality: 1, 
+                    bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6', 
+                    width: cvPage.clientWidth * 2, 
+                    height: cvPage.clientHeight * 2, 
+                    style: { transform: 'scale(2)', transformOrigin: 'top left' }
+                });
+                
+                // 2. Envoi du PNG sur Firebase Storage
+                const sRef = ref(storage, `presskit/cv_public.png`);
+                await uploadString(sRef, dataUrl, 'data_url');
+                const publicUrl = await getDownloadURL(sRef);
+
+                // 3. Sauvegarde du projet dans Firestore
+                const projectData = {
+                    html: document.getElementById('cvPage').innerHTML,
+                    accent: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#2563eb',
+                    bg: document.documentElement.style.getPropertyValue('--bg-page').trim() || '#f3f4f6',
+                    hasPhoto: document.getElementById('togglePhoto').checked,
+                    publicUrl: publicUrl // URL publique ajoutée !
+                };
+                await setDoc(doc(db, "site_data", "cv_project"), projectData);
+                
+                alert("✅ CV généré, sauvegardé et mis à jour sur le site public !");
+            } catch(e) {
+                console.error("Erreur de sauvegarde :", e); 
+                alert("Erreur lors de la sauvegarde. Vérifiez votre connexion.");
+            } finally {
+                document.body.classList.remove('is-exporting');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
 
+        // --- IMPORT JSON MANUEL (Optionnel, au cas où) ---
         document.getElementById('importProject').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -582,14 +661,13 @@
             reader.readAsText(file);
         });
 
-        // --- EXPORT IMAGE DOM-TO-IMAGE ---
-        function exportImage() {
+        // --- EXPORT IMAGE MANUEL (Téléchargement direct) ---
+        window.exportImage = function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
             
             btn.innerHTML = "⏳ Création HD en cours...";
             btn.disabled = true;
-            
             document.body.classList.add('is-exporting');
             
             setTimeout(() => {
@@ -628,3 +706,4 @@
 </body>
 
 </html>
+
