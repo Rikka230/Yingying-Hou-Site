@@ -173,31 +173,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activePagesCount = 0;
 
-    // 1. On compte les pages qui ont vraiment du contenu
     pages.forEach((page, index) => {
       const itemsCount = page.querySelectorAll('li').length;
       const btn = tabBtns[index];
       
       if (itemsCount === 0 && btn) {
-        btn.style.display = 'none'; // Cache le bouton 2 si la liste 2 est vide
+        btn.style.display = 'none'; 
       } else if (itemsCount > 0) {
         activePagesCount++;
       }
     });
 
-    // 2. S'il n'y a qu'une seule page remplie, on supprime TOUTE la barre de numéros !
     if (activePagesCount <= 1) {
       paginationContainer.style.display = 'none';
     }
 
-    // 3. Navigation par ordre (Anti-bug si on se trompe dans le HTML)
     tabBtns.forEach((btn, index) => {
       btn.addEventListener('click', () => {
-        // Désactive tout uniquement dans CETTE boîte précise
         tabBtns.forEach(b => b.classList.remove('active'));
         pages.forEach(p => p.classList.remove('active'));
-        
-        // Active le bouton cliqué et la page correspondante
         btn.classList.add('active');
         if(pages[index]) {
           pages[index].classList.add('active');
@@ -206,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // On lance la machine sur les deux boîtes sans qu'elles se croisent !
   setupTabs('.bento-roles');
   setupTabs('.bento-awards');
 })();
@@ -349,12 +342,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const scrollY = window.scrollY;
 
     hints.forEach(hint => {
-      // Sur mobile (central), on cache dès qu'on a scrollé de 50px
       if (hint.classList.contains('scroll-hint-mobile')) {
         if (scrollY > 50) hint.classList.add('hidden');
         else hint.classList.remove('hidden');
       } 
-      // Sur PC (côtés), on cache quand on arrive près du bas (footer)
       else {
         const distanceToBottom = document.documentElement.scrollHeight - (scrollY + window.innerHeight);
         if (distanceToBottom < 150) hint.classList.add('hidden');
@@ -368,12 +359,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // TRANSITIONS DE PAGE FLUIDES
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  // On cible tous les liens du site (qui finissent par .html ou qui pointent vers l'accueil /)
   const liensInternes = document.querySelectorAll('a[href$=".html"], a[href="/"]');
   
   liensInternes.forEach(lien => {
     lien.addEventListener('click', function(e) {
-      // On ignore les clics avec CTRL/CMD, les liens externes, les téléchargements (PDF) et les ancres (#)
       if (
         this.target === '_blank' || 
         e.ctrlKey || 
@@ -382,15 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
         this.href.includes('#')
       ) return;
       
-      // On vérifie qu'on reste bien sur le même site
       if (this.hostname === window.location.hostname) {
-        e.preventDefault(); // On bloque le changement de page brutal
+        e.preventDefault(); 
         const destination = this.href;
         
-        // On lance l'animation de sortie
         document.body.classList.add('page-exit');
         
-        // On attend la fin de l'animation (350ms) avant de charger la vraie page
         setTimeout(() => {
           window.location.href = destination;
         }, 350);
@@ -406,28 +392,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
   
   if (themeToggleBtn) {
-    // 1. On lit UNIQUEMENT le choix sauvegardé (On ne force plus le sombre via l'OS)
     const currentTheme = localStorage.getItem('theme');
     
-    // Le site est en clair par défaut, on n'ajoute la classe que si "dark" est sauvegardé
     if (currentTheme === 'dark') {
       document.body.classList.add('dark-mode');
     }
 
-    // 2. Fonction pour injecter la belle icône SVG
     const updateIcon = () => {
       if (document.body.classList.contains('dark-mode')) {
-        // Icône SOLEIL (Minimaliste)
         themeToggleBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
       } else {
-        // Icône LUNE (Minimaliste)
         themeToggleBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
       }
     };
 
-    updateIcon(); // On met l'icône dès le chargement
+    updateIcon(); 
 
-    // 3. Action au clic : Bascule et Sauvegarde
     themeToggleBtn.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
@@ -435,25 +415,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// Ouvre et ferme la modale
+// ==========================================
+// MODALE PRESS KIT & FIREBASE
+// ==========================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
+  authDomain: "kukyying-f1c95.firebaseapp.com",
+  projectId: "kukyying-f1c95",
+  storageBucket: "kukyying-f1c95.firebasestorage.app",
+  messagingSenderId: "681899915263",
+  appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const modal = document.getElementById('presskitModal');
-document.getElementById('btn-open-presskit')?.addEventListener('click', async () => {
-    modal.showModal();
-    
-    // Récupère dynamiquement les derniers liens générés depuis l'Admin
-    try {
-        const cvDoc = await getDoc(doc(db, "site_data", "cv_project"));
-        if (cvDoc.exists() && cvDoc.data().publicUrl) {
-            document.getElementById('link-dl-cv').href = cvDoc.data().publicUrl;
-        }
-        
-        const zcardDoc = await getDoc(doc(db, "site_data", "zcard_project"));
-        if (zcardDoc.exists() && zcardDoc.data().publicUrl) {
-            document.getElementById('link-dl-zcard').href = zcardDoc.data().publicUrl;
-        }
-    } catch(e) { console.error("Erreur récupération liens:", e); }
-});
+const btnOpenPresskit = document.getElementById('btn-open-presskit');
+const btnClosePresskit = document.getElementById('btn-close-presskit');
 
-document.getElementById('btn-close-presskit')?.addEventListener('click', () => modal.close());
+if (btnOpenPresskit && modal) {
+  btnOpenPresskit.addEventListener('click', async () => {
+      modal.showModal();
+      
+      try {
+          const cvDoc = await getDoc(doc(db, "site_data", "cv_project"));
+          if (cvDoc.exists() && cvDoc.data().publicUrl) {
+              document.getElementById('link-dl-cv').href = cvDoc.data().publicUrl;
+          }
+          
+          const zcardDoc = await getDoc(doc(db, "site_data", "zcard_project"));
+          if (zcardDoc.exists() && zcardDoc.data().publicUrl) {
+              document.getElementById('link-dl-zcard').href = zcardDoc.data().publicUrl;
+          }
+      } catch(e) { console.error("Erreur récupération liens Press Kit:", e); }
+  });
+}
+
+if (btnClosePresskit && modal) {
+  btnClosePresskit.addEventListener('click', () => modal.close());
+}
