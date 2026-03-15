@@ -733,6 +733,7 @@
             btn.innerHTML = "⏳ Génération & Mise en ligne...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
+            await prepareImageForExport();
 
             // 1. On retire le zoom temporairement pour capturer l'image nette
             const currentTransform = cvPage.style.transform;
@@ -813,6 +814,7 @@
             btn.innerHTML = "⏳ Création HD en cours...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
+            async devant function()
             
             // Retrait du zoom pour capture
             const currentTransform = cvPage.style.transform;
