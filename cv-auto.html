@@ -807,14 +807,16 @@
         });
 
         // --- EXPORT IMAGE MANUEL ---
-        window.exportImage = function() {
+        window.exportImage = async function() {
             const btn = document.getElementById('btnExportImg');
             const originalText = btn.innerHTML;
             
             btn.innerHTML = "⏳ Création HD en cours...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
-            async devant function()
+            
+            // On attend que l'image soit aplatie AVANT la capture
+            await prepareImageForExport();
             
             // Retrait du zoom pour capture
             const currentTransform = cvPage.style.transform;
