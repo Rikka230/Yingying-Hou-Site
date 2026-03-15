@@ -481,25 +481,56 @@
         });
 
         // --- GESTION PHOTO ---
-        function processCvPhoto(file) {
+       function processCvPhoto(file) {
             const pCard = document.getElementById('photoCard');
             const reader = new FileReader();
+            
             reader.onload = (event) => {
-                let img = pCard.querySelector('img');
-                if (!img) { 
-                    img = document.createElement('img'); 
-                    pCard.appendChild(img); 
-                }
-                img.src = event.target.result;
-                img.dataset.scale = '1';
-                img.dataset.panX = '50';
-                img.dataset.panY = '50';
-                pCard.classList.add('has-image');
-                updatePhotoTransform(img);
+                const imgObj = new Image();
+                imgObj.onload = () => {
+                    // Création d'un canvas pour redimensionner l'image
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 500; // 500 pixels max, largement suffisant pour le CV
+                    let width = imgObj.width;
+                    let height = imgObj.height;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(imgObj, 0, 0, width, height);
+
+                    // Compression en JPEG à 80% de qualité
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+                    // Injection dans le HTML
+                    let img = pCard.querySelector('img');
+                    if (!img) { 
+                        img = document.createElement('img'); 
+                        pCard.appendChild(img); 
+                    }
+                    img.src = compressedBase64; // On utilise la version légère !
+                    img.dataset.scale = '1';
+                    img.dataset.panX = '50';
+                    img.dataset.panY = '50';
+                    pCard.classList.add('has-image');
+                    updatePhotoTransform(img);
+                };
+                imgObj.src = event.target.result;
             };
             reader.readAsDataURL(file);
         }
-
         function bindPhotoEvents() {
             const pCard = document.getElementById('photoCard');
             if (!pCard) return;
