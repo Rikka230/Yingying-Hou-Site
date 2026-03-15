@@ -164,10 +164,15 @@
         body.is-exporting .no-print { display: none !important; }
         body.is-exporting .page-a4 { box-shadow: none !important; transform: none !important; margin: 0 !important; }
         
+        /* --- IMPRESSION ET EXPORT --- */
+        body.is-exporting .no-print { display: none !important; }
+        body.is-exporting .page-a4 { box-shadow: none !important; transform: none !important; margin: 0 !important; }
+        
         @media print {
             @page { size: A4 portrait; margin: 0; }
             body { background: white; margin: 0; padding: 0; display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .sidebar, .no-print, #alert-box, .popup-menu { display: none !important; }
+            /* AJOUT : On cache explicitement le bandeau mobile (.mobile-warning) à l'impression */
+            .sidebar, .no-print, #alert-box, .popup-menu, .mobile-warning { display: none !important; }
             .workspace { padding: 0; overflow: visible; display: block; height: auto; }
             .page-a4 { box-shadow: none !important; width: 210mm; height: 297mm; padding: 12mm; transform: none !important; }
             .bento-card { box-shadow: none !important; border: 1px solid #e5e7eb; }
@@ -177,7 +182,8 @@
         /* --- RESPONSIVE MOBILE FIXÉ --- */
         .mobile-warning { display: none; background: #fce844; color: #111; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
         
-        @media (max-width: 768px) {
+        /* AJOUT : "screen and" empêche ce code de s'activer pendant l'impression PDF */
+        @media screen and (max-width: 768px) {
             body { display: block; overflow: auto; }
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
             .workspace { padding: 15px; display: block; height: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -609,6 +615,80 @@
                 popup.style.display = 'none'; 
             }
         });
+
+        // ==========================================
+        // LA MAGIE DU BAKING ("APLATISSEMENT" PHOTO)
+        // ==========================================
+        function bakeContainerToBase64(container) {
+            return new Promise((resolve) => {
+                const img = container.querySelector('img');
+                if (!img || !img.src) return resolve(null);
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = container.clientWidth * 2;
+                canvas.height = container.clientHeight * 2;
+                
+                const originalImg = new Image();
+                originalImg.crossOrigin = "anonymous";
+                originalImg.onload = () => {
+                    const imgRatio = originalImg.naturalWidth / originalImg.naturalHeight;
+                    const canvasRatio = canvas.width / canvas.height;
+                    
+                    let drawWidth, drawHeight;
+                    if (imgRatio > canvasRatio) {
+                        drawHeight = canvas.height;
+                        drawWidth = originalImg.naturalWidth * (canvas.height / originalImg.naturalHeight);
+                    } else {
+                        drawWidth = canvas.width;
+                        drawHeight = originalImg.naturalHeight * (canvas.width / originalImg.naturalWidth);
+                    }
+                    
+                    const scale = parseFloat(img.dataset.scale) || 1;
+                    drawWidth *= scale;
+                    drawHeight *= scale;
+                    
+                    const panX = parseFloat(img.dataset.panX) || 50;
+                    const panY = parseFloat(img.dataset.panY) || 50;
+                    
+                    const maxOffsetX = drawWidth - canvas.width;
+                    const maxOffsetY = drawHeight - canvas.height;
+                    const dx = - (maxOffsetX * (panX / 100));
+                    const dy = - (maxOffsetY * (panY / 100));
+                    
+                    ctx.fillStyle = '#e5e7eb'; // Fond de la case photo bento
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(originalImg, dx, dy, drawWidth, drawHeight);
+                    
+                    resolve(canvas.toDataURL('image/jpeg', 0.9));
+                };
+                originalImg.onerror = () => resolve(null);
+                originalImg.src = img.src;
+            });
+        }
+
+        async function prepareImageForExport() {
+            const pCard = document.getElementById('photoCard');
+            if (!pCard || !pCard.classList.contains('has-image')) return;
+            
+            const img = pCard.querySelector('img');
+            const scale = parseFloat(img.dataset.scale) || 1;
+            const panX = parseFloat(img.dataset.panX) || 50;
+            const panY = parseFloat(img.dataset.panY) || 50;
+            
+            // Si on a zoomé ou bougé l'image, on l'aplatit en dur
+            if (scale !== 1 || panX !== 50 || panY !== 50) {
+                const bakedUrl = await bakeContainerToBase64(pCard);
+                if (bakedUrl) {
+                    img.src = bakedUrl;
+                    img.dataset.scale = '1';
+                    img.dataset.panX = '50';
+                    img.dataset.panY = '50';
+                    updatePhotoTransform(img);
+                }
+            }
+        }
 
         // --- GESTION DES LISTES DYNAMIQUES ---
         window.addExp = function() {
