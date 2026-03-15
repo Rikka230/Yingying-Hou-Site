@@ -24,7 +24,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
 
         /* --- SIDEBAR --- */
-        .sidebar { width: 320px; background: var(--ui-bg); padding: 25px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box; color: var(--ui-text);}
+        .sidebar { width: 320px; background: var(--ui-bg); padding: 25px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--ui-border); z-index: 10; overflow-y: auto; box-sizing: border-box; color: var(--ui-text); flex-shrink: 0;}
         .sidebar h2 { margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; border-bottom: 1px solid var(--ui-border); padding-bottom: 10px;}
         
         .control-group { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #ccc;}
@@ -49,46 +49,36 @@
         /* --- ESPACE DE TRAVAIL --- */
         .workspace { 
             flex-grow: 1; 
-            overflow: auto; /* Permet de scroller si l'écran est petit */
+            height: 100vh;
+            overflow: hidden; 
             display: flex; 
             justify-content: center; 
-            align-items: flex-start; /* Aligne en haut pour faciliter le défilement */
-            padding: 40px; 
+            align-items: center; 
             background: #0f0f0f;
         }
 
         /* --- PAGE A4 STRICTE (Façon Canva / Figma) --- */
         .page-a4 { 
-            /* On verrouille les dimensions exactes d'un format A4 (en pixels web standard) */
             width: 794px; 
-            min-width: 794px;
             height: 1123px;
-            min-height: 1123px;
-            
             background-color: var(--bg-page); 
             position: relative; 
             display: flex; 
             flex-direction: column;
-            padding: 35px; /* Marges fixes */
+            padding: 40px; 
             box-sizing: border-box; 
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
             
-            /* Taille de police de base fixe (remplace ton ancien cqw) */
-            font-size: 14px; 
+            /* Paramètres pour le moteur de zoom */
+            flex-shrink: 0;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+            font-size: 14px; /* Fixe la taille de police de base */
         }
-
-/* On ajuste les textes pour qu'ils suivent la taille de la page */
-.page-a4 { font-size: 1.1cqw; } /* Utilise les Container Queries units */
 
         /* --- GRILLE BENTO --- */
-        .bento-grid {
-            display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: var(--gutter); height: 100%;
-        }
-
-        .bento-card {
-            background: #ffffff; border-radius: var(--radius); padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); position: relative;
-        }
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: var(--gutter); height: 100%; }
+        .bento-card { background: #ffffff; border-radius: var(--radius); padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); position: relative; }
 
         [contenteditable="true"] { outline: none; transition: background 0.2s; border-radius: 4px; }
         [contenteditable="true"]:hover { background: rgba(0,0,0,0.03); }
@@ -170,13 +160,16 @@
 
         #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
 
-        /* --- IMPRESSION --- */
+        /* --- IMPRESSION ET EXPORT --- */
+        body.is-exporting .no-print { display: none !important; }
+        body.is-exporting .page-a4 { box-shadow: none !important; transform: none !important; margin: 0 !important; }
+        
         @media print {
             @page { size: A4 portrait; margin: 0; }
             body { background: white; margin: 0; padding: 0; display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .sidebar, .no-print, #alert-box, .popup-menu { display: none !important; }
-            .workspace { padding: 0; overflow: visible; display: block; }
-            .page-a4 { box-shadow: none !important; width: 210mm; height: 297mm; padding: 12mm;}
+            .workspace { padding: 0; overflow: visible; display: block; height: auto; }
+            .page-a4 { box-shadow: none !important; width: 210mm; height: 297mm; padding: 12mm; transform: none !important; }
             .bento-card { box-shadow: none !important; border: 1px solid #e5e7eb; }
             .card-photo:not(.has-image) { display: none; }
         }
@@ -187,22 +180,8 @@
         @media (max-width: 768px) {
             body { display: block; overflow: auto; }
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--ui-border); }
-            
-            /* Espace de travail avec défilement tactile */
-            .workspace { 
-                padding: 15px; 
-                display: block; 
-                overflow-x: auto; 
-                -webkit-overflow-scrolling: touch; 
-            }
-            
-            /* Alignement en haut à gauche et légère réduction */
-            .page-a4 { 
-                transform: scale(0.85); 
-                transform-origin: top left; 
-                margin-bottom: 20px; 
-            }
-            
+            .workspace { padding: 15px; display: block; height: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .page-a4 { transform-origin: top left !important; margin-bottom: 20px; }
             .photo-controls { display: none !important; }
             .mobile-warning { display: block; }
         }
@@ -360,7 +339,7 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
-        // Ta configuration Firebase
+        // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
             authDomain: "kukyying-f1c95.firebaseapp.com",
@@ -381,18 +360,41 @@
         const popup = document.getElementById('popupMenu');
         let activeImg = null;
 
+        // ==========================================
+        // MOTEUR DE ZOOM (A4 Portrait)
+        // ==========================================
+        function resizeWorkspace() {
+            const workspace = document.querySelector('.workspace');
+            if (!workspace || !cvPage) return;
+            
+            if (window.innerWidth <= 768) {
+                cvPage.style.transform = 'scale(0.85)';
+                cvPage.style.transformOrigin = 'top left';
+                return;
+            }
+            
+            const padding = 60; // Espace confortable pour travailler
+            const scaleX = (workspace.clientWidth - padding) / 794;
+            const scaleY = (workspace.clientHeight - padding) / 1123;
+            const scale = Math.min(scaleX, scaleY);
+            
+            cvPage.style.transform = `scale(${scale})`;
+            cvPage.style.transformOrigin = 'center center';
+        }
+
+        window.addEventListener('resize', resizeWorkspace);
+        document.addEventListener('DOMContentLoaded', resizeWorkspace);
+
+
         // --- VÉRIFICATION SÉCURITÉ & CHARGEMENT FIREBASE ---
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { 
-                window.location.href = 'admin.html'; // Redirige si non connecté
-                return; 
-            }
+            if (!user) { window.location.href = 'admin.html'; return; }
             
             try {
                 const docSnap = await getDoc(doc(db, "site_data", "cv_project"));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    document.getElementById('cvPage').innerHTML = data.html;
+                    cvPage.innerHTML = data.html;
                     
                     if (data.accent) {
                         document.documentElement.style.setProperty('--accent-color', data.accent);
@@ -414,11 +416,14 @@
                     checkOverflow();
                 }
             } catch (error) {
-                console.error("Erreur de chargement du CV depuis Firebase :", error);
+                console.error("Erreur Firebase :", error);
             }
+            
+            // Applique le zoom une fois les données chargées
+            setTimeout(resizeWorkspace, 100);
         });
 
-        // --- SÉCURITÉ DÉBORDEMENT INTELLIGENTE ---
+        // --- SÉCURITÉ DÉBORDEMENT ---
         function checkOverflow() {
             const skillsContainer = document.getElementById('skillsList');
             if(!skillsContainer) return false;
@@ -484,17 +489,16 @@
             checkOverflow();
         });
 
-        // --- GESTION PHOTO ---
-       function processCvPhoto(file) {
+        // --- GESTION PHOTO (AVEC COMPRESSION) ---
+        function processCvPhoto(file) {
             const pCard = document.getElementById('photoCard');
             const reader = new FileReader();
             
             reader.onload = (event) => {
                 const imgObj = new Image();
                 imgObj.onload = () => {
-                    // Création d'un canvas pour redimensionner l'image
                     const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 500; // 500 pixels max, largement suffisant pour le CV
+                    const MAX_SIZE = 500; 
                     let width = imgObj.width;
                     let height = imgObj.height;
 
@@ -515,16 +519,14 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(imgObj, 0, 0, width, height);
 
-                    // Compression en JPEG à 80% de qualité
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
-                    // Injection dans le HTML
                     let img = pCard.querySelector('img');
                     if (!img) { 
                         img = document.createElement('img'); 
                         pCard.appendChild(img); 
                     }
-                    img.src = compressedBase64; // On utilise la version légère !
+                    img.src = compressedBase64; 
                     img.dataset.scale = '1';
                     img.dataset.panX = '50';
                     img.dataset.panY = '50';
@@ -535,6 +537,7 @@
             };
             reader.readAsDataURL(file);
         }
+
         function bindPhotoEvents() {
             const pCard = document.getElementById('photoCard');
             if (!pCard) return;
@@ -607,7 +610,7 @@
             }
         });
 
-        // --- GESTION DES LISTES DYNAMIQUES (GLOBALES) ---
+        // --- GESTION DES LISTES DYNAMIQUES ---
         window.addExp = function() {
             const div = document.createElement('div'); div.className = 'tl-item';
             div.innerHTML = `
@@ -651,13 +654,17 @@
             btn.disabled = true;
             document.body.classList.add('is-exporting');
 
+            // 1. On retire le zoom temporairement pour capturer l'image nette
+            const currentTransform = cvPage.style.transform;
+            cvPage.style.transform = 'scale(1)';
+
             try {
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6', 
-                    width: cvPage.clientWidth * 2, 
-                    height: cvPage.clientHeight * 2, 
-                    style: { transform: 'scale(2)', transformOrigin: 'top left' }
+                    width: 794 * 2, // Largeur fixe doublée
+                    height: 1123 * 2, // Hauteur fixe doublée
+                    style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
                 const sRef = ref(storage, `presskit/cv_public.png`);
@@ -673,11 +680,13 @@
                 };
                 await setDoc(doc(db, "site_data", "cv_project"), projectData);
                 
-                alert("✅ CV généré, sauvegardé et mis à jour sur le site public !");
+                alert("✅ CV Bento mis en ligne avec succès !");
             } catch(e) {
                 console.error("Erreur de sauvegarde :", e); 
                 alert("Erreur lors de la sauvegarde. Vérifiez votre connexion.");
             } finally {
+                // 2. On remet l'état de la page comme avant
+                cvPage.style.transform = currentTransform;
                 document.body.classList.remove('is-exporting');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -725,15 +734,20 @@
             btn.disabled = true;
             document.body.classList.add('is-exporting');
             
+            // Retrait du zoom pour capture
+            const currentTransform = cvPage.style.transform;
+            cvPage.style.transform = 'scale(1)';
+            
             setTimeout(() => {
                 domtoimage.toPng(cvPage, { 
                     quality: 1,
                     bgcolor: document.documentElement.style.getPropertyValue('--bg-page') || '#f3f4f6',
-                    width: cvPage.clientWidth * 2, 
-                    height: cvPage.clientHeight * 2,
+                    width: 794 * 2, 
+                    height: 1123 * 2,
                     style: {
                         transform: 'scale(2)',
-                        transformOrigin: 'top left'
+                        transformOrigin: 'top left',
+                        margin: 0
                     }
                 })
                 .then(function (dataUrl) {
@@ -744,6 +758,7 @@
                     link.click();
                     document.body.removeChild(link);
 
+                    cvPage.style.transform = currentTransform;
                     document.body.classList.remove('is-exporting');
                     btn.innerHTML = originalText;
                     btn.disabled = false;
@@ -751,6 +766,7 @@
                 .catch(function (error) {
                     console.error('Erreur export:', error);
                     alert("Erreur lors de l'export. Essayez de recharger la page.");
+                    cvPage.style.transform = currentTransform;
                     document.body.classList.remove('is-exporting');
                     btn.innerHTML = originalText;
                     btn.disabled = false;
@@ -760,5 +776,3 @@
     </script>
 </body>
 </html>
-
-
