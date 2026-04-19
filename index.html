@@ -161,7 +161,6 @@
   <script type="module">
     console.log("▶️ ÉTAPE 1 : Démarrage du script...");
 
-    // FIX IMPORT : Ajout de 'doc' et 'getDoc' pour la modale
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     console.log("▶️ ÉTAPE 2 : Outils importés avec succès.");
@@ -180,69 +179,77 @@
     const db = getFirestore(app);
     console.log("▶️ ÉTAPE 3 : Firebase est connecté.");
 
-    // --- FONCTION POUR CHARGER LES RÔLES ---
-    async function chargerRole() {
+    // ==========================================
+    // --- FONCTION POUR CHARGER LES RÔLES (8 par page) ---
+    // ==========================================
+    let tousLesRoles = [];
+    let pageActuelle = 0;
+    const ROLES_PAR_PAGE = 8; // Limite fixée à 8
+
+    async function chargerRolesAccueil() {
       try {
-        const querySnapshot = await getDocs(collection(db, "role"));
-        let roles = []; 
-        querySnapshot.forEach((doc) => roles.push(doc.data()));
-
-        roles.sort((a, b) => (b.annee || 0) - (a.annee || 0));
-
-        const conteneurOnglets = document.getElementById('role-tabs');
+        const q = query(collection(db, "role"), orderBy("annee", "desc"));
+        const snapshot = await getDocs(q);
         
-        if (roles.length > 0) {
-          conteneurOnglets.innerHTML = ''; 
+        snapshot.forEach(doc => tousLesRoles.push(doc.data()));
+        
+        if (tousLesRoles.length > 0) {
+          afficherPageRoles(0);
         } else {
-          return; 
+          document.getElementById('home-roles-list').innerHTML = "<p style='text-align: center; color: var(--muted); padding: 20px;'>Aucun rôle disponible.</p>";
         }
-
-        const taillePage = 5;
-        const nombrePages = Math.ceil(roles.length / taillePage);
-
-        for (let i = 0; i < nombrePages; i++) {
-          const ul = document.createElement('ul');
-          ul.className = i === 0 ? 'badges role-page active' : 'badges role-page';
-          
-          const rolesDeLaPage = roles.slice(i * taillePage, (i + 1) * taillePage);
-          
-          rolesDeLaPage.forEach(unRole => {
-            const li = document.createElement('li');
-            li.innerHTML = `💖 ${unRole.titre} — <b>${unRole.projet}</b> (${unRole.type} ${unRole.annee || ''})`;
-            ul.appendChild(li);
-          });
-          
-          conteneurOnglets.appendChild(ul);
-        }
-
-        if (nombrePages > 1) {
-          const paginationDiv = document.createElement('div');
-          paginationDiv.className = 'role-pagination';
-          
-          for (let i = 0; i < nombrePages; i++) {
-            const btn = document.createElement('button');
-            btn.className = i === 0 ? 'role-tab-btn active' : 'role-tab-btn';
-            btn.textContent = i + 1;
-            paginationDiv.appendChild(btn);
-          }
-          conteneurOnglets.appendChild(paginationDiv);
-
-          const btns = paginationDiv.querySelectorAll('.role-tab-btn');
-          const pages = conteneurOnglets.querySelectorAll('.role-page');
-          
-          btns.forEach((btn, index) => {
-            btn.addEventListener('click', () => {
-              btns.forEach(b => b.classList.remove('active'));
-              pages.forEach(p => p.classList.remove('active'));
-              btn.classList.add('active');
-              pages[index].classList.add('active');
-            });
-          });
-        }
-      } catch (erreur) { console.error("❌ ERREUR FATALE ROLES :", erreur); }
+      } catch (erreur) {
+        console.error("❌ ERREUR FATALE ROLES :", erreur);
+        document.getElementById('home-roles-list').innerHTML = "<p style='text-align: center; color: red; padding: 20px;'>Erreur de chargement.</p>";
+      }
     }
 
+    function afficherPageRoles(indexPage) {
+      const ul = document.getElementById('home-roles-list');
+      ul.innerHTML = ''; // On vide la liste
+
+      const debut = indexPage * ROLES_PAR_PAGE;
+      const fin = debut + ROLES_PAR_PAGE;
+      const rolesAAfficher = tousLesRoles.slice(debut, fin);
+
+      rolesAAfficher.forEach(role => {
+        const li = document.createElement('li');
+        // On conserve ton style d'affichage avec le 💖
+        li.innerHTML = `💖 ${role.titre} — <b>${role.projet}</b> (${role.type} ${role.annee || ''})`;
+        ul.appendChild(li);
+      });
+
+      // Gestion de l'état des boutons flèches
+      const btnPrev = document.getElementById('btn-prev-roles');
+      const btnNext = document.getElementById('btn-next-roles');
+
+      btnPrev.disabled = (indexPage === 0);
+      btnNext.disabled = (fin >= tousLesRoles.length);
+      
+      btnPrev.style.opacity = (indexPage === 0) ? '0.3' : '1';
+      btnNext.style.opacity = (fin >= tousLesRoles.length) ? '0.3' : '1';
+      btnPrev.style.cursor = (indexPage === 0) ? 'not-allowed' : 'pointer';
+      btnNext.style.cursor = (fin >= tousLesRoles.length) ? 'not-allowed' : 'pointer';
+    }
+
+    // Écouteurs pour les clics sur les flèches
+    document.getElementById('btn-prev-roles').addEventListener('click', () => {
+      if (pageActuelle > 0) {
+        pageActuelle--;
+        afficherPageRoles(pageActuelle);
+      }
+    });
+
+    document.getElementById('btn-next-roles').addEventListener('click', () => {
+      if ((pageActuelle + 1) * ROLES_PAR_PAGE < tousLesRoles.length) {
+        pageActuelle++;
+        afficherPageRoles(pageActuelle);
+      }
+    });
+
+    // ==========================================
     // --- FONCTION POUR CHARGER LES VIDÉOS ---
+    // ==========================================
     async function chargerVideos() {
       const slider = document.getElementById('ytSlider');
       const btnPrev = document.getElementById('yt-prev');
@@ -289,9 +296,11 @@
       }
     }
 
-    // --- GESTION DE LA MODALE PRESS KIT (MULTI-BOUTONS) ---
+    // ==========================================
+    // --- GESTION DE LA MODALE PRESS KIT ---
+    // ==========================================
     const modalPresskit = document.getElementById('presskitModal');
-    const btnsPresskit = document.querySelectorAll('.js-presskit'); // Cible la classe
+    const btnsPresskit = document.querySelectorAll('.js-presskit');
     const btnClosePresskit = document.getElementById('btn-close-presskit');
 
     btnsPresskit.forEach(btn => {
@@ -314,12 +323,10 @@
       btnClosePresskit.addEventListener('click', () => modalPresskit.close());
     }
     
-    // On lance les fonctions au chargement
-    chargerRole();
+    // On lance les fonctions au chargement de la page
+    chargerRolesAccueil();
     chargerVideos();
   </script>
-  
-  <script src="js/main.js" defer></script>
 
   <div class="scroll-hint left-hint" aria-hidden="true">
    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5 5 5-5"/></svg>
