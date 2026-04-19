@@ -419,23 +419,27 @@
     // ==========================================
 
     function cleanYouTubeUrl(url) {
-      let videoId = "";
-      try {
-        if (url.includes("youtu.be/")) {
-          videoId = url.split("youtu.be/")[1].split("?")[0];
-        } else if (url.includes("youtube.com/watch")) {
-          const urlObj = new URL(url);
-          videoId = urlObj.searchParams.get("v");
-        } else if (url.includes("youtube.com/embed/")) {
-          return url;
-        }
-      } catch (e) { console.error("Lien invalide"); }
-
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-      return null;
+  let videoId = "";
+  try {
+    if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1].split("?")[0];
+    } else if (url.includes("youtube.com/watch")) {
+      const urlObj = new URL(url);
+      videoId = urlObj.searchParams.get("v");
+    } else if (url.includes("/shorts/")) {
+      // NOUVEAU : Détecte les liens YouTube Shorts et isole l'ID
+      videoId = url.split("/shorts/")[1].split("?")[0];
+    } else if (url.includes("youtube.com/embed/")) {
+      return url;
     }
+  } catch (e) { console.error("Lien invalide"); }
+
+  if (videoId) {
+    // Transforme automatiquement en format embed valide
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  return null;
+}
 
     async function compactV() {
       const q = query(collection(db, "videos"), orderBy("ordre", "asc"));
