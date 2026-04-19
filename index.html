@@ -17,6 +17,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* Style spécifique pour la barre de recherche calqué sur tes filtres */
+    .search-input {
+      font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 16px; 
+      border-radius: 12px; background: var(--card); border: 1px solid var(--line); 
+      color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.04); outline: none; 
+      transition: all 0.2s ease; width: 100%;
+    }
+    .search-input:hover, .search-input:focus {
+      border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,193,7,.18);
+    }
+    body.dark-mode .search-input {
+      background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important;
+    }
+  </style>
 </head>
 <body>
   <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
