@@ -39,23 +39,20 @@ const PUBLIC_HEADER_HTML = `
 `;
 
 function ensureUnifiedHeader() {
+  document.documentElement.classList.add('has-public-shell');
   const header = document.querySelector('.site-header');
   if (!header) return;
 
-  const inner = header.querySelector('.site-header-inner');
-  const hasExpectedLinks = inner
-    && header.querySelector('a[data-nav="home"]')
-    && header.querySelector('a[data-nav="filmography"]')
-    && header.querySelector('a[data-nav="gallery"]')
-    && header.querySelector('a[data-nav="contact"]');
-
-  if (!hasExpectedLinks) {
-    header.innerHTML = PUBLIC_HEADER_HTML;
-  }
+  // La navbar publique est le shell stable du site : on la reconstruit à l’identique
+  // sur chaque page, y compris après navigation PJAX. Cela évite les micro-variantes
+  // entre Filmographie, Galerie, Contact et Accueil.
+  header.className = 'site-header';
+  header.setAttribute('role', 'banner');
+  header.dataset.yingShell = 'public';
+  header.innerHTML = PUBLIC_HEADER_HTML;
 
   const unifiedInner = header.querySelector('.site-header-inner');
   if (unifiedInner) unifiedInner.dataset.yingUnified = 'true';
-  header.dataset.yingShell = 'public';
 }
 
 let commonReady = false;

@@ -165,14 +165,28 @@ async function transitionTo(nextMain, { beforeSwap = null } = {}) {
     return;
   }
 
+  // View Transitions quand le navigateur le permet : plus fluide et sans flash de header.
+  if (document.startViewTransition) {
+    nextMain.classList.add('is-pjax-entering');
+    const transition = document.startViewTransition(() => {
+      beforeSwap?.();
+      currentMain.replaceWith(nextMain);
+    });
+    await transition.ready.catch(() => {});
+    requestAnimationFrame(() => nextMain.classList.remove('is-pjax-entering'));
+    await transition.finished.catch(() => {});
+    return;
+  }
+
   currentMain.classList.add('is-pjax-leaving');
-  await wait(190);
+  await wait(160);
   beforeSwap?.();
   currentMain.replaceWith(nextMain);
   nextMain.classList.add('is-pjax-entering');
 
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   nextMain.classList.remove('is-pjax-entering');
+  await wait(120);
 }
 
 function scrollAfterNavigation(url, state, isPop) {
