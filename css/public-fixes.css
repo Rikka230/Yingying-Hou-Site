@@ -164,3 +164,90 @@ html.is-pjax-navigating body.page-filmographie .page-hero-clean h1 {
     table-layout: auto !important;
   }
 }
+
+/* =========================================
+   FILMOGRAPHIE — COULEURS MODE NUIT V3
+   Corrige uniquement la palette du tableau.
+========================================= */
+
+html.theme-dark body.page-filmographie .table-wrap,
+body.dark-mode.page-filmographie .table-wrap {
+  background: #171a22 !important;
+  border-color: rgba(255, 255, 255, .11) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .28) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography,
+html.theme-dark body.page-filmographie .table,
+body.dark-mode.page-filmographie #filmography,
+body.dark-mode.page-filmographie .table {
+  background: #171a22 !important;
+  color: rgba(255, 255, 255, .88) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography thead th,
+body.dark-mode.page-filmographie #filmography thead th {
+  background: #f7f8fb !important;
+  color: #10131a !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .08) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody tr:nth-child(odd),
+body.dark-mode.page-filmographie #filmography tbody tr:nth-child(odd) {
+  background: #171a22 !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody tr:nth-child(even),
+body.dark-mode.page-filmographie #filmography tbody tr:nth-child(even) {
+  background: #13161e !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody td,
+body.dark-mode.page-filmographie #filmography tbody td {
+  color: rgba(255, 255, 255, .86) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .14) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody tr:last-child td,
+body.dark-mode.page-filmographie #filmography tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+html.theme-dark body.page-filmographie #filmography strong,
+body.dark-mode.page-filmographie #filmography strong {
+  color: #ffffff !important;
+}
+
+html.theme-dark body.page-filmographie .category-pill,
+body.dark-mode.page-filmographie .category-pill {
+  background: rgba(255, 193, 7, .18) !important;
+  color: #ffc107 !important;
+  border: 1px solid rgba(255, 193, 7, .22) !important;
+}
+
+html.theme-dark body.page-filmographie .table-link,
+body.dark-mode.page-filmographie .table-link {
+  background: transparent !important;
+  color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+html.theme-dark body.page-filmographie .table-link:hover,
+body.dark-mode.page-filmographie .table-link:hover {
+  background: #ffc107 !important;
+  color: #111318 !important;
+}
+
+html.theme-dark body.page-filmographie .table-empty,
+body.dark-mode.page-filmographie .table-empty {
+  color: rgba(255, 255, 255, .72) !important;
+}
+
+@media (max-width: 760px) {
+  html.theme-dark body.page-filmographie .table-wrap,
+  body.dark-mode.page-filmographie .table-wrap {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,15 +1,14 @@
-PATCH V2 — Filmographie + Galerie
+PATCH V3 — Couleurs tableau Filmographie en mode nuit
 
-À remplacer dans le repo :
+À remplacer :
 - css/public-fixes.css
-- js/gallery-lightbox-fix.js
-- js/pjax.js
 
-Ce qui est corrigé :
-- Filmographie : largeur revenue à la base large du site.
-- Filmographie : un seul résultat ne s'étire plus sur toute la hauteur.
-- Filmographie : colonnes moins serrées et suppression du quadrillage vertical bizarre.
-- PJAX : suppression du flash où Filmographie devient énorme avant le changement de page.
-- Galerie : suppression du flou/halo coupé autour de la photo dans la lightbox.
+Ce patch ne touche pas la structure, ni la largeur, ni la galerie.
+Il ajoute uniquement la palette dark mode du tableau filmographie :
+- fond du tableau sombre
+- lignes alternées sombres
+- textes lisibles
+- badges jaunes cohérents
+- boutons VOIR adaptés au mode nuit
 
-Après upload : hard refresh si ton navigateur garde l'ancien JS/CSS.
+Après upload : hard refresh si le navigateur garde l'ancien CSS.
