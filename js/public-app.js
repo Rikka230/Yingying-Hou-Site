@@ -15,6 +15,7 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 let pageController = null;
 let scrollController = null;
+const galleryStore = { photos: null, fetchPromise: null, preloaded: new Set() };
 
 function signal() {
   return pageController?.signal;
@@ -334,30 +335,68 @@ function preloadImage(url) {
   });
 }
 
+async function loadGalleryPhotos(currentSignal) {
+  if (galleryStore.photos) return galleryStore.photos;
+  if (!galleryStore.fetchPromise) {
+    galleryStore.fetchPromise = (async () => {
+      const q = query(collection(db, 'galerie'), orderBy('ordre', 'asc'));
+      const snapshot = await getDocs(q);
+      const photos = [];
+      snapshot.forEach((item) => {
+        const data = item.data();
+        if (data?.url) photos.push(data);
+      });
+      galleryStore.photos = photos;
+      return photos;
+    })().catch((error) => {
+      galleryStore.fetchPromise = null;
+      throw error;
+    });
+  }
+  const photos = await galleryStore.fetchPromise;
+  if (currentSignal?.aborted) return galleryStore.photos || photos;
+  return photos;
+}
+
+function preloadGalleryImage(url) {
+  if (!url) return Promise.resolve(false);
+  if (galleryStore.preloaded.has(url)) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => { galleryStore.preloaded.add(url); resolve(true); };
+    image.onerror = () => resolve(false);
+    image.src = url;
+  });
+}
+
 async function initGallery() {
   const grid = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
-  if (!grid || !lightbox) return;
+  const currentSignal = signal();
+  if (!grid || !lightbox || currentSignal?.aborted) return;
 
   let allPhotos = [];
   let shownPhotos = [];
   let currentIndex = 0;
-  let animating = false;
+  let moving = false;
+  let transitionId = 0;
   let renderToken = 0;
+
+  const isAlive = () => !currentSignal?.aborted && grid.isConnected && lightbox.isConnected;
 
   lightbox.className = 'lightbox ying-lightbox';
   lightbox.setAttribute('aria-hidden', 'true');
   lightbox.innerHTML = `
     <div class="lb-backdrop" data-lb-close></div>
+    <button class="lb-close" type="button" data-lb-close aria-label="Fermer">✕</button>
+    <button class="lb-nav lb-prev" type="button" aria-label="Photo précédente">‹</button>
     <div class="lb-shell" role="document">
-      <button class="lb-close" type="button" data-lb-close aria-label="Fermer">✕</button>
-      <button class="lb-nav lb-prev" type="button" aria-label="Photo précédente">‹</button>
-      <div class="lb-stage" aria-live="polite"></div>
-      <button class="lb-nav lb-next" type="button" aria-label="Photo suivante">›</button>
+      <div class="lb-viewport" aria-live="polite"><div class="lb-rail"></div></div>
       <p class="lb-caption" id="lb-caption"></p>
-    </div>`;
+    </div>
+    <button class="lb-nav lb-next" type="button" aria-label="Photo suivante">›</button>`;
 
-  const stage = lightbox.querySelector('.lb-stage');
+  const rail = lightbox.querySelector('.lb-rail');
   const caption = lightbox.querySelector('.lb-caption');
   const prev = lightbox.querySelector('.lb-prev');
   const next = lightbox.querySelector('.lb-next');
@@ -371,102 +410,121 @@ async function initGallery() {
     return shownPhotos[safeIndex(index)];
   }
 
-  function makeCard(photo, className = 'is-active') {
-    const card = document.createElement('div');
-    card.className = `lb-photo-card ${className}`;
-    const img = document.createElement('img');
-    img.src = photo?.url || '';
-    img.alt = photo?.caption || 'Photo de Yingying HOU';
-    img.draggable = false;
-    card.appendChild(img);
-    return card;
+  function slideMarkup(photo, label) {
+    if (!photo) return '<div class="lb-slide"></div>';
+    return `<div class="lb-slide" aria-label="${escapeHtml(label)}"><img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" draggable="false"></div>`;
   }
 
   function setCaption(photo) {
     caption.textContent = photo?.caption || '';
   }
 
-  function primeNeighbors(index) {
-    [index - 1, index, index + 1].forEach((i) => preloadImage(photoAt(i)?.url));
+  function prime(index) {
+    [index - 1, index, index + 1].forEach((i) => preloadGalleryImage(photoAt(i)?.url));
+  }
+
+  function renderRail(index, withTransition = false) {
+    if (!shownPhotos.length) return;
+    currentIndex = safeIndex(index);
+    rail.classList.remove('is-animated');
+    rail.style.transition = 'none';
+    rail.style.transform = 'translate3d(-100%,0,0)';
+    rail.innerHTML = [
+      slideMarkup(photoAt(currentIndex - 1), 'Photo précédente'),
+      slideMarkup(photoAt(currentIndex), 'Photo actuelle'),
+      slideMarkup(photoAt(currentIndex + 1), 'Photo suivante')
+    ].join('');
+    setCaption(photoAt(currentIndex));
+    prime(currentIndex);
+    // Force le navigateur à poser le rail au centre avant toute animation.
+    rail.offsetHeight;
+    if (withTransition) {
+      rail.style.transition = '';
+      rail.classList.add('is-animated');
+    }
   }
 
   function open(index) {
-    if (!shownPhotos.length) return;
-    currentIndex = safeIndex(index);
-    stage.innerHTML = '';
-    stage.appendChild(makeCard(photoAt(currentIndex), 'is-active'));
-    setCaption(photoAt(currentIndex));
-    primeNeighbors(currentIndex);
+    if (!shownPhotos.length || !isAlive()) return;
+    transitionId += 1;
+    moving = false;
+    renderRail(index, false);
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
 
   function close() {
+    transitionId += 1;
+    moving = false;
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    animating = false;
-    stage.innerHTML = '';
+    if (rail) rail.innerHTML = '';
   }
 
   async function go(delta) {
-    if (animating || !shownPhotos.length) return;
-    animating = true;
+    if (moving || !shownPhotos.length || lightbox.getAttribute('aria-hidden') === 'true') return;
+    moving = true;
+    const id = ++transitionId;
     const targetIndex = safeIndex(currentIndex + delta);
-    const targetPhoto = photoAt(targetIndex);
-    await preloadImage(targetPhoto?.url);
+    await preloadGalleryImage(photoAt(targetIndex)?.url);
+    if (id !== transitionId || !isAlive()) return;
 
-    const currentCard = stage.querySelector('.lb-photo-card.is-active') || makeCard(photoAt(currentIndex), 'is-active');
-    if (!currentCard.parentNode) stage.appendChild(currentCard);
-
-    const incoming = makeCard(targetPhoto, delta > 0 ? 'from-right' : 'from-left');
-    stage.appendChild(incoming);
-    setCaption(targetPhoto);
-
+    renderRail(currentIndex, false);
     requestAnimationFrame(() => {
-      currentCard.classList.add(delta > 0 ? 'to-left' : 'to-right');
-      incoming.classList.remove('from-right', 'from-left');
-      incoming.classList.add('is-active');
+      if (id !== transitionId || !isAlive()) return;
+      rail.style.transition = '';
+      rail.classList.add('is-animated');
+      rail.style.transform = delta > 0 ? 'translate3d(-200%,0,0)' : 'translate3d(0,0,0)';
     });
 
+    let finished = false;
+    let timer = null;
     const finish = () => {
-      stage.querySelectorAll('.lb-photo-card').forEach((card) => {
-        if (card !== incoming) card.remove();
-      });
-      incoming.className = 'lb-photo-card is-active';
-      currentIndex = targetIndex;
-      primeNeighbors(currentIndex);
-      animating = false;
+      if (finished || id !== transitionId || !isAlive()) return;
+      finished = true;
+      if (timer) clearTimeout(timer);
+      renderRail(targetIndex, false);
+      moving = false;
     };
 
-    incoming.addEventListener('transitionend', finish, { once: true, signal: signal() });
-    setTimeout(() => { if (animating) finish(); }, 520);
+    const onEnd = (event) => {
+      if (event.target === rail) finish();
+    };
+    rail.addEventListener('transitionend', onEnd, { once: true, signal: currentSignal });
+    timer = setTimeout(finish, 620);
   }
 
   async function renderGrid(category = 'Tout') {
     const token = ++renderToken;
+    if (!isAlive()) return;
     grid.classList.remove('is-ready');
     grid.classList.add('is-loading');
-    grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Préparation des images…</em></div>`;
 
     shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
-    await Promise.race([
-      Promise.allSettled(shownPhotos.map((photo) => preloadImage(photo.url))),
-      new Promise((resolve) => setTimeout(resolve, 4500))
-    ]);
-    if (token !== renderToken) return;
+
+    const hasWarmCache = shownPhotos.length && shownPhotos.every((photo) => galleryStore.preloaded.has(photo.url));
+    if (!hasWarmCache) {
+      grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Préparation des images…</em></div>`;
+      await Promise.race([
+        Promise.allSettled(shownPhotos.map((photo) => preloadGalleryImage(photo.url))),
+        new Promise((resolve) => setTimeout(resolve, 4500))
+      ]);
+    }
+
+    if (token !== renderToken || !isAlive()) return;
 
     if (!shownPhotos.length) {
       grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
     } else {
       grid.innerHTML = shownPhotos.map((photo, index) => `
-        <a href="${escapeHtml(photo.url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 42}ms">
+        <a href="${escapeHtml(photo.url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 38}ms">
           <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
           <div class="item-overlay"><span>Agrandir</span></div>
         </a>`).join('');
     }
 
     grid.classList.remove('is-loading');
-    requestAnimationFrame(() => grid.classList.add('is-ready'));
+    requestAnimationFrame(() => { if (isAlive()) grid.classList.add('is-ready'); });
   }
 
   listen(grid, 'click', (event) => {
@@ -497,13 +555,14 @@ async function initGallery() {
 
   try {
     grid.classList.add('is-loading');
-    grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Récupération des photos…</em></div>`;
-    const q = query(collection(db, 'galerie'), orderBy('ordre', 'asc'));
-    const snapshot = await getDocs(q);
-    allPhotos = [];
-    snapshot.forEach((item) => allPhotos.push(item.data()));
+    if (!galleryStore.photos) {
+      grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Récupération des photos…</em></div>`;
+    }
+    allPhotos = await loadGalleryPhotos(currentSignal);
+    if (!isAlive()) return;
     await renderGrid('Tout');
   } catch (error) {
+    if (currentSignal?.aborted || !isAlive()) return;
     console.warn('Galerie indisponible :', error);
     grid.classList.remove('is-loading');
     grid.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
@@ -555,16 +614,16 @@ function initScrollHints() {
   window.addEventListener('resize', update, { passive: true, signal: scrollController.signal });
 }
 
-async function initPage() {
+function initPage() {
   teardown();
   pageController = new AbortController();
   initCommon();
   initScrollHints();
   document.body.style.overflow = '';
   const page = document.getElementById('main')?.dataset.page;
-  if (page === 'home') await initHome();
-  else if (page === 'filmography') await initFilmography();
-  else if (page === 'gallery') await initGallery();
+  if (page === 'home') void initHome();
+  else if (page === 'filmography') void initFilmography();
+  else if (page === 'gallery') void initGallery();
   else if (page === 'contact') initContact();
 }
 

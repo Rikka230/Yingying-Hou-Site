@@ -1,4 +1,4 @@
-const NAV_VERSION = 'v31';
+const NAV_VERSION = 'v32';
 
 const NAV_ITEMS = [
   { href: '/', key: '/', label: 'Accueil' },

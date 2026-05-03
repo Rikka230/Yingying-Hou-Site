@@ -439,3 +439,105 @@ html.theme-dark .lb-backdrop { background: rgba(10,12,16,.95) !important; }
     animation: none !important;
   }
 }
+
+/* V3.2 gallery lock-free + true lightbox rail slider. */
+.ying-lightbox,
+.lightbox.ying-lightbox {
+  background: transparent !important;
+  overflow: hidden !important;
+}
+.ying-lightbox .lb-backdrop {
+  background: rgba(255,255,255,.965) !important;
+}
+body.dark-mode .ying-lightbox .lb-backdrop,
+html.theme-dark .ying-lightbox .lb-backdrop {
+  background: rgba(10,12,16,.955) !important;
+}
+.ying-lightbox .lb-shell {
+  width: min(1180px, 92vw) !important;
+  height: min(800px, 76vh) !important;
+  position: relative !important;
+  display: block !important;
+  overflow: visible !important;
+  z-index: 2 !important;
+}
+.ying-lightbox .lb-viewport {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  border-radius: 28px !important;
+  position: relative !important;
+}
+.ying-lightbox .lb-rail {
+  display: flex !important;
+  width: 300% !important;
+  height: 100% !important;
+  transform: translate3d(-100%,0,0);
+  will-change: transform !important;
+}
+.ying-lightbox .lb-rail.is-animated {
+  transition: transform .52s cubic-bezier(.22, 1, .36, 1) !important;
+}
+.ying-lightbox .lb-slide {
+  flex: 0 0 33.333333% !important;
+  width: 33.333333% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: clamp(8px, 1.2vw, 16px) !important;
+  overflow: hidden !important;
+}
+.ying-lightbox .lb-slide img {
+  display: block !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 24px !important;
+  border: 8px solid #fff !important;
+  background: #fff !important;
+  box-shadow: 0 30px 70px rgba(17,19,24,.18) !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+.ying-lightbox .lb-caption {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: -38px !important;
+  transform: translateX(-50%) !important;
+  width: min(720px, 80vw) !important;
+  min-height: 24px !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+}
+.ying-lightbox .lb-close,
+.ying-lightbox .lb-nav {
+  transform: none !important;
+  animation: none !important;
+  transition: background .18s ease, color .18s ease, border-color .18s ease !important;
+}
+.ying-lightbox .lb-close { top: 88px !important; }
+.ying-lightbox .lb-prev,
+.ying-lightbox .lb-next {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+.ying-lightbox .lb-prev:hover,
+.ying-lightbox .lb-next:hover {
+  transform: translateY(-50%) !important;
+}
+.ying-lightbox .lb-close:hover { transform: none !important; }
+
+@media (max-width: 760px) {
+  .ying-lightbox .lb-shell { width: 100vw !important; height: 74vh !important; }
+  .ying-lightbox .lb-viewport { border-radius: 0 !important; }
+  .ying-lightbox .lb-slide { padding: 8px !important; }
+  .ying-lightbox .lb-slide img { border-width: 4px !important; border-radius: 16px !important; }
+  .ying-lightbox .lb-close { top: 84px !important; right: 14px !important; }
+  .ying-lightbox .lb-prev { left: 12px !important; }
+  .ying-lightbox .lb-next { right: 12px !important; }
+  .ying-lightbox .lb-caption { bottom: -34px !important; font-size: 13px !important; }
+}
