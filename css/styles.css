@@ -923,3 +923,115 @@ html.is-pjax-navigating #main {
     transform: none !important;
   }
 }
+
+/* =========================================
+   PATCH PJAX V2.1 — SHELL NAV UNIFIÉ + TRANSITIONS PLUS DOUCES
+   Garde la navbar parfaitement stable entre Accueil / Filmographie / Galerie / Contact.
+========================================= */
+.site-header {
+  min-height: 64px !important;
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+.site-header-inner {
+  height: 64px !important;
+  width: min(100%, 1100px) !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+}
+
+.site-nav ul {
+  align-items: center !important;
+}
+
+.site-nav a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  transition: background-color .22s ease, color .22s ease, box-shadow .22s ease, transform .22s ease !important;
+}
+
+.site-nav a.is-active {
+  background: var(--yellow) !important;
+  color: var(--yellow-ink) !important;
+  box-shadow: 0 10px 24px rgba(255, 193, 7, .22) !important;
+  transform: none !important;
+}
+
+.header-right {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+#main {
+  outline: none;
+  will-change: opacity, transform, filter;
+  transition:
+    opacity .34s cubic-bezier(.22, 1, .36, 1),
+    transform .34s cubic-bezier(.22, 1, .36, 1),
+    filter .34s cubic-bezier(.22, 1, .36, 1) !important;
+}
+
+#main.is-pjax-leaving {
+  opacity: 0 !important;
+  transform: translate3d(0, -8px, 0) scale(.996) !important;
+  filter: blur(2px) !important;
+  pointer-events: none !important;
+}
+
+#main.is-pjax-entering {
+  opacity: 0 !important;
+  transform: translate3d(0, 18px, 0) scale(.998) !important;
+  filter: blur(1.5px) !important;
+}
+
+html.is-pjax-navigating .site-header {
+  pointer-events: none;
+}
+
+.pjax-progress {
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, var(--yellow), #ffe38a, var(--yellow), transparent) !important;
+  transition: transform .55s cubic-bezier(.22, 1, .36, 1), opacity .22s ease !important;
+}
+
+.pjax-progress.is-active {
+  transform: scaleX(.86) !important;
+}
+
+@media (min-width: 701px) {
+  html.is-pjax-navigating .site-header {
+    box-shadow: 0 12px 34px rgba(17, 19, 24, .06);
+  }
+}
+
+@media (max-width: 700px) {
+  .site-header-inner {
+    width: 100% !important;
+    padding: 0 14px !important;
+  }
+
+  .site-nav a {
+    justify-content: flex-start !important;
+    min-height: 42px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #main,
+  #main.is-pjax-leaving,
+  #main.is-pjax-entering,
+  .site-nav a,
+  .pjax-progress {
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}

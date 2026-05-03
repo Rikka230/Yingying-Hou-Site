@@ -19,6 +19,45 @@ const icons = {
   moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
 };
 
+
+const PUBLIC_HEADER_HTML = `
+  <div class="wrap site-header-inner">
+    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
+    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/" data-nav="home">Accueil</a></li>
+        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
+        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
+        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+    </div>
+  </div>
+`;
+
+function ensureUnifiedHeader() {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+
+  const inner = header.querySelector('.site-header-inner');
+  const hasExpectedLinks = inner
+    && header.querySelector('a[data-nav="home"]')
+    && header.querySelector('a[data-nav="filmography"]')
+    && header.querySelector('a[data-nav="gallery"]')
+    && header.querySelector('a[data-nav="contact"]');
+
+  if (!hasExpectedLinks) {
+    header.innerHTML = PUBLIC_HEADER_HTML;
+  }
+
+  const unifiedInner = header.querySelector('.site-header-inner');
+  if (unifiedInner) unifiedInner.dataset.yingUnified = 'true';
+  header.dataset.yingShell = 'public';
+}
+
 let commonReady = false;
 let lastKeyHandler = null;
 let galleryTimer = null;
@@ -92,10 +131,14 @@ function applyStoredTheme() {
 }
 
 function updateActiveNav() {
-  const path = window.location.pathname.replace(/\/index\.html$/, '/') || '/';
+  const cleanPath = (value) => {
+    const path = (value || '/').replace(/\/index\.html$/, '/').replace(/\/+$/, '') || '/';
+    return path;
+  };
+  const path = cleanPath(window.location.pathname);
   document.querySelectorAll('.site-nav a').forEach((link) => {
-    const href = new URL(link.getAttribute('href'), window.location.origin).pathname.replace(/\/index\.html$/, '/') || '/';
-    const active = href === path || (path === '/' && href === '/');
+    const href = cleanPath(new URL(link.getAttribute('href'), window.location.origin).pathname);
+    const active = href === path;
     link.classList.toggle('is-active', active);
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -103,6 +146,7 @@ function updateActiveNav() {
 }
 
 function initCommon() {
+  ensureUnifiedHeader();
   applyStoredTheme();
   updateActiveNav();
   document.querySelectorAll('#year').forEach((year) => { year.textContent = new Date().getFullYear(); });
@@ -458,7 +502,7 @@ async function initPage() {
   if (page === 'contact') initContact();
 }
 
-window.YingApp = { init: initPage, db, normalizeCategory };
+window.YingApp = { init: initPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
 
 document.addEventListener('DOMContentLoaded', () => {
   initPage();
