@@ -54,7 +54,6 @@ function saveCache(url, html) {
 async function fetchHtml(url, signal) {
   const key = routeKey(url);
   if (pageCache.has(key)) return pageCache.get(key);
-
   const response = await fetch(url, {
     headers: { Accept: 'text/html,application/xhtml+xml', 'X-Requested-With': 'PJAX' },
     signal
@@ -62,7 +61,6 @@ async function fetchHtml(url, signal) {
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const type = response.headers.get('content-type') || '';
   if (!type.includes('text/html')) throw new Error('Réponse non HTML');
-
   const html = await response.text();
   saveCache(url, html);
   return html;
@@ -112,7 +110,7 @@ function closeTransientUi() {
   document.querySelectorAll('dialog[open]').forEach((dialog) => {
     try { dialog.close(); } catch (_) { dialog.removeAttribute('open'); }
   });
-  document.querySelectorAll('.lightbox[aria-hidden="false"], .photo-viewer[aria-hidden="false"], .video-lightbox[aria-hidden="false"]').forEach((node) => {
+  document.querySelectorAll('.lightbox[aria-hidden="false"], .photo-viewer[aria-hidden="false"], .photo-viewer-fixed[aria-hidden="false"], .video-lightbox[aria-hidden="false"]').forEach((node) => {
     node.setAttribute('aria-hidden', 'true');
   });
   document.body.style.overflow = '';
@@ -139,7 +137,7 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function swapMain(nextMain, url, state, pop) {
+async function swapMain(nextMain, url, state, pop, beforeReplace) {
   const current = document.querySelector(MAIN_SELECTOR);
   if (!current) throw new Error('Main courant introuvable');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -150,6 +148,7 @@ async function swapMain(nextMain, url, state, pop) {
     await wait(120);
   }
 
+  beforeReplace?.();
   current.replaceWith(nextMain);
   scrollAfter(url, state, pop);
 
@@ -188,8 +187,7 @@ async function navigate(url, { push = true, state = null, pop = false } = {}) {
 
     const { doc, main } = parsePage(html);
     updateHead(doc, nextUrl.href);
-    updateBodyClass(doc);
-    await swapMain(main, nextUrl.href, state, pop);
+    await swapMain(main, nextUrl.href, state, pop, () => updateBodyClass(doc));
     if (token !== navigationToken) return false;
 
     if (push) history.pushState({ scrollX: 0, scrollY: 0 }, doc.title || '', nextUrl.href);

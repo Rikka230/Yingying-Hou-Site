@@ -1,90 +1,166 @@
-/* Correctifs publics isolés — ne remplace pas styles.css.
-   Sujet : stabilisation filmographie uniquement. */
+/* Correctifs publics isolés V2
+   Filmographie : largeur de base conservée, tableau stable, lignes naturelles.
+*/
 
+body.page-filmographie .wrap,
 body.page-filmographie .page-hero-clean .wrap,
-body.page-filmographie .filmography-section {
-  width: min(1120px, calc(100vw - 40px));
-  max-width: 1120px;
-  margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
+body.page-filmographie .filmography-section.wrap {
+  max-width: 1400px !important;
 }
 
-body.page-filmographie .filmography-section {
-  min-height: calc(100dvh - 220px);
+body.page-filmographie .page-hero-clean .wrap,
+body.page-filmographie .filmography-section.wrap {
+  width: min(1400px, calc(100vw - 40px)) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
 }
 
 body.page-filmographie .filtres-bar {
-  width: 100%;
-  box-sizing: border-box;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 body.page-filmographie .table-wrap {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: clamp(540px, 62vh, 760px);
-  max-height: clamp(540px, calc(100dvh - 300px), 780px);
-  overflow: auto;
-  scrollbar-gutter: stable both-edges;
-  display: block;
-  align-items: initial;
-  justify-content: initial;
-  background: var(--card);
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+  scrollbar-gutter: stable both-edges !important;
+  display: block !important;
+  align-items: initial !important;
+  justify-content: initial !important;
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow) !important;
 }
 
-body.page-filmographie #filmography {
-  width: 100%;
-  min-width: 1060px;
-  height: auto;
-  min-height: 0;
-  table-layout: fixed;
+body.page-filmographie #filmography,
+body.page-filmographie .table {
+  width: 100% !important;
+  min-width: 1200px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: #fff !important;
 }
 
-body.page-filmographie #filmography thead,
-body.page-filmographie #filmography tbody,
-body.page-filmographie #filmography tr,
-body.page-filmographie #filmography th,
-body.page-filmographie #filmography td {
-  height: auto;
-  min-height: 0;
+body.page-filmographie #filmography thead {
+  display: table-header-group !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+body.page-filmographie #filmography tbody {
+  display: table-row-group !important;
+  height: auto !important;
+  min-height: 0 !important;
 }
 
 body.page-filmographie #filmography tbody::after {
-  content: none;
-  display: none;
-  height: 0;
+  content: none !important;
+  display: none !important;
+  height: 0 !important;
 }
 
-body.page-filmographie #filmography tbody tr {
-  vertical-align: middle;
+body.page-filmographie #filmography tr {
+  display: table-row !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
+
+body.page-filmographie #filmography th,
+body.page-filmographie #filmography td {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 22px 30px !important;
+  vertical-align: middle !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-top: 0 !important;
+  line-height: 1.45 !important;
+}
+
+body.page-filmographie #filmography thead th {
+  background: #fff !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+body.page-filmographie #filmography tbody td {
+  border-bottom: 1px solid rgba(230, 232, 238, .55) !important;
+}
+
+body.page-filmographie #filmography tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+body.page-filmographie #filmography tbody tr:nth-child(odd) {
+  background: rgba(255, 193, 7, .075) !important;
+}
+
+body.page-filmographie #filmography tbody tr:nth-child(even) {
+  background: #fff !important;
+}
+
+body.page-filmographie #filmography th:nth-child(1),
+body.page-filmographie #filmography td:nth-child(1) { width: 12% !important; }
+
+body.page-filmographie #filmography th:nth-child(2),
+body.page-filmographie #filmography td:nth-child(2) { width: 22% !important; }
+
+body.page-filmographie #filmography th:nth-child(3),
+body.page-filmographie #filmography td:nth-child(3) { width: 20% !important; }
+
+body.page-filmographie #filmography th:nth-child(4),
+body.page-filmographie #filmography td:nth-child(4) { width: 22% !important; }
+
+body.page-filmographie #filmography th:nth-child(5),
+body.page-filmographie #filmography td:nth-child(5) { width: 15% !important; }
+
+body.page-filmographie #filmography th:nth-child(6),
+body.page-filmographie #filmography td:nth-child(6) { width: 9% !important; }
 
 body.page-filmographie .table-empty {
-  height: auto;
-  min-height: 0;
-  padding: 34px 18px;
-  text-align: center;
-  vertical-align: top;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 34px 18px !important;
+  text-align: center !important;
+  vertical-align: top !important;
+}
+
+/* Filet anti-flash pendant la sortie PJAX. */
+html.is-pjax-navigating body.page-filmographie .page-hero-clean h1 {
+  font-size: clamp(24px, 4vw, 36px) !important;
 }
 
 @media (max-width: 760px) {
+  body.page-filmographie .wrap,
   body.page-filmographie .page-hero-clean .wrap,
-  body.page-filmographie .filmography-section {
-    width: min(100vw - 24px, 680px);
-  }
-
-  body.page-filmographie .filmography-section {
-    min-height: auto;
+  body.page-filmographie .filmography-section.wrap {
+    width: min(100vw - 24px, 680px) !important;
+    max-width: 680px !important;
   }
 
   body.page-filmographie .table-wrap {
-    min-height: 520px;
-    max-height: none;
-    overflow: auto;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
   }
 
-  body.page-filmographie #filmography {
-    min-width: 720px;
-    table-layout: auto;
+  body.page-filmographie #filmography,
+  body.page-filmographie .table {
+    min-width: 0 !important;
+    table-layout: auto !important;
   }
 }

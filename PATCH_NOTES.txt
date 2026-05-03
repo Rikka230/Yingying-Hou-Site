@@ -1,0 +1,15 @@
+PATCH V2 — Filmographie + Galerie
+
+À remplacer dans le repo :
+- css/public-fixes.css
+- js/gallery-lightbox-fix.js
+- js/pjax.js
+
+Ce qui est corrigé :
+- Filmographie : largeur revenue à la base large du site.
+- Filmographie : un seul résultat ne s'étire plus sur toute la hauteur.
+- Filmographie : colonnes moins serrées et suppression du quadrillage vertical bizarre.
+- PJAX : suppression du flash où Filmographie devient énorme avant le changement de page.
+- Galerie : suppression du flou/halo coupé autour de la photo dans la lightbox.
+
+Après upload : hard refresh si ton navigateur garde l'ancien JS/CSS.
