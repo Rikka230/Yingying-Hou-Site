@@ -96,7 +96,7 @@
 
         /* --- COLONNE TEXTE --- */
         .text-column { width: 38%; height: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); border-radius: var(--radius); border-left: 6px solid var(--accent-color); z-index: 2; overflow: hidden; transition: box-shadow 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: var(--text-color);}
-        .text-content-wrapper { padding: 5mm; display: flex; flex-direction: column; gap: 10px; transition: gap 0.3s; flex-shrink: 0; }
+        .text-content-wrapper { padding: 4mm 4.3mm; display: flex; flex-direction: column; gap: 7px; transition: gap 0.3s; flex-shrink: 0; }
         
         [contenteditable] { outline: none; border-radius: 4px; transition: background 0.2s; }
         [contenteditable]:hover { background: rgba(0,0,0,0.05); }
@@ -104,37 +104,38 @@
         
         .nom-complet { margin: 0; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; line-height: 1; transition: font-size 0.3s;}
         .contact { font-size: 0.75rem; color: #555; transition: font-size 0.3s;}
-        .details { font-size: 0.7rem; line-height: 1.4; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
+        .details { font-size: 0.7rem; line-height: 1.35; padding: 6px 7px; background: rgba(0,0,0,0.03); border-radius: 8px; transition: all 0.3s;}
 
         /* --- EXPERIENCES --- */
-        .experiences-container { display: flex; flex-direction: column; gap: 6px; }
-        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 4px;}
+        .experiences-container { display: flex; flex-direction: column; gap: 4px; }
+        .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 3px;}
         .exp-header h3 { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #333; }
         .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 18px; height: 18px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
-        .exp-list { display: flex; flex-direction: column; gap: 5px; transition: gap 0.3s;}
-        .exp-item { display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 6px; font-size: 0.68rem; position: relative; transition: font-size 0.3s;}
-        .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; line-height: 1.15; }
-        .exp-content { flex-grow: 1; min-width: 0; display: grid; grid-template-columns: 62px minmax(0, 1fr); column-gap: 5px; row-gap: 1px; align-items: start; }
+        .exp-list { display: flex; flex-direction: column; gap: 4px; transition: gap 0.3s;}
+        .exp-item { display: grid; grid-template-columns: 27px minmax(0, 1fr); column-gap: 3px; font-size: 0.66rem; position: relative; transition: font-size 0.3s;}
+        .exp-year { font-weight: 800; width: 27px; flex-shrink: 0; padding-top: 1px; line-height: 1.15; letter-spacing: -0.03em; }
+        .exp-content { flex-grow: 1; min-width: 0; display: grid; grid-template-columns: 58px minmax(0, 1fr); column-gap: 4px; row-gap: 0; align-items: start; }
         
-        .exp-cat { appearance: none; -webkit-appearance: none; grid-column: 1; grid-row: 1; align-self: start; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.46rem; line-height: 1.05; padding: 1px 4px; border-radius: 3px; width: 62px; height: 14px; font-weight: 800; border: none; outline: none; text-transform: uppercase; letter-spacing: -0.03em; cursor: pointer; transition: all 0.3s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+        .exp-cat { appearance: none; -webkit-appearance: none; grid-column: 1; grid-row: 1; align-self: start; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.36rem; line-height: 1.05; padding: 1px 2px; border-radius: 3px; width: 58px; height: 12px; font-weight: 800; border: none; outline: none; text-transform: uppercase; letter-spacing: -0.08em; cursor: pointer; transition: all 0.3s; overflow: hidden; text-overflow: clip; white-space: nowrap;}
         .exp-role-film { grid-column: 2; grid-row: 1; min-width: 0; font-weight: 700; color: #111; line-height: 1.15; overflow-wrap: anywhere;}
         .exp-film { font-style: italic; color: #444; }
-        .exp-dir { grid-column: 2; grid-row: 2; min-width: 0; font-size: 0.62rem; line-height: 1.15; color: #666; overflow-wrap: anywhere; }
+        .exp-dir { grid-column: 2; grid-row: 2; min-width: 0; font-size: 0.6rem; line-height: 1.12; color: #666; overflow-wrap: anywhere; }
         .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center;}
-        .exp-item:hover .remove-exp-btn { display: flex; }
+        .edit-exp-btn { position: absolute; right: 13px; top: 0; background: #222; color: white; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center;}
+        .exp-item:hover .remove-exp-btn, .exp-item:hover .edit-exp-btn { display: flex; }
 
         .annex-block { display: none; animation: fadeIn 0.3s ease; margin-bottom: 0;}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .text-column.has-annex .text-content-wrapper { gap: 6px; }
+        .text-column.has-annex .text-content-wrapper { gap: 5px; }
         .text-column.has-annex .nom-complet { font-size: 1.5rem; }
         .text-column.has-annex .contact { font-size: 0.7rem; }
         .text-column.has-annex .details { padding: 6px 8px; font-size: 0.65rem; margin-bottom: 0; }
-        .text-column.has-annex .exp-list { gap: 3px; }
-        .text-column.has-annex .exp-item { font-size: 0.58rem; }
-        .text-column.has-annex .exp-content { grid-template-columns: 56px minmax(0, 1fr); column-gap: 4px; }
-        .text-column.has-annex .exp-cat { width: 56px; height: 13px; font-size: 0.42rem; padding: 1px 3px; }
-        .text-column.has-annex .exp-dir { font-size: 0.54rem; }
+        .text-column.has-annex .exp-list { gap: 2px; }
+        .text-column.has-annex .exp-item { grid-template-columns: 26px minmax(0, 1fr); column-gap: 3px; font-size: 0.56rem; }
+        .text-column.has-annex .exp-content { grid-template-columns: 52px minmax(0, 1fr); column-gap: 3px; }
+        .text-column.has-annex .exp-cat { width: 52px; height: 11px; font-size: 0.32rem; padding: 1px 2px; }
+        .text-column.has-annex .exp-dir { font-size: 0.52rem; }
         .text-column.has-annex .exp-header h3 { font-size: 0.7rem; }
         .text-column.has-annex .annex-block .details { font-size: 0.6rem; line-height: 1.3; }
 
@@ -183,6 +184,17 @@
         .popup-menu { position: absolute; background: rgba(15,15,15,0.95); padding: 15px; border-radius: 8px; display: none; flex-direction: column; gap: 12px; z-index: 100; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; width: 200px; }
         .popup-menu label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 2px; display: block;}
         .popup-menu input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-color);}
+
+        .line-editor-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 2000; background: rgba(0,0,0,0.55); color: #111; }
+        .line-editor-modal.is-open { display: flex; }
+        .line-editor-card { width: 320px; max-width: calc(100vw - 32px); background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 20px 80px rgba(0,0,0,0.45); display: flex; flex-direction: column; gap: 10px; }
+        .line-editor-card h4 { margin: 0 0 4px; font-size: 0.95rem; }
+        .line-editor-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+        .line-editor-field input, .line-editor-field select { box-sizing: border-box; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #f7f7f7; color: #111; font-size: 0.82rem; outline: none; }
+        .line-editor-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+        .line-editor-actions button { border: 0; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-weight: 800; }
+        .line-editor-cancel { background: #ececec; color: #222; }
+        .line-editor-save { background: #111; color: #fff; }
 
         #alert-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #ff4444; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px; z-index: 1000; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.4);}
         
@@ -306,6 +318,7 @@
                                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle Principal</span> - <span class="exp-film" contenteditable="true">Titre du Film</span></div>
                                     <div class="exp-dir" contenteditable="true">Réal : J. Dupont</div>
                                 </div>
+                                <button class="no-print edit-exp-btn" onclick="window.openExperienceEditor(this)" title="Modifier la ligne">✎</button>
                                 <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
                             </div>
                         </div>
@@ -336,6 +349,37 @@
         <div><label>Pan X (Gauche/Droite)</label><input type="range" id="panXSlider" min="0" max="100" step="1" value="50"></div>
         <div><label>Pan Y (Haut/Bas)</label><input type="range" id="panYSlider" min="0" max="100" step="1" value="50"></div>
         <button onclick="window.removeImageFromBlock()" style="background: #222; border:1px solid #444; padding: 6px; font-size: 10px; border-radius:4px; color:white; cursor:pointer; margin-top:5px;">Vider la case</button>
+    </div>
+
+    <div class="line-editor-modal no-print" id="lineEditorModal" aria-hidden="true">
+        <div class="line-editor-card" role="dialog" aria-modal="true" aria-labelledby="lineEditorTitle">
+            <h4 id="lineEditorTitle">Modifier la ligne</h4>
+            <label class="line-editor-field">Année
+                <input type="text" id="editExpYear" autocomplete="off">
+            </label>
+            <label class="line-editor-field">Type
+                <select id="editExpCat">
+                    <option value="Court-métrage">Court-métrage</option>
+                    <option value="Long-métrage">Long-métrage</option>
+                    <option value="Série TV">Série TV</option>
+                    <option value="Publicité">Publicité</option>
+                    <option value="Modèle Photo">Modèle Photo</option>
+                </select>
+            </label>
+            <label class="line-editor-field">Rôle
+                <input type="text" id="editExpRole" autocomplete="off">
+            </label>
+            <label class="line-editor-field">Titre du film / projet
+                <input type="text" id="editExpFilm" autocomplete="off">
+            </label>
+            <label class="line-editor-field">Réalisation
+                <input type="text" id="editExpDir" autocomplete="off">
+            </label>
+            <div class="line-editor-actions">
+                <button type="button" class="line-editor-cancel" id="cancelExpEdit">Annuler</button>
+                <button type="button" class="line-editor-save" id="saveExpEdit">Appliquer</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -379,11 +423,45 @@
         };
 
         function compactExperienceCategoryLabels(root = document) {
+            if (!root) return;
             root.querySelectorAll('.exp-cat').forEach(select => {
                 Array.from(select.options).forEach(option => {
                     option.textContent = CATEGORY_LABELS[option.value] || option.textContent;
                 });
             });
+        }
+
+        function syncCategorySelectedState(select) {
+            if (!select) return;
+            Array.from(select.options).forEach(option => {
+                if (option.value === select.value) option.setAttribute('selected', 'selected');
+                else option.removeAttribute('selected');
+            });
+        }
+
+        function ensureExperienceEditButtons(root = document) {
+            if (!root) return;
+            root.querySelectorAll('.exp-item').forEach(item => {
+                if (!item.querySelector('.edit-exp-btn')) {
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'no-print edit-exp-btn';
+                    editBtn.type = 'button';
+                    editBtn.title = 'Modifier la ligne';
+                    editBtn.textContent = '✎';
+                    editBtn.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        window.openExperienceEditor(editBtn);
+                    });
+                    const removeBtn = item.querySelector('.remove-exp-btn');
+                    if (removeBtn) item.insertBefore(editBtn, removeBtn);
+                    else item.appendChild(editBtn);
+                }
+            });
+        }
+
+        function refreshExperienceRows(root = document) {
+            compactExperienceCategoryLabels(root);
+            ensureExperienceEditButtons(root);
         }
 
         function refreshFirebaseImageCors(root = document) {
@@ -408,7 +486,7 @@
             
             bindGridEvents();
             bindTextEvents();
-            compactExperienceCategoryLabels(cvPage);
+            refreshExperienceRows(cvPage);
 
             if (data.pattern) { cvPage.className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
             if (data.accent) { document.documentElement.style.setProperty('--accent-color', data.accent); document.getElementById('accentColor').value = data.accent; document.getElementById('accentBtnDisplay').style.background = data.accent; }
@@ -460,7 +538,7 @@
                     hydrateProjectData(docSnap.data());
                 } else {
                     window.addBlock(6, 12); window.addBlock(6, 6); window.addBlock(6, 6);
-                    compactExperienceCategoryLabels(document.getElementById('cvPage'));
+                    refreshExperienceRows(document.getElementById('cvPage'));
                 }
             } catch (error) { console.error("Erreur Firebase:", error); }
             
@@ -502,7 +580,7 @@
             };
         }
         bindTextEvents(); bindGridEvents();
-        compactExperienceCategoryLabels(document.getElementById('cvPage'));
+        refreshExperienceRows(document.getElementById('cvPage'));
 
         document.getElementById('toggleAnnex').addEventListener('change', (e) => {
             const annex = document.getElementById('annexBlock');
@@ -732,6 +810,58 @@
         window.removeImageFromBlock = function() { if (activeBlock && activeBlock.querySelector('img')) { activeBlock.querySelector('img').remove(); activeBlock.classList.remove('has-image'); popup.style.display = 'none'; } }
         document.addEventListener('click', (e) => { if (!e.target.closest('.block-controls') && !e.target.closest('.popup-menu')) popup.style.display = 'none'; });
 
+        let editingExpItem = null;
+
+        function getExpFieldText(item, selector) {
+            const el = item ? item.querySelector(selector) : null;
+            return el ? el.textContent.trim() : '';
+        }
+
+        function closeExperienceEditor() {
+            const modal = document.getElementById('lineEditorModal');
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            editingExpItem = null;
+        }
+
+        window.openExperienceEditor = function(btn) {
+            editingExpItem = btn.closest('.exp-item');
+            if (!editingExpItem) return;
+
+            document.getElementById('editExpYear').value = getExpFieldText(editingExpItem, '.exp-year');
+            document.getElementById('editExpCat').value = editingExpItem.querySelector('.exp-cat')?.value || 'Court-métrage';
+            document.getElementById('editExpRole').value = getExpFieldText(editingExpItem, '.exp-role');
+            document.getElementById('editExpFilm').value = getExpFieldText(editingExpItem, '.exp-film');
+            document.getElementById('editExpDir').value = getExpFieldText(editingExpItem, '.exp-dir');
+
+            const modal = document.getElementById('lineEditorModal');
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => document.getElementById('editExpRole').focus(), 50);
+        }
+
+        document.getElementById('cancelExpEdit').addEventListener('click', closeExperienceEditor);
+        document.getElementById('lineEditorModal').addEventListener('click', (event) => {
+            if (event.target.id === 'lineEditorModal') closeExperienceEditor();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && document.getElementById('lineEditorModal').classList.contains('is-open')) closeExperienceEditor();
+        });
+        document.getElementById('saveExpEdit').addEventListener('click', () => {
+            if (!editingExpItem) return;
+            editingExpItem.querySelector('.exp-year').textContent = document.getElementById('editExpYear').value.trim() || 'An';
+            editingExpItem.querySelector('.exp-role').textContent = document.getElementById('editExpRole').value.trim() || 'Rôle';
+            editingExpItem.querySelector('.exp-film').textContent = document.getElementById('editExpFilm').value.trim() || 'Film';
+            editingExpItem.querySelector('.exp-dir').textContent = document.getElementById('editExpDir').value.trim() || 'Réal';
+
+            const select = editingExpItem.querySelector('.exp-cat');
+            select.value = document.getElementById('editExpCat').value;
+            syncCategorySelectedState(select);
+            compactExperienceCategoryLabels(editingExpItem);
+            closeExperienceEditor();
+            checkTextOverflow();
+        });
+
         window.addExperience = function() {
             const div = document.createElement('div'); div.className = 'exp-item';
             div.innerHTML = `
@@ -747,14 +877,17 @@
                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle</span> - <span class="exp-film" contenteditable="true">Film</span></div>
                     <div class="exp-dir" contenteditable="true">Réal</div>
                 </div>
+                <button class="no-print edit-exp-btn" onclick="window.openExperienceEditor(this)" title="Modifier la ligne">✎</button>
                 <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
             `;
-            compactExperienceCategoryLabels(div);
+            refreshExperienceRows(div);
             document.getElementById('expList').prepend(div);
             if (checkTextOverflow()) div.remove();
         }
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
-        document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
+        document.addEventListener('change', e => {
+            if (e.target.classList.contains('exp-cat')) syncCategorySelectedState(e.target);
+        });
 
         // --- SAUVEGARDE & GARBAGE COLLECTOR ---
         document.getElementById('saveProject').addEventListener('click', async () => {
