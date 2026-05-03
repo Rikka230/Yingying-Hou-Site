@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Card DA - Auto Cleanup & CORS Ready</title>
+    <title>CV Photo - Éditeur Z-Card</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
     <style>
         :root {
@@ -111,15 +111,15 @@
         .exp-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 4px;}
         .exp-header h3 { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #333; }
         .add-exp-btn { background: #e0e0e0; border: none; border-radius: 4px; width: 18px; height: 18px; font-weight: bold; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;}
-        .exp-list { display: flex; flex-direction: column; gap: 6px; transition: gap 0.3s;}
-        .exp-item { display: flex; gap: 6px; font-size: 0.7rem; position: relative; transition: font-size 0.3s;}
-        .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; }
-        .exp-content { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
+        .exp-list { display: flex; flex-direction: column; gap: 5px; transition: gap 0.3s;}
+        .exp-item { display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 6px; font-size: 0.68rem; position: relative; transition: font-size 0.3s;}
+        .exp-year { font-weight: 800; width: 30px; flex-shrink: 0; padding-top: 1px; line-height: 1.15; }
+        .exp-content { flex-grow: 1; min-width: 0; display: grid; grid-template-columns: 62px minmax(0, 1fr); column-gap: 5px; row-gap: 1px; align-items: start; }
         
-        .exp-cat { appearance: none; -webkit-appearance: none; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: 800; border: none; outline: none; text-transform: uppercase; cursor: pointer; transition: all 0.3s;}
-        .exp-role-film { font-weight: 700; color: #111;}
+        .exp-cat { appearance: none; -webkit-appearance: none; grid-column: 1; grid-row: 1; align-self: start; background: color-mix(in srgb, var(--accent-color) 30%, transparent); color: #111; font-size: 0.46rem; line-height: 1.05; padding: 1px 4px; border-radius: 3px; width: 62px; height: 14px; font-weight: 800; border: none; outline: none; text-transform: uppercase; letter-spacing: -0.03em; cursor: pointer; transition: all 0.3s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+        .exp-role-film { grid-column: 2; grid-row: 1; min-width: 0; font-weight: 700; color: #111; line-height: 1.15; overflow-wrap: anywhere;}
         .exp-film { font-style: italic; color: #444; }
-        .exp-dir { font-size: 0.65rem; color: #666; }
+        .exp-dir { grid-column: 2; grid-row: 2; min-width: 0; font-size: 0.62rem; line-height: 1.15; color: #666; overflow-wrap: anywhere; }
         .remove-exp-btn { position: absolute; right: -5px; top: 0; background: #ff4444; color: white; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; display: none; align-items: center; justify-content: center;}
         .exp-item:hover .remove-exp-btn { display: flex; }
 
@@ -130,9 +130,11 @@
         .text-column.has-annex .nom-complet { font-size: 1.5rem; }
         .text-column.has-annex .contact { font-size: 0.7rem; }
         .text-column.has-annex .details { padding: 6px 8px; font-size: 0.65rem; margin-bottom: 0; }
-        .text-column.has-annex .exp-list { gap: 4px; }
-        .text-column.has-annex .exp-item { font-size: 0.6rem; }
-        .text-column.has-annex .exp-cat { font-size: 0.5rem; padding: 1px 4px; }
+        .text-column.has-annex .exp-list { gap: 3px; }
+        .text-column.has-annex .exp-item { font-size: 0.58rem; }
+        .text-column.has-annex .exp-content { grid-template-columns: 56px minmax(0, 1fr); column-gap: 4px; }
+        .text-column.has-annex .exp-cat { width: 56px; height: 13px; font-size: 0.42rem; padding: 1px 3px; }
+        .text-column.has-annex .exp-dir { font-size: 0.54rem; }
         .text-column.has-annex .exp-header h3 { font-size: 0.7rem; }
         .text-column.has-annex .annex-block .details { font-size: 0.6rem; line-height: 1.3; }
 
@@ -295,11 +297,11 @@
                                 <div class="exp-year" contenteditable="true">2025</div>
                                 <div class="exp-content">
                                     <select class="exp-cat">
-                                        <option value="Court-métrage" selected>Court-métrage</option>
-                                        <option value="Long-métrage">Long-métrage</option>
+                                        <option value="Court-métrage" selected>Court-métr.</option>
+                                        <option value="Long-métrage">Long métr.</option>
                                         <option value="Série TV">Série TV</option>
-                                        <option value="Publicité">Publicité</option>
-                                        <option value="Modèle Photo">Modèle Photo</option>
+                                        <option value="Publicité">Pub</option>
+                                        <option value="Modèle Photo">Photo</option>
                                     </select>
                                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle Principal</span> - <span class="exp-film" contenteditable="true">Titre du Film</span></div>
                                     <div class="exp-dir" contenteditable="true">Réal : J. Dupont</div>
@@ -368,6 +370,62 @@
         let targetUploadBlock = null;
         let draggedBlock = null; 
 
+        const CATEGORY_LABELS = {
+            "Court-métrage": "Court-métr.",
+            "Long-métrage": "Long métr.",
+            "Série TV": "Série TV",
+            "Publicité": "Pub",
+            "Modèle Photo": "Photo"
+        };
+
+        function compactExperienceCategoryLabels(root = document) {
+            root.querySelectorAll('.exp-cat').forEach(select => {
+                Array.from(select.options).forEach(option => {
+                    option.textContent = CATEGORY_LABELS[option.value] || option.textContent;
+                });
+            });
+        }
+
+        function refreshFirebaseImageCors(root = document) {
+            root.querySelectorAll('.img-container img').forEach(img => {
+                const src = img.getAttribute('src');
+                img.crossOrigin = "anonymous";
+                if (src && !src.startsWith('data:image')) {
+                    img.src = '';
+                    img.src = src;
+                }
+            });
+        }
+
+        function hydrateProjectData(data) {
+            if (!data) return;
+            const cvPage = document.getElementById('cvPage');
+            if (data.html) cvPage.innerHTML = data.html;
+            
+            photoGrid = document.getElementById('photoGrid');
+            textCol = document.getElementById('textColumn');
+            textWrap = document.getElementById('textContentWrapper');
+            
+            bindGridEvents();
+            bindTextEvents();
+            compactExperienceCategoryLabels(cvPage);
+
+            if (data.pattern) { cvPage.className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
+            if (data.accent) { document.documentElement.style.setProperty('--accent-color', data.accent); document.getElementById('accentColor').value = data.accent; document.getElementById('accentBtnDisplay').style.background = data.accent; }
+            if (data.bg) { document.documentElement.style.setProperty('--bg-page', data.bg); document.getElementById('bgColor').value = data.bg; document.getElementById('bgBtnDisplay').style.background = data.bg; }
+            if (data.gutter) { document.documentElement.style.setProperty('--gutter', data.gutter + 'px'); document.getElementById('gutterSlider').value = data.gutter; document.getElementById('gutterValue').textContent = data.gutter + 'px'; }
+            if (data.annexVisible !== undefined) { 
+                document.getElementById('toggleAnnex').checked = data.annexVisible;
+                document.getElementById('annexBlock').style.display = data.annexVisible ? 'block' : 'none';
+                if (data.annexVisible) textCol.classList.add('has-annex');
+                else textCol.classList.remove('has-annex');
+            }
+            
+            document.querySelectorAll('.img-container').forEach(attachBlockEvents);
+            refreshFirebaseImageCors(cvPage);
+            checkTextOverflow();
+        }
+
         // ==========================================
         // MOTEUR DE ZOOM (CANVAS FIGMA)
         // ==========================================
@@ -399,37 +457,10 @@
             try {
                 const docSnap = await getDoc(doc(db, "site_data", "zcard_project"));
                 if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    document.getElementById('cvPage').innerHTML = data.html;
-                    
-                    photoGrid = document.getElementById('photoGrid');
-                    textCol = document.getElementById('textColumn');
-                    textWrap = document.getElementById('textContentWrapper');
-                    
-                    bindGridEvents();
-                    bindTextEvents();
-
-                    if(data.pattern) { document.getElementById('cvPage').className = 'page-a4 ' + data.pattern; document.getElementById('bgPatternSelect').value = data.pattern; }
-                    if(data.accent) { document.documentElement.style.setProperty('--accent-color', data.accent); document.getElementById('accentColor').value = data.accent; document.getElementById('accentBtnDisplay').style.background = data.accent; }
-                    if(data.bg) { document.documentElement.style.setProperty('--bg-page', data.bg); document.getElementById('bgColor').value = data.bg; document.getElementById('bgBtnDisplay').style.background = data.bg; }
-                    if(data.gutter) { document.documentElement.style.setProperty('--gutter', data.gutter + 'px'); document.getElementById('gutterSlider').value = data.gutter; document.getElementById('gutterValue').textContent = data.gutter + 'px';}
-                    if(data.annexVisible !== undefined) { 
-                        document.getElementById('toggleAnnex').checked = data.annexVisible;
-                        document.getElementById('annexBlock').style.display = data.annexVisible ? 'block' : 'none';
-                        if(data.annexVisible) textCol.classList.add('has-annex');
-                        else textCol.classList.remove('has-annex');
-                    }
-                    
-                    document.querySelectorAll('.img-container').forEach(attachBlockEvents);
-                    
-                    // FIX CORS : On s'assure que les images chargées depuis Firebase ont la balise crossorigin !
-                    document.querySelectorAll('.img-container img').forEach(img => {
-                        img.crossOrigin = "anonymous";
-                    });
-
-                    checkTextOverflow();
+                    hydrateProjectData(docSnap.data());
                 } else {
                     window.addBlock(6, 12); window.addBlock(6, 6); window.addBlock(6, 6);
+                    compactExperienceCategoryLabels(document.getElementById('cvPage'));
                 }
             } catch (error) { console.error("Erreur Firebase:", error); }
             
@@ -447,11 +478,15 @@
             else { textCol.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)"; return false;}
         }
 
-        function bindTextEvents() { textWrap.addEventListener('input', checkTextOverflow); }
+        function bindTextEvents() {
+            if (!textWrap) return;
+            textWrap.oninput = checkTextOverflow;
+        }
         function bindGridEvents() {
-            photoGrid.addEventListener('dragover', e => { if(draggedBlock) e.preventDefault(); });
-            photoGrid.addEventListener('drop', e => {
-                if(!draggedBlock) return;
+            if (!photoGrid) return;
+            photoGrid.ondragover = e => { if (draggedBlock) e.preventDefault(); };
+            photoGrid.ondrop = e => {
+                if (!draggedBlock) return;
                 e.preventDefault();
                 const blocks = Array.from(photoGrid.querySelectorAll('.img-container:not(.is-dragging)'));
                 let closestBlock = null; let minDistance = Infinity;
@@ -464,9 +499,10 @@
                     if (e.clientY < closestBlock.getBoundingClientRect().top + closestBlock.getBoundingClientRect().height / 2) closestBlock.before(draggedBlock);
                     else closestBlock.after(draggedBlock);
                 } else { photoGrid.appendChild(draggedBlock); }
-            });
+            };
         }
         bindTextEvents(); bindGridEvents();
+        compactExperienceCategoryLabels(document.getElementById('cvPage'));
 
         document.getElementById('toggleAnnex').addEventListener('change', (e) => {
             const annex = document.getElementById('annexBlock');
@@ -479,6 +515,20 @@
         document.getElementById('accentColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--accent-color', e.target.value); document.getElementById('accentBtnDisplay').style.background = e.target.value; });
         document.getElementById('bgColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--bg-page', e.target.value); document.getElementById('bgBtnDisplay').style.background = e.target.value; });
         document.getElementById('bgPatternSelect').addEventListener('change', (e) => { document.getElementById('cvPage').className = 'page-a4 ' + e.target.value; });
+        document.getElementById('importProject').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const data = JSON.parse(await file.text());
+                hydrateProjectData(data);
+                alert("✅ Sauvegarde importée. Pensez à publier pour l'envoyer sur le site.");
+            } catch (error) {
+                console.error("Import JSON invalide :", error);
+                alert("Erreur : le fichier JSON n'est pas une sauvegarde valide.");
+            } finally {
+                e.target.value = '';
+            }
+        });
 
         window.addBlockSafe = function() {
             const addedDiv = window.addBlock(4, 6);
@@ -688,17 +738,18 @@
                 <div class="exp-year" contenteditable="true">An</div>
                 <div class="exp-content">
                     <select class="exp-cat">
-                        <option value="Court-métrage">Court-métrage</option>
-                        <option value="Long-métrage">Long-métrage</option>
+                        <option value="Court-métrage">Court-métr.</option>
+                        <option value="Long-métrage">Long métr.</option>
                         <option value="Série TV">Série TV</option>
-                        <option value="Publicité">Publicité</option>
-                        <option value="Modèle Photo">Modèle Photo</option>
+                        <option value="Publicité">Pub</option>
+                        <option value="Modèle Photo">Photo</option>
                     </select>
                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle</span> - <span class="exp-film" contenteditable="true">Film</span></div>
                     <div class="exp-dir" contenteditable="true">Réal</div>
                 </div>
                 <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
             `;
+            compactExperienceCategoryLabels(div);
             document.getElementById('expList').prepend(div);
             if (checkTextOverflow()) div.remove();
         }
