@@ -1,5 +1,6 @@
-/* Correctifs publics isolés V2
+/* Correctifs publics isolés V4
    Filmographie : largeur de base conservée, tableau stable, lignes naturelles.
+   V4 : correction des titres de colonnes en mode nuit.
 */
 
 body.page-filmographie .wrap,
@@ -136,7 +137,6 @@ body.page-filmographie .table-empty {
   vertical-align: top !important;
 }
 
-/* Filet anti-flash pendant la sortie PJAX. */
 html.is-pjax-navigating body.page-filmographie .page-hero-clean h1 {
   font-size: clamp(24px, 4vw, 36px) !important;
 }
@@ -166,8 +166,7 @@ html.is-pjax-navigating body.page-filmographie .page-hero-clean h1 {
 }
 
 /* =========================================
-   FILMOGRAPHIE — COULEURS MODE NUIT V3
-   Corrige uniquement la palette du tableau.
+   FILMOGRAPHIE — COULEURS MODE NUIT V4
 ========================================= */
 
 html.theme-dark body.page-filmographie .table-wrap,
@@ -185,11 +184,29 @@ body.dark-mode.page-filmographie .table {
   color: rgba(255, 255, 255, .88) !important;
 }
 
+/* Correction demandée : titres de colonnes en sombre, pas en blanc. */
+html.theme-dark body.page-filmographie #filmography thead,
+html.theme-dark body.page-filmographie #filmography thead tr,
+body.dark-mode.page-filmographie #filmography thead,
+body.dark-mode.page-filmographie #filmography thead tr {
+  background: #20242d !important;
+}
+
 html.theme-dark body.page-filmographie #filmography thead th,
 body.dark-mode.page-filmographie #filmography thead th {
-  background: #f7f8fb !important;
-  color: #10131a !important;
-  border-bottom: 1px solid rgba(255, 255, 255, .08) !important;
+  background: #20242d !important;
+  color: rgba(255, 255, 255, .92) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .16) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography thead th:first-child,
+body.dark-mode.page-filmographie #filmography thead th:first-child {
+  border-top-left-radius: 10px !important;
+}
+
+html.theme-dark body.page-filmographie #filmography thead th:last-child,
+body.dark-mode.page-filmographie #filmography thead th:last-child {
+  border-top-right-radius: 10px !important;
 }
 
 html.theme-dark body.page-filmographie #filmography tbody tr:nth-child(odd),

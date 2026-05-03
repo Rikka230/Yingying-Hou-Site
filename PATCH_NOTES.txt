@@ -1,14 +1,10 @@
-PATCH V3 — Couleurs tableau Filmographie en mode nuit
+PATCH V4 — Header tableau Filmographie en mode nuit
 
 À remplacer :
 - css/public-fixes.css
 
-Ce patch ne touche pas la structure, ni la largeur, ni la galerie.
-Il ajoute uniquement la palette dark mode du tableau filmographie :
-- fond du tableau sombre
-- lignes alternées sombres
-- textes lisibles
-- badges jaunes cohérents
-- boutons VOIR adaptés au mode nuit
-
-Après upload : hard refresh si le navigateur garde l'ancien CSS.
+Correction :
+- les titres de colonnes passent en fond sombre
+- texte des titres de colonnes lisible
+- coins hauts propres
+- aucune modification de largeur, structure, galerie ou index
