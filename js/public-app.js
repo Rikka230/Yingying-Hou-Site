@@ -14,11 +14,9 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let pageController = null;
 let keyHandler = null;
-let activeVideoSource = null;
-
-function signal() { return pageController?.signal; }
+let scrollController = null;
+let roleState = null;
 
 function normalizeText(value) {
   return String(value || '')
@@ -27,6 +25,10 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[’']/g, ' ')
     .trim();
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
 }
 
 function normalizeCategory(value) {
@@ -40,9 +42,10 @@ function normalizeCategory(value) {
     'serie tv': 'Série TV',
     'publicite': 'Publicité',
     'pub': 'Publicité',
+    'doublage voix off': 'Doublage / Voix off',
+    'doublage voix': 'Doublage / Voix off',
     'doublage': 'Doublage',
     'voix off': 'Voix off',
-    'voice off': 'Voix off',
     'voice over': 'Voix off',
     'voiceover': 'Voix off',
     'documentaire': 'Documentaire',
@@ -54,17 +57,16 @@ function normalizeCategory(value) {
 }
 
 function getRoleOrderValue(role, fallbackIndex = 0) {
-  const n = Number(role?.ordre);
-  return Number.isFinite(n) && n > 0 ? n : 10000 + fallbackIndex;
+  const value = Number(role?.ordre);
+  return Number.isFinite(value) && value > 0 ? value : 10000 + fallbackIndex;
 }
 
 function sortRolesForDisplay(roles) {
   return [...roles].sort((a, b) => {
-    const orderA = getRoleOrderValue(a);
-    const orderB = getRoleOrderValue(b);
-    if (orderA !== orderB) return orderA - orderB;
-    const yearDiff = (Number(b.annee) || 0) - (Number(a.annee) || 0);
-    if (yearDiff !== 0) return yearDiff;
+    const custom = getRoleOrderValue(a) - getRoleOrderValue(b);
+    if (custom !== 0) return custom;
+    const years = (Number(b.annee) || 0) - (Number(a.annee) || 0);
+    if (years !== 0) return years;
     return (a.projet || '').localeCompare(b.projet || '', 'fr', { sensitivity: 'base' });
   });
 }
@@ -73,42 +75,43 @@ async function getRoles() {
   const snapshot = await getDocs(collection(db, 'role'));
   const roles = [];
   snapshot.forEach((item) => roles.push({ id: item.id, ...item.data(), type: normalizeCategory(item.data().type) }));
-  return roles;
+  return sortRolesForDisplay(roles);
 }
 
 function initCommon() {
   window.YingNav?.init?.();
-  document.querySelectorAll('#year').forEach((year) => { year.textContent = new Date().getFullYear(); });
+  document.querySelectorAll('#year').forEach((item) => { item.textContent = new Date().getFullYear(); });
 }
 
 function teardown() {
-  pageController?.abort?.();
-  pageController = new AbortController();
   if (keyHandler) document.removeEventListener('keydown', keyHandler);
   keyHandler = null;
+  scrollController?.abort?.();
+  scrollController = null;
   document.body.style.overflow = '';
-  closeVideoLightbox({ keepFrame: false });
+  document.querySelectorAll('.video-lightbox[aria-hidden="false"]').forEach((modal) => modal.setAttribute('aria-hidden', 'true'));
 }
 
-function initPresskit() {
+async function initPresskit() {
   const modal = document.getElementById('presskitModal');
   if (!modal) return;
   const close = document.getElementById('btn-close-presskit');
-  if (close) close.addEventListener('click', () => modal.close(), { signal: signal() });
+  if (close) close.onclick = () => modal.close();
 
   document.querySelectorAll('.js-presskit').forEach((button) => {
-    button.addEventListener('click', async () => {
+    button.onclick = async () => {
       try {
         const cvDoc = await getDoc(doc(db, 'site_data', 'cv_project'));
-        if (cvDoc.exists() && cvDoc.data().publicUrl) document.getElementById('link-dl-cv')?.setAttribute('href', cvDoc.data().publicUrl);
+        const cvLink = document.getElementById('link-dl-cv');
+        if (cvLink && cvDoc.exists() && cvDoc.data().publicUrl) cvLink.href = cvDoc.data().publicUrl;
         const zcardDoc = await getDoc(doc(db, 'site_data', 'zcard_project'));
-        if (zcardDoc.exists() && zcardDoc.data().publicUrl) document.getElementById('link-dl-zcard')?.setAttribute('href', zcardDoc.data().publicUrl);
+        const zcardLink = document.getElementById('link-dl-zcard');
+        if (zcardLink && zcardDoc.exists() && zcardDoc.data().publicUrl) zcardLink.href = zcardDoc.data().publicUrl;
       } catch (error) {
-        console.warn('Press kit indisponible :', error);
+        console.warn('Press kit non disponible :', error);
       }
       if (typeof modal.showModal === 'function') modal.showModal();
-      else modal.setAttribute('open', '');
-    }, { signal: signal() });
+    };
   });
 }
 
@@ -123,25 +126,25 @@ async function initHomeRoles() {
   const next = document.getElementById('btn-next-roles');
   if (!list || !prev || !next) return;
 
-  let currentPage = 0;
-  const perPage = 7;
+  roleState = { page: 0, perPage: 7, roles: [] };
 
-  const render = (roles) => {
-    const start = currentPage * perPage;
-    const pageRoles = roles.slice(start, start + perPage);
+  function render() {
+    const start = roleState.page * roleState.perPage;
+    const pageRoles = roleState.roles.slice(start, start + roleState.perPage);
     list.innerHTML = pageRoles.length ? pageRoles.map((role) => {
-      const year = role.annee ? ` ${role.annee}` : '';
-      return `<li><span class="role-heart">♥</span> ${role.titre || 'Rôle'} — <b>${role.projet || 'Projet'}</b> <span class="role-meta">(${normalizeCategory(role.type)}${year})</span></li>`;
+      const year = role.annee ? ` ${escapeHtml(role.annee)}` : '';
+      return `<li><span class="role-heart">♥</span> ${escapeHtml(role.titre || 'Rôle')} — <b>${escapeHtml(role.projet || 'Projet')}</b> <span class="role-meta">(${escapeHtml(normalizeCategory(role.type))}${year})</span></li>`;
     }).join('') : '<li class="loading-line">Aucun rôle disponible.</li>';
-    prev.disabled = currentPage === 0;
-    next.disabled = start + perPage >= roles.length;
-  };
+
+    prev.disabled = roleState.page === 0;
+    next.disabled = start + roleState.perPage >= roleState.roles.length;
+  }
 
   try {
-    const roles = sortRolesForDisplay(await getRoles());
-    render(roles);
-    prev.addEventListener('click', () => { if (currentPage > 0) { currentPage -= 1; render(roles); } }, { signal: signal() });
-    next.addEventListener('click', () => { if ((currentPage + 1) * perPage < roles.length) { currentPage += 1; render(roles); } }, { signal: signal() });
+    roleState.roles = await getRoles();
+    render();
+    prev.onclick = () => { if (roleState.page > 0) { roleState.page -= 1; render(); } };
+    next.onclick = () => { if ((roleState.page + 1) * roleState.perPage < roleState.roles.length) { roleState.page += 1; render(); } };
   } catch (error) {
     console.warn('Rôles accueil indisponibles :', error);
     list.innerHTML = '<li class="loading-line error-line">Erreur de chargement.</li>';
@@ -165,7 +168,7 @@ function buildPlayerUrl(rawUrl, autoplay = false) {
     }
     return url.toString();
   } catch (_) {
-    return rawUrl || '';
+    return rawUrl;
   }
 }
 
@@ -176,7 +179,8 @@ async function initHomeVideos() {
   if (!slider) return;
 
   try {
-    const snapshot = await getDocs(query(collection(db, 'videos'), orderBy('ordre', 'asc')));
+    const q = query(collection(db, 'videos'), orderBy('ordre', 'asc'));
+    const snapshot = await getDocs(q);
     slider.innerHTML = '';
     if (snapshot.empty) {
       slider.innerHTML = '<p class="loading-line">Prochainement : de nouvelles vidéos.</p>';
@@ -185,19 +189,20 @@ async function initHomeVideos() {
 
     snapshot.forEach((item) => {
       const data = item.data();
-      const safeUrl = buildPlayerUrl(data.url || '', false);
-      const div = document.createElement('div');
-      div.className = 'yt-item';
-      div.innerHTML = `
-        <iframe src="${safeUrl}" title="${data.titre || 'Vidéo'}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
-        <button class="media-expand" type="button" aria-label="Agrandir la vidéo" data-video-src="${safeUrl}" data-video-title="${data.titre || 'Vidéo'}">Agrandir</button>
+      const src = buildPlayerUrl(data.url || '', false);
+      const title = escapeHtml(data.titre || 'Vidéo');
+      const card = document.createElement('div');
+      card.className = 'yt-item';
+      card.innerHTML = `
+        <iframe src="${src}" title="${title}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        <button class="media-expand" type="button" data-video-src="${src}" data-video-title="${title}">Agrandir</button>
       `;
-      slider.appendChild(div);
+      slider.appendChild(card);
     });
 
-    const amount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
-    prev?.addEventListener('click', () => slider.scrollBy({ left: -amount(), behavior: 'smooth' }), { signal: signal() });
-    next?.addEventListener('click', () => slider.scrollBy({ left: amount(), behavior: 'smooth' }), { signal: signal() });
+    const scrollAmount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
+    if (next) next.onclick = () => slider.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+    if (prev) prev.onclick = () => slider.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
     initVideoLightbox();
   } catch (error) {
     console.warn('Vidéos indisponibles :', error);
@@ -205,16 +210,16 @@ async function initHomeVideos() {
   }
 }
 
-function pauseEmbeddedVideos() {
+function pauseMiniPlayers() {
   document.querySelectorAll('.yt-item iframe').forEach((iframe) => {
     try {
-      iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
-      iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*');
+      iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      iframe.contentWindow?.postMessage('{"method":"pause"}', '*');
     } catch (_) {}
   });
 }
 
-function ensureVideoLightbox() {
+function initVideoLightbox() {
   let modal = document.getElementById('videoLightbox');
   if (!modal) {
     modal = document.createElement('div');
@@ -225,57 +230,39 @@ function ensureVideoLightbox() {
     modal.setAttribute('aria-modal', 'true');
     modal.innerHTML = `
       <div class="video-lightbox-backdrop" data-video-close></div>
-      <div class="video-lightbox-panel" role="document">
+      <div class="video-lightbox-panel">
         <button class="video-lightbox-close" type="button" data-video-close aria-label="Fermer">✕</button>
-        <div class="video-lightbox-loader"><span></span><strong>Chargement</strong></div>
+        <div class="video-lightbox-loader"><span></span><strong>Chargement de la vidéo</strong></div>
         <iframe id="videoLightboxFrame" title="Vidéo agrandie" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
       </div>
     `;
     document.body.appendChild(modal);
   }
-  return modal;
-}
 
-function closeVideoLightbox({ keepFrame = false } = {}) {
-  const modal = document.getElementById('videoLightbox');
-  const frame = document.getElementById('videoLightboxFrame');
-  if (!modal) return;
-  modal.setAttribute('aria-hidden', 'true');
-  modal.classList.remove('is-ready', 'is-loading');
-  document.body.classList.remove('video-modal-open');
-  document.body.style.overflow = '';
-  if (!keepFrame && frame) frame.src = 'about:blank';
-  activeVideoSource?.classList.remove('is-expanded-source');
-  activeVideoSource = null;
-}
-
-function initVideoLightbox() {
-  const modal = ensureVideoLightbox();
   const frame = modal.querySelector('#videoLightboxFrame');
-  modal.querySelectorAll('[data-video-close]').forEach((button) => button.addEventListener('click', () => closeVideoLightbox(), { signal: signal() }));
+  const close = () => {
+    modal.classList.remove('is-ready');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (frame) {
+      frame.removeAttribute('src');
+      frame.onload = null;
+    }
+  };
 
+  modal.querySelectorAll('[data-video-close]').forEach((button) => { button.onclick = close; });
   document.querySelectorAll('.media-expand').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       const src = button.dataset.videoSrc;
       if (!src || !frame) return;
-      pauseEmbeddedVideos();
-      activeVideoSource?.classList.remove('is-expanded-source');
-      activeVideoSource = button.closest('.yt-item');
-      activeVideoSource?.classList.add('is-expanded-source');
+      pauseMiniPlayers();
       modal.classList.remove('is-ready');
-      modal.classList.add('is-loading');
       modal.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('video-modal-open');
       document.body.style.overflow = 'hidden';
-      frame.removeAttribute('src');
-      frame.onload = () => {
-        window.setTimeout(() => {
-          modal.classList.remove('is-loading');
-          modal.classList.add('is-ready');
-        }, 120);
-      };
-      frame.src = buildPlayerUrl(src, true);
-    }, { signal: signal() });
+      const autoplaySrc = buildPlayerUrl(src, true);
+      frame.onload = () => window.setTimeout(() => modal.classList.add('is-ready'), 140);
+      frame.src = autoplaySrc;
+    };
   });
 }
 
@@ -287,7 +274,8 @@ async function initFilmography() {
   if (!table || !filter || !sort || !search) return;
 
   let roles = [];
-  const render = () => {
+
+  function render() {
     const term = normalizeText(search.value);
     let rows = roles.filter((role) => {
       if (filter.value !== 'all' && normalizeCategory(role.type) !== normalizeCategory(filter.value)) return false;
@@ -295,155 +283,167 @@ async function initFilmography() {
       return [role.projet, role.titre, role.realisateur, role.annee, role.type].some((value) => normalizeText(value).includes(term));
     });
 
-    rows.sort((a, b) => {
-      const mode = sort.value;
-      if (mode === 'custom') return getRoleOrderValue(a) - getRoleOrderValue(b);
-      if (mode === 'year-desc') return (Number(b.annee) || 0) - (Number(a.annee) || 0);
-      if (mode === 'year-asc') return (Number(a.annee) || 0) - (Number(b.annee) || 0);
-      if (mode === 'title-asc') return (a.projet || '').localeCompare(b.projet || '', 'fr', { sensitivity: 'base' });
-      if (mode === 'title-desc') return (b.projet || '').localeCompare(a.projet || '', 'fr', { sensitivity: 'base' });
+    rows = [...rows].sort((a, b) => {
+      if (sort.value === 'custom') return sortRolesForDisplay([a, b])[0] === a ? -1 : 1;
+      if (sort.value === 'year-desc') return (Number(b.annee) || 0) - (Number(a.annee) || 0);
+      if (sort.value === 'year-asc') return (Number(a.annee) || 0) - (Number(b.annee) || 0);
+      if (sort.value === 'title-asc') return (a.projet || '').localeCompare(b.projet || '', 'fr', { sensitivity: 'base' });
+      if (sort.value === 'title-desc') return (b.projet || '').localeCompare(a.projet || '', 'fr', { sensitivity: 'base' });
       return 0;
     });
 
     table.innerHTML = rows.length ? rows.map((role) => {
-      const link = role.lien ? `<a class="btn table-link" href="${role.lien}" target="_blank" rel="noopener">Voir</a>` : '<span class="muted">-</span>';
+      const link = role.lien ? `<a class="btn table-link" href="${escapeHtml(role.lien)}" target="_blank" rel="noopener">Voir</a>` : '<span class="muted">-</span>';
       return `<tr>
-        <td data-label="Année">${role.annee || ''}</td>
-        <td data-label="Projet / Titre"><strong>${role.projet || ''}</strong></td>
-        <td data-label="Rôle">${role.titre || ''}</td>
-        <td data-label="Réalisateur">${role.realisateur || '-'}</td>
-        <td data-label="Catégorie"><span class="category-pill">${normalizeCategory(role.type)}</span></td>
+        <td data-label="Année">${escapeHtml(role.annee || '')}</td>
+        <td data-label="Projet / Titre"><strong>${escapeHtml(role.projet || '')}</strong></td>
+        <td data-label="Rôle">${escapeHtml(role.titre || '')}</td>
+        <td data-label="Réalisateur">${escapeHtml(role.realisateur || '-')}</td>
+        <td data-label="Catégorie"><span class="category-pill">${escapeHtml(normalizeCategory(role.type))}</span></td>
         <td data-label="Lien">${link}</td>
       </tr>`;
     }).join('') : '<tr><td colspan="6" class="table-empty">Aucun résultat trouvé.</td></tr>';
-  };
+  }
 
   try {
-    roles = sortRolesForDisplay(await getRoles());
+    roles = await getRoles();
     render();
-    filter.addEventListener('change', render, { signal: signal() });
-    sort.addEventListener('change', render, { signal: signal() });
-    search.addEventListener('input', render, { signal: signal() });
+    filter.onchange = render;
+    sort.onchange = render;
+    search.oninput = render;
   } catch (error) {
     console.warn('Filmographie indisponible :', error);
     table.innerHTML = '<tr><td colspan="6" class="table-empty error-line">Erreur de chargement.</td></tr>';
   }
 }
 
-async function initGallery() {
-  const grid = document.getElementById('gallery');
-  const lightbox = document.getElementById('lightbox');
-  if (!grid || !lightbox) return;
-
-  let allPhotos = [];
-  let shownPhotos = [];
-  let current = 0;
-  let renderId = 0;
-  let sliding = false;
-
-  setupLightboxDom(lightbox);
-  const stage = lightbox.querySelector('.lb-slider-stage');
-  const currentSlide = lightbox.querySelector('.lb-slide-current');
-  const incomingSlide = lightbox.querySelector('.lb-slide-incoming');
-  const currentImg = currentSlide.querySelector('img');
-  const incomingImg = incomingSlide.querySelector('img');
-  const caption = lightbox.querySelector('#lb-caption');
-
-  const preload = (url) => new Promise((resolve) => {
+function preloadImage(url) {
+  return new Promise((resolve) => {
     if (!url) return resolve();
     const img = new Image();
     img.onload = resolve;
     img.onerror = resolve;
     img.src = url;
   });
+}
 
-  const preloadAround = (index) => {
-    if (!shownPhotos.length) return;
-    [-1, 1].forEach((offset) => {
-      const photo = shownPhotos[(index + offset + shownPhotos.length) % shownPhotos.length];
-      if (photo?.url) { const img = new Image(); img.src = photo.url; }
+async function initGallery() {
+  const grid = document.getElementById('gallery');
+  const lightbox = document.getElementById('lightbox');
+  const figure = lightbox?.querySelector('.lb-figure');
+  if (!grid || !lightbox || !figure) return;
+
+  if (keyHandler) document.removeEventListener('keydown', keyHandler);
+
+  let allPhotos = [];
+  let shownPhotos = [];
+  let current = 0;
+  let sliding = false;
+  let renderToken = 0;
+
+  figure.innerHTML = `
+    <div class="lb-slider" aria-live="polite"><div class="lb-track"></div></div>
+    <figcaption id="lb-caption"></figcaption>
+  `;
+  const track = figure.querySelector('.lb-track');
+  const caption = figure.querySelector('#lb-caption');
+
+  function photoAt(index) {
+    if (!shownPhotos.length) return null;
+    return shownPhotos[(index + shownPhotos.length) % shownPhotos.length];
+  }
+
+  function slideMarkup(photo, label = '') {
+    if (!photo) return '<div class="lb-slide"></div>';
+    return `<div class="lb-slide"><img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" draggable="false" /><span class="sr-only">${escapeHtml(label)}</span></div>`;
+  }
+
+  function preloadNeighbors(index) {
+    [index - 1, index, index + 1].forEach((i) => {
+      const photo = photoAt(i);
+      if (photo?.url) preloadImage(photo.url);
     });
-  };
+  }
 
-  const setCurrent = (index) => {
+  function renderTrack(index, animate = false) {
     current = (index + shownPhotos.length) % shownPhotos.length;
-    const photo = shownPhotos[current];
-    currentImg.src = photo.url;
-    currentImg.alt = photo.caption || 'Photo de Yingying HOU';
-    caption.textContent = photo.caption || '';
-    preloadAround(current);
-  };
+    const prev = photoAt(current - 1);
+    const active = photoAt(current);
+    const next = photoAt(current + 1);
+    track.classList.toggle('is-animated', animate);
+    track.style.transform = 'translate3d(-100%,0,0)';
+    track.innerHTML = `${slideMarkup(prev, 'Photo précédente')}${slideMarkup(active, 'Photo actuelle')}${slideMarkup(next, 'Photo suivante')}`;
+    caption.textContent = active?.caption || '';
+    preloadNeighbors(current);
+  }
 
-  const open = (index) => {
+  function open(index) {
     if (!shownPhotos.length) return;
-    setCurrent(index);
+    renderTrack(index, false);
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-  };
+  }
 
-  const close = () => {
+  function close() {
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    stage.classList.remove('is-next', 'is-prev');
-    incomingImg.removeAttribute('src');
     sliding = false;
-  };
+    track.classList.remove('is-animated');
+  }
 
-  const go = async (direction) => {
+  async function go(delta) {
     if (sliding || !shownPhotos.length) return;
     sliding = true;
-    const nextIndex = (current + direction + shownPhotos.length) % shownPhotos.length;
-    const photo = shownPhotos[nextIndex];
-    await preload(photo.url);
-    incomingImg.src = photo.url;
-    incomingImg.alt = photo.caption || 'Photo de Yingying HOU';
-    stage.classList.remove('is-next', 'is-prev', 'is-resetting');
-    stage.dataset.dir = direction > 0 ? 'next' : 'prev';
-    void stage.offsetWidth;
-    stage.classList.add(direction > 0 ? 'is-next' : 'is-prev');
-
-    window.setTimeout(() => {
-      stage.classList.add('is-resetting');
-      setCurrent(nextIndex);
-      stage.classList.remove('is-next', 'is-prev');
-      incomingImg.removeAttribute('src');
-      incomingImg.alt = '';
-      void stage.offsetWidth;
-      stage.classList.remove('is-resetting');
+    const target = (current + delta + shownPhotos.length) % shownPhotos.length;
+    await preloadImage(photoAt(target)?.url);
+    renderTrack(current, false);
+    requestAnimationFrame(() => {
+      track.classList.add('is-animated');
+      track.style.transform = delta > 0 ? 'translate3d(-200%,0,0)' : 'translate3d(0,0,0)';
+    });
+    const done = () => {
+      track.removeEventListener('transitionend', done);
+      renderTrack(target, false);
       sliding = false;
-    }, 460);
-  };
+    };
+    track.addEventListener('transitionend', done, { once: true });
+    setTimeout(() => { if (sliding) done(); }, 560);
+  }
 
-  const render = async (category = 'Tout') => {
-    const token = ++renderId;
+  async function loadAndRender(category = 'Tout') {
+    const token = ++renderToken;
     grid.classList.remove('is-ready');
     grid.classList.add('is-loading');
-    grid.innerHTML = '<div class="gallery-loader" role="status"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Préparation des images…</em></div>';
+    grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Préparation des images…</em></div>`;
     shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
     await Promise.race([
-      Promise.allSettled(shownPhotos.map((photo) => preload(photo.url))),
-      new Promise((resolve) => setTimeout(resolve, 4500))
+      Promise.allSettled(shownPhotos.map((photo) => preloadImage(photo.url))),
+      new Promise((resolve) => setTimeout(resolve, 5200))
     ]);
-    if (token !== renderId) return;
-    grid.innerHTML = shownPhotos.length ? shownPhotos.map((photo, index) => `
-      <a href="${photo.url}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 50}ms">
-        <img src="${photo.url}" alt="${photo.caption || 'Photo de Yingying HOU'}" loading="eager" decoding="async">
-        <span class="item-overlay"><span>Agrandir</span></span>
-      </a>`).join('') : '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
+    if (token !== renderToken) return;
+    if (!shownPhotos.length) {
+      grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
+    } else {
+      grid.innerHTML = shownPhotos.map((photo, index) => `
+        <a href="${escapeHtml(photo.url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 20) * 45}ms">
+          <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
+          <div class="item-overlay"><span>Agrandir</span></div>
+        </a>`).join('');
+    }
     grid.classList.remove('is-loading');
     requestAnimationFrame(() => grid.classList.add('is-ready'));
-  };
+  }
 
-  grid.addEventListener('click', (event) => {
+  grid.onclick = (event) => {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
     open(Number(item.dataset.index) || 0);
-  }, { signal: signal() });
-  lightbox.querySelector('.lb-close')?.addEventListener('click', close, { signal: signal() });
-  lightbox.querySelector('.lb-next')?.addEventListener('click', () => go(1), { signal: signal() });
-  lightbox.querySelector('.lb-prev')?.addEventListener('click', () => go(-1), { signal: signal() });
-  lightbox.addEventListener('click', (event) => { if (event.target === lightbox) close(); }, { signal: signal() });
+  };
+  lightbox.querySelector('.lb-close')?.addEventListener('click', close);
+  lightbox.querySelector('.lb-next')?.addEventListener('click', () => go(1));
+  lightbox.querySelector('.lb-prev')?.addEventListener('click', () => go(-1));
+  lightbox.onclick = (event) => { if (event.target === lightbox) close(); };
   keyHandler = (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
@@ -453,41 +453,26 @@ async function initGallery() {
   document.addEventListener('keydown', keyHandler);
 
   document.querySelectorAll('.filter-btn').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       document.querySelectorAll('.filter-btn').forEach((item) => item.classList.add('outline'));
       button.classList.remove('outline');
-      render(button.dataset.filter || 'Tout');
-    }, { signal: signal() });
+      loadAndRender(button.dataset.filter || 'Tout');
+    };
   });
 
   try {
     grid.classList.add('is-loading');
-    grid.innerHTML = '<div class="gallery-loader" role="status"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Récupération des photos…</em></div>';
-    const snapshot = await getDocs(query(collection(db, 'galerie'), orderBy('ordre', 'asc')));
+    grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Récupération des photos…</em></div>`;
+    const q = query(collection(db, 'galerie'), orderBy('ordre', 'asc'));
+    const snapshot = await getDocs(q);
     allPhotos = [];
     snapshot.forEach((item) => allPhotos.push(item.data()));
-    await render('Tout');
+    await loadAndRender('Tout');
   } catch (error) {
     console.warn('Galerie indisponible :', error);
     grid.classList.remove('is-loading');
     grid.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
   }
-}
-
-function setupLightboxDom(lightbox) {
-  const figure = lightbox.querySelector('.lb-figure');
-  const oldImg = lightbox.querySelector('#lb-image');
-  const caption = lightbox.querySelector('#lb-caption');
-  if (!figure || figure.querySelector('.lb-slider-stage')) return;
-  const stage = document.createElement('div');
-  stage.className = 'lb-slider-stage is-resetting';
-  stage.innerHTML = `
-    <div class="lb-slide lb-slide-current"><img class="lb-photo-frame" alt=""></div>
-    <div class="lb-slide lb-slide-incoming"><img class="lb-photo-frame" alt=""></div>
-  `;
-  if (oldImg) oldImg.remove();
-  figure.insertBefore(stage, caption || null);
-  requestAnimationFrame(() => stage.classList.remove('is-resetting'));
 }
 
 function initContact() {
@@ -497,7 +482,7 @@ function initContact() {
   const submit = form.querySelector('button[type="submit"]');
   const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || '');
 
-  form.addEventListener('submit', (event) => {
+  form.onsubmit = (event) => {
     if (form.company && form.company.value.trim() !== '') {
       event.preventDefault();
       if (status) { status.textContent = 'Merci.'; status.className = 'form-status ok'; }
@@ -514,27 +499,28 @@ function initContact() {
     }
     if (status) { status.textContent = 'Envoi en cours…'; status.className = 'form-status'; }
     submit?.setAttribute('disabled', 'disabled');
-  }, { signal: signal() });
+  };
 }
 
 function initScrollHints() {
+  scrollController?.abort?.();
   const hints = document.querySelectorAll('.scroll-hint, .scroll-hint-mobile');
   if (!hints.length) return;
+  scrollController = new AbortController();
   const update = () => {
     hints.forEach((hint) => {
       const hidden = hint.classList.contains('scroll-hint-mobile')
         ? window.scrollY > 50
-        : document.documentElement.scrollHeight - (window.scrollY + window.innerHeight) < 150;
+        : document.documentElement.scrollHeight - (window.scrollY + window.innerHeight) < 160;
       hint.classList.toggle('hidden', hidden);
     });
   };
   update();
-  window.addEventListener('scroll', update, { passive: true, signal: signal() });
-  window.addEventListener('resize', update, { passive: true, signal: signal() });
+  window.addEventListener('scroll', update, { passive: true, signal: scrollController.signal });
+  window.addEventListener('resize', update, { passive: true, signal: scrollController.signal });
 }
 
 async function initPage() {
-  teardown();
   initCommon();
   initScrollHints();
   document.body.style.overflow = '';
@@ -543,10 +529,8 @@ async function initPage() {
   else if (page === 'filmography') await initFilmography();
   else if (page === 'gallery') await initGallery();
   else if (page === 'contact') initContact();
-  document.dispatchEvent(new CustomEvent('ying:warm-links'));
 }
 
-window.YingApp = { init: initPage, teardown, db, normalizeCategory };
+window.YingApp = { init: initPage, teardown, db, normalizeCategory, updateActiveNav: () => window.YingNav?.updateActiveNav?.(), ensureUnifiedHeader: () => window.YingNav?.init?.() };
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPage, { once: true });
-else initPage();
+document.addEventListener('DOMContentLoaded', () => initPage());
