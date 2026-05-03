@@ -229,14 +229,33 @@
     // ==========================================
     let tousLesRoles = [];
     let pageActuelle = 0;
-    const ROLES_PAR_PAGE = 7; // Limite fixée à 8
+    const ROLES_PAR_PAGE = 7;
+
+    function getRoleOrderValue(role, fallbackIndex = 0) {
+      const n = Number(role?.ordre);
+      return Number.isFinite(n) && n > 0 ? n : 10000 + fallbackIndex;
+    }
+
+    function sortRolesForDisplay(roles) {
+      return [...roles].sort((a, b) => {
+        const orderA = getRoleOrderValue(a);
+        const orderB = getRoleOrderValue(b);
+        if (orderA !== orderB) return orderA - orderB;
+
+        const yearDiff = (Number(b.annee) || 0) - (Number(a.annee) || 0);
+        if (yearDiff !== 0) return yearDiff;
+
+        return (a.projet || '').localeCompare(b.projet || '', 'fr', { sensitivity: 'base' });
+      });
+    }
 
     async function chargerRolesAccueil() {
       try {
-        const q = query(collection(db, "role"), orderBy("annee", "desc"));
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(collection(db, "role"));
         
+        tousLesRoles = [];
         snapshot.forEach(doc => tousLesRoles.push(doc.data()));
+        tousLesRoles = sortRolesForDisplay(tousLesRoles);
         
         if (tousLesRoles.length > 0) {
           afficherPageRoles(0);

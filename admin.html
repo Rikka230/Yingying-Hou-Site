@@ -36,9 +36,17 @@
     .drop-zone__input { display: none; }
     .drop-zone__thumb { width: 80px; height: 80px; border-radius: 10px; background-size: cover; background-position: center; margin-bottom: 10px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .admin-list { list-style: none; padding: 0; }
-    .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+    .admin-list-item { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 15px; border-bottom: 1px solid #eee; }
     .admin-list-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
-    .action-btns button { border: none; background: #f0f0f0; cursor: pointer; border-radius: 8px; padding: 8px 12px; margin-left: 5px; font-size: 1.1rem; }
+    .role-list-meta { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .role-order-badge { min-width: 34px; height: 30px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #fff6d8; color: #1f1f1f; border: 1px solid rgba(212,175,55,.35); font-size: .78rem; font-weight: 800; line-height: 1; }
+    .role-list-text { min-width: 0; }
+    .role-list-text strong { display: block; overflow-wrap: anywhere; }
+    .role-list-text small { color: #777; font-weight: 700; }
+    .action-btns { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+    .action-btns button { border: none; background: #f0f0f0; cursor: pointer; border-radius: 8px; padding: 8px 12px; margin-left: 0; font-size: 1.1rem; }
+    .action-btns button:disabled { opacity: .32; cursor: not-allowed; }
+    .role-order-help { color: #888; font-size: .78rem; margin-top: 6px; display: block; }
     .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 15px; padding: 10px 0; }
     .page-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: 700; transition: 0.2s; }
     .page-btn.active { background: #d4af37; color: #fff; border-color: #d4af37; }
@@ -101,6 +109,11 @@
 </select>
                 </div>
                 <div class="form-group" style="flex:1;"><label>Année</label><input type="number" id="role-annee" value="2025"></div>
+              </div>
+              <div class="form-group">
+                <label>Ordre d'affichage</label>
+                <input type="number" id="role-ordre" min="1" step="1" placeholder="Auto">
+                <small class="role-order-help">1 = affiché en premier sur l'accueil. Tu peux aussi utiliser les flèches dans la liste.</small>
               </div>
               <div class="form-group"><label>Réalisateur</label><input type="text" id="role-real"></div>
               <div class="form-group"><label>Lien IMDb/Vidéo</label><input type="url" id="role-lien"></div>
@@ -302,32 +315,205 @@
     }
 
     // --- ROLES ---
+    let roleCache = [];
+
+    function getRoleOrderValue(role, fallbackIndex = 0) {
+      const n = Number(role?.ordre);
+      return Number.isFinite(n) && n > 0 ? n : 10000 + fallbackIndex;
+    }
+
+    function sortRolesForDisplay(roles) {
+      return [...roles].sort((a, b) => {
+        const orderA = getRoleOrderValue(a);
+        const orderB = getRoleOrderValue(b);
+        if (orderA !== orderB) return orderA - orderB;
+
+        const yearDiff = (Number(b.annee) || 0) - (Number(a.annee) || 0);
+        if (yearDiff !== 0) return yearDiff;
+
+        return (a.projet || '').localeCompare(b.projet || '', 'fr', { sensitivity: 'base' });
+      });
+    }
+
+    async function compactRoles() {
+      const snap = await getDocs(collection(db, "role"));
+      const roles = [];
+      snap.forEach(d => roles.push({ id: d.id, ...d.data() }));
+
+      const sorted = sortRolesForDisplay(roles);
+      const batch = writeBatch(db);
+      sorted.forEach((role, index) => {
+        if (Number(role.ordre) !== index + 1) {
+          batch.update(doc(db, "role", role.id), { ordre: index + 1 });
+        }
+      });
+      await batch.commit();
+    }
+
     async function loadRoles() {
-      const q = query(collection(db, "role"), orderBy("annee", "desc")), snap = await getDocs(q), list = document.getElementById('list-roles');
-      let roles = []; snap.forEach(d => roles.push({id: d.id, ...d.data()}));
-      const start = (rolePageActuelle - 1) * roleParPage, items = roles.slice(start, start + roleParPage);
+      const snap = await getDocs(collection(db, "role"));
+      const list = document.getElementById('list-roles');
+      let roles = [];
+      snap.forEach(d => roles.push({id: d.id, ...d.data()}));
+      roles = sortRolesForDisplay(roles);
+      const shouldCompact = roles.some((role, index) => Number(role.ordre) !== index + 1);
+      if (shouldCompact) {
+        await compactRoles();
+        const freshSnap = await getDocs(collection(db, "role"));
+        roles = [];
+        freshSnap.forEach(d => roles.push({id: d.id, ...d.data()}));
+        roles = sortRolesForDisplay(roles);
+      }
+      roleCache = roles;
+
+      const start = (rolePageActuelle - 1) * roleParPage;
+      const items = roles.slice(start, start + roleParPage);
       list.innerHTML = "";
+
       items.forEach(data => {
-        const li = document.createElement('li'); li.className = "admin-list-item";
-        li.innerHTML = `<div><strong>${data.projet}</strong></div><div class="action-btns"><button class="ed-r">✏️</button><button class="del-r">🗑️</button></div>`;
+        const roleIndex = roles.findIndex(r => r.id === data.id);
+        const li = document.createElement('li');
+        li.className = "admin-list-item";
+        li.innerHTML = `
+          <div class="role-list-meta">
+            <span class="role-order-badge">#${roleIndex + 1}</span>
+            <div class="role-list-text">
+              <strong>${data.projet || 'Projet sans titre'}</strong>
+              <small>${data.type || 'Catégorie'} · ${data.annee || ''}</small>
+            </div>
+          </div>
+          <div class="action-btns">
+            <button class="up-r" title="Monter" ${roleIndex <= 0 ? 'disabled' : ''}>↑</button>
+            <button class="down-r" title="Descendre" ${roleIndex >= roles.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="ed-r" title="Modifier">✏️</button>
+            <button class="del-r" title="Supprimer">🗑️</button>
+          </div>`;
+
+        li.querySelector('.up-r').onclick = () => moveRole(data.id, -1);
+        li.querySelector('.down-r').onclick = () => moveRole(data.id, 1);
+
         li.querySelector('.ed-r').onclick = () => {
-          editRoleId = data.id; document.getElementById('role-title').textContent = "Modifier Rôle"; document.getElementById('btn-role-cancel').classList.remove('hidden');
-          document.getElementById('role-projet').value = data.projet; document.getElementById('role-titre').value = data.titre;
-          document.getElementById('role-type').value = data.type; document.getElementById('role-annee').value = data.annee;
-          document.getElementById('role-real').value = data.realisateur || ''; document.getElementById('role-lien').value = data.lien || '';
+          editRoleId = data.id;
+          document.getElementById('role-title').textContent = "Modifier Rôle";
+          document.getElementById('btn-role-cancel').classList.remove('hidden');
+          document.getElementById('btn-role-submit').textContent = "Mettre à jour";
+          document.getElementById('role-projet').value = data.projet || '';
+          document.getElementById('role-titre').value = data.titre || '';
+          document.getElementById('role-type').value = data.type || 'Série TV';
+          document.getElementById('role-annee').value = data.annee || new Date().getFullYear();
+          document.getElementById('role-ordre').value = roleIndex + 1;
+          document.getElementById('role-real').value = data.realisateur || '';
+          document.getElementById('role-lien').value = data.lien || '';
           window.scrollTo({top:0, behavior:'smooth'});
         };
-        li.querySelector('.del-r').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"role",data.id)); loadRoles(); } };
+
+        li.querySelector('.del-r').onclick = async () => {
+          if(confirm("Supprimer?")){
+            await deleteDoc(doc(db,"role",data.id));
+            await compactRoles();
+            loadRoles();
+          }
+        };
         list.appendChild(li);
       });
+
       renderPagination(roles.length, roleParPage, rolePageActuelle, 'role-pagination', (p) => { rolePageActuelle = p; loadRoles(); });
+      if(!editRoleId) {
+        document.getElementById('role-ordre').value = roles.length + 1;
+      }
     }
+
+    async function moveRole(roleId, direction) {
+      const roles = roleCache.length ? roleCache : [];
+      const index = roles.findIndex(r => r.id === roleId);
+      const targetIndex = index + direction;
+      if (index < 0 || targetIndex < 0 || targetIndex >= roles.length) return;
+
+      const current = roles[index];
+      const target = roles[targetIndex];
+      const batch = writeBatch(db);
+      batch.update(doc(db, "role", current.id), { ordre: targetIndex + 1 });
+      batch.update(doc(db, "role", target.id), { ordre: index + 1 });
+      await batch.commit();
+      await compactRoles();
+      loadRoles();
+    }
+
+    function clampRoleOrder(value, max) {
+      const n = Number(value);
+      if (!Number.isFinite(n) || n < 1) return max;
+      return Math.max(1, Math.min(Math.round(n), max));
+    }
+
+    async function saveRoleInOrder(data, desiredOrder) {
+      const snap = await getDocs(collection(db, "role"));
+      let roles = [];
+      snap.forEach(d => roles.push({ id: d.id, ...d.data() }));
+      roles = sortRolesForDisplay(roles);
+
+      const batch = writeBatch(db);
+      let roleId = editRoleId;
+
+      if (editRoleId) {
+        const existing = roles.find(r => r.id === editRoleId) || { id: editRoleId };
+        roles = roles.filter(r => r.id !== editRoleId);
+        const targetIndex = clampRoleOrder(desiredOrder, roles.length + 1) - 1;
+        roles.splice(targetIndex, 0, { ...existing, ...data, id: editRoleId });
+      } else {
+        const newRef = doc(collection(db, "role"));
+        roleId = newRef.id;
+        const targetIndex = clampRoleOrder(desiredOrder, roles.length + 1) - 1;
+        roles.splice(targetIndex, 0, { ...data, id: roleId, __newRef: newRef });
+      }
+
+      roles.forEach((role, index) => {
+        const ordre = index + 1;
+        if (role.__newRef) {
+          batch.set(role.__newRef, { ...data, ordre });
+        } else if (role.id === roleId) {
+          batch.update(doc(db, "role", role.id), { ...data, ordre });
+        } else {
+          batch.update(doc(db, "role", role.id), { ordre });
+        }
+      });
+
+      await batch.commit();
+    }
+
     document.getElementById('form-role').onsubmit = async (e) => {
-      e.preventDefault(); const btn = document.getElementById('btn-role-submit');
-      const data = { projet: document.getElementById('role-projet').value, titre: document.getElementById('role-titre').value, type: document.getElementById('role-type').value, annee: Number(document.getElementById('role-annee').value), realisateur: document.getElementById('role-real').value, lien: document.getElementById('role-lien').value };
-      try { btn.disabled = true; if(editRoleId) await updateDoc(doc(db,"role",editRoleId), data); else await addDoc(collection(db,"role"), data); document.getElementById('role-success').style.display='block'; setTimeout(()=> { document.getElementById('role-success').style.display='none'; resetR(); loadRoles(); }, 1500); } finally { btn.disabled = false; }
+      e.preventDefault();
+      const btn = document.getElementById('btn-role-submit');
+      const desiredOrderRaw = Number(document.getElementById('role-ordre').value);
+      const currentLength = roleCache.length || 0;
+      const desiredOrder = Number.isFinite(desiredOrderRaw) && desiredOrderRaw > 0 ? desiredOrderRaw : currentLength + 1;
+      const data = {
+        projet: document.getElementById('role-projet').value.trim(),
+        titre: document.getElementById('role-titre').value.trim(),
+        type: document.getElementById('role-type').value,
+        annee: Number(document.getElementById('role-annee').value),
+        realisateur: document.getElementById('role-real').value.trim(),
+        lien: document.getElementById('role-lien').value.trim()
+      };
+
+      try {
+        btn.disabled = true;
+        await saveRoleInOrder(data, desiredOrder);
+        document.getElementById('role-success').style.display='block';
+        setTimeout(()=> { document.getElementById('role-success').style.display='none'; resetR(); loadRoles(); }, 1200);
+      } finally {
+        btn.disabled = false;
+      }
     };
-    function resetR() { editRoleId=null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
+
+    function resetR() {
+      editRoleId = null;
+      document.getElementById('form-role').reset();
+      document.getElementById('role-annee').value = new Date().getFullYear();
+      document.getElementById('role-ordre').value = (roleCache.length || 0) + 1;
+      document.getElementById('btn-role-cancel').classList.add('hidden');
+      document.getElementById('btn-role-submit').textContent = "Publier";
+      document.getElementById('role-title').textContent="Ajouter un Rôle";
+    }
     document.getElementById('btn-role-cancel').onclick = resetR;
 
     // --- PHOTOS ---
