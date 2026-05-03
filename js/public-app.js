@@ -14,51 +14,16 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const icons = {
-  sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
-  moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
-};
-
-
-const PUBLIC_HEADER_HTML = `
-  <div class="wrap site-header-inner">
-    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
-    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
-      <ul>
-        <li><a href="/" data-nav="home">Accueil</a></li>
-        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
-        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
-        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
-      </ul>
-    </nav>
-    <div class="header-right">
-      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
-      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
-    </div>
-  </div>
-`;
-
 function ensureUnifiedHeader() {
-  const header = document.querySelector('.site-header');
-  if (!header) return;
+  window.YingPublicNav?.mount?.();
+}
 
-  const inner = header.querySelector('.site-header-inner');
-  const hasExpectedLinks = inner
-    && header.querySelector('a[data-nav="home"]')
-    && header.querySelector('a[data-nav="filmography"]')
-    && header.querySelector('a[data-nav="gallery"]')
-    && header.querySelector('a[data-nav="contact"]');
-
-  if (!hasExpectedLinks) {
-    header.innerHTML = PUBLIC_HEADER_HTML;
-  }
-
-  const unifiedInner = header.querySelector('.site-header-inner');
-  if (unifiedInner) unifiedInner.dataset.yingUnified = 'true';
-  header.dataset.yingShell = 'public';
+function updateActiveNav() {
+  window.YingPublicNav?.updateActive?.();
 }
 
 let commonReady = false;
+
 let lastKeyHandler = null;
 let galleryTimer = null;
 
@@ -123,32 +88,11 @@ function syncRootThemeClass() {
 }
 
 function setThemeIcon() {
-  syncRootThemeClass();
-  const button = document.getElementById('theme-toggle-btn');
-  if (!button) return;
-  button.innerHTML = document.body.classList.contains('dark-mode') ? icons.sun : icons.moon;
+  window.YingPublicNav?.setThemeIcon?.();
 }
 
 function applyStoredTheme() {
-  document.body.classList.toggle('dark-mode', localStorage.getItem('theme') === 'dark');
-  syncRootThemeClass();
-  document.documentElement.classList.remove('theme-dark-preload');
-  setThemeIcon();
-}
-
-function updateActiveNav() {
-  const cleanPath = (value) => {
-    const path = (value || '/').replace(/\/index\.html$/, '/').replace(/\/+$/, '') || '/';
-    return path;
-  };
-  const path = cleanPath(window.location.pathname);
-  document.querySelectorAll('.site-nav a').forEach((link) => {
-    const href = cleanPath(new URL(link.getAttribute('href'), window.location.origin).pathname);
-    const active = href === path;
-    link.classList.toggle('is-active', active);
-    if (active) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
-  });
+  window.YingPublicNav?.applyStoredTheme?.();
 }
 
 function initCommon() {
@@ -159,31 +103,6 @@ function initCommon() {
 
   if (commonReady) return;
   commonReady = true;
-
-  document.addEventListener('click', (event) => {
-    const themeButton = event.target.closest('#theme-toggle-btn');
-    if (themeButton) {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-      syncRootThemeClass();
-      setThemeIcon();
-      return;
-    }
-
-    const navToggle = event.target.closest('.nav-toggle');
-    if (navToggle) {
-      const nav = document.getElementById(navToggle.getAttribute('aria-controls') || 'nav');
-      const isOpen = nav?.classList.toggle('open');
-      navToggle.setAttribute('aria-expanded', String(Boolean(isOpen)));
-      return;
-    }
-
-    const navLink = event.target.closest('.site-nav a');
-    if (navLink) {
-      document.getElementById('nav')?.classList.remove('open');
-      document.querySelector('.nav-toggle')?.setAttribute('aria-expanded', 'false');
-    }
-  });
 }
 
 async function initPresskit() {

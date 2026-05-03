@@ -1176,3 +1176,267 @@ body.dark-mode html.is-pjax-navigating::before {
     filter: none !important;
   }
 }
+
+/* =========================================
+   PATCH PJAX V2.5 — NAV BAR PUBLIQUE ISOLÉE
+   La topbar vient maintenant de js/public-nav.js et garde exactement la même structure partout.
+========================================= */
+:root {
+  --public-nav-height: 64px;
+  --public-nav-max: 1100px;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+#public-nav-root {
+  position: relative;
+  z-index: 1000;
+  display: block;
+  width: 100%;
+  height: var(--public-nav-height);
+  min-height: var(--public-nav-height);
+  background: var(--bg) !important;
+  isolation: isolate;
+}
+
+html.theme-dark-preload #public-nav-root,
+html.theme-dark-active #public-nav-root,
+body.dark-mode #public-nav-root {
+  background: var(--public-dark-bg, #0d0f14) !important;
+}
+
+#public-nav-root .site-header,
+#public-nav-root .public-site-header {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  z-index: 1001 !important;
+  width: 100% !important;
+  height: var(--public-nav-height) !important;
+  min-height: var(--public-nav-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: rgba(255,255,255,.94) !important;
+  backdrop-filter: saturate(150%) blur(10px) !important;
+  -webkit-backdrop-filter: saturate(150%) blur(10px) !important;
+  border-bottom: 1px solid var(--line) !important;
+  transform: none !important;
+  transition: background-color .18s ease, border-color .18s ease !important;
+}
+
+body.dark-mode #public-nav-root .site-header,
+html.theme-dark-active #public-nav-root .site-header,
+html.theme-dark-preload #public-nav-root .site-header {
+  background: rgba(13,15,20,.92) !important;
+  border-color: rgba(255,255,255,.08) !important;
+}
+
+#public-nav-root .public-nav-inner,
+#public-nav-root .site-header-inner {
+  width: min(calc(100% - 40px), var(--public-nav-max)) !important;
+  height: var(--public-nav-height) !important;
+  min-height: var(--public-nav-height) !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(160px, 220px) minmax(460px, 1fr) minmax(72px, 220px) !important;
+  align-items: center !important;
+  gap: 24px !important;
+}
+
+#public-nav-root .public-nav-brand,
+#public-nav-root .brand {
+  justify-self: start !important;
+  color: var(--text) !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+body.dark-mode #public-nav-root .public-nav-brand,
+body.dark-mode #public-nav-root .public-nav-brand strong,
+html.theme-dark-active #public-nav-root .public-nav-brand,
+html.theme-dark-active #public-nav-root .public-nav-brand strong {
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+
+#public-nav-root .public-main-nav,
+#public-nav-root .site-nav {
+  justify-self: center !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+
+#public-nav-root .site-nav ul {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#public-nav-root .site-nav a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  color: var(--text) !important;
+  font-weight: 700 !important;
+  transform: none !important;
+  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease !important;
+}
+
+#public-nav-root .site-nav a[data-nav="home"] { min-width: 78px !important; }
+#public-nav-root .site-nav a[data-nav="filmography"] { min-width: 126px !important; }
+#public-nav-root .site-nav a[data-nav="gallery"] { min-width: 82px !important; }
+#public-nav-root .site-nav a[data-nav="contact"] { min-width: 154px !important; }
+
+#public-nav-root .site-nav a.is-active {
+  background: var(--yellow) !important;
+  color: var(--yellow-ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#public-nav-root .public-nav-actions,
+#public-nav-root .header-right {
+  justify-self: end !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  min-width: 48px !important;
+}
+
+#public-nav-root .theme-toggle-modern {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  color: var(--text) !important;
+  background: var(--bg) !important;
+  border: 1px solid var(--line) !important;
+  opacity: 1 !important;
+}
+
+body.dark-mode #public-nav-root .theme-toggle-modern,
+html.theme-dark-active #public-nav-root .theme-toggle-modern {
+  color: var(--text) !important;
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+
+#public-nav-root .theme-toggle-modern svg {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+/* Le shell ne bouge jamais pendant une navigation PJAX. */
+html.is-pjax-navigating #public-nav-root,
+html.is-pjax-navigating #public-nav-root .site-header,
+html.is-pjax-navigating #public-nav-root .site-nav a,
+html.is-pjax-navigating #public-nav-root .theme-toggle-modern {
+  transition-property: background-color, color, border-color, box-shadow, opacity !important;
+  transform: none !important;
+}
+
+html.is-pjax-navigating #public-nav-root .site-header {
+  pointer-events: none;
+}
+
+/* Fondu pur du contenu uniquement : la topbar est hors scène, donc plus de décalage. */
+html.is-pjax-navigating #main {
+  transition: opacity .24s ease-in-out !important;
+}
+
+#main.is-pjax-leaving,
+#main.is-pjax-entering {
+  opacity: 0 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+@media (max-width: 900px) {
+  #public-nav-root .public-nav-inner,
+  #public-nav-root .site-header-inner {
+    width: calc(100% - 28px) !important;
+    grid-template-columns: minmax(130px, 1fr) auto auto !important;
+    gap: 12px !important;
+  }
+
+  #public-nav-root .site-nav {
+    position: absolute !important;
+    inset: var(--public-nav-height) 0 auto 0 !important;
+    width: 100% !important;
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--line) !important;
+    transform: translateY(-8px) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity .18s ease, transform .18s ease !important;
+  }
+
+  body.dark-mode #public-nav-root .site-nav,
+  html.theme-dark-active #public-nav-root .site-nav {
+    background: var(--public-dark-bg, #0d0f14) !important;
+    border-color: rgba(255,255,255,.08) !important;
+  }
+
+  #public-nav-root .site-nav.open {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  #public-nav-root .site-nav ul {
+    width: min(100% - 28px, var(--public-nav-max)) !important;
+    margin: 0 auto !important;
+    padding: 12px 0 !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  #public-nav-root .site-nav a,
+  #public-nav-root .site-nav a[data-nav] {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: flex-start !important;
+    padding: 0 14px !important;
+  }
+}
+
+@media (min-width: 901px) {
+  #public-nav-root .nav-toggle {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #public-nav-root,
+  #public-nav-root *,
+  #main,
+  #main.is-pjax-leaving,
+  #main.is-pjax-entering {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  #public-nav-root .nav-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 34px !important;
+  }
+}
