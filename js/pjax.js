@@ -96,6 +96,7 @@ function updateBodyClass(doc) {
   const nextClasses = Array.from(doc.body.classList).filter((name) => name !== 'dark-mode');
   document.body.className = nextClasses.join(' ');
   if (isDark) document.body.classList.add('dark-mode');
+  document.documentElement.classList.toggle('theme-dark-active', document.body.classList.contains('dark-mode'));
 }
 
 function closeTransientUi() {
@@ -166,7 +167,7 @@ async function transitionTo(nextMain, { beforeSwap = null } = {}) {
   }
 
   currentMain.classList.add('is-pjax-leaving');
-  await wait(120);
+  await wait(170);
   beforeSwap?.();
   currentMain.replaceWith(nextMain);
   nextMain.classList.add('is-pjax-entering');
@@ -214,6 +215,7 @@ async function navigate(url, options = {}) {
   currentFetchController = new AbortController();
 
   const progress = ensureProgressBar();
+  document.documentElement.classList.toggle('theme-dark-active', document.body.classList.contains('dark-mode'));
   document.documentElement.classList.add('is-pjax-navigating');
   progress.classList.add('is-active');
   document.querySelector(MAIN_SELECTOR)?.setAttribute('aria-busy', 'true');

@@ -32,7 +32,7 @@ const PUBLIC_HEADER_HTML = `
       </ul>
     </nav>
     <div class="header-right">
-      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     </div>
   </div>
@@ -118,7 +118,12 @@ async function getRoles() {
   return roles;
 }
 
+function syncRootThemeClass() {
+  document.documentElement.classList.toggle('theme-dark-active', document.body.classList.contains('dark-mode'));
+}
+
 function setThemeIcon() {
+  syncRootThemeClass();
   const button = document.getElementById('theme-toggle-btn');
   if (!button) return;
   button.innerHTML = document.body.classList.contains('dark-mode') ? icons.sun : icons.moon;
@@ -126,6 +131,7 @@ function setThemeIcon() {
 
 function applyStoredTheme() {
   document.body.classList.toggle('dark-mode', localStorage.getItem('theme') === 'dark');
+  syncRootThemeClass();
   document.documentElement.classList.remove('theme-dark-preload');
   setThemeIcon();
 }
@@ -159,6 +165,7 @@ function initCommon() {
     if (themeButton) {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      syncRootThemeClass();
       setThemeIcon();
       return;
     }
@@ -490,6 +497,27 @@ function initScrollHints() {
   window.addEventListener('resize', update, { passive: true, signal: controller.signal });
 }
 
+
+function initMediaFadeIn() {
+  const media = document.querySelectorAll('#main img, #main picture img');
+  media.forEach((item) => {
+    if (item.dataset.yingFadeReady === 'true') return;
+    item.dataset.yingFadeReady = 'true';
+    item.classList.add('ying-fade-media');
+
+    const reveal = () => {
+      item.classList.add('is-visible');
+    };
+
+    if (item.complete && item.naturalWidth !== 0) {
+      requestAnimationFrame(reveal);
+    } else {
+      item.addEventListener('load', reveal, { once: true });
+      item.addEventListener('error', reveal, { once: true });
+    }
+  });
+}
+
 async function initPage() {
   initCommon();
   initScrollHints();
@@ -500,6 +528,7 @@ async function initPage() {
   if (page === 'filmography') await initFilmography();
   if (page === 'gallery') await initGallery();
   if (page === 'contact') initContact();
+  initMediaFadeIn();
 }
 
 window.YingApp = { init: initPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
