@@ -14,39 +14,11 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const icons = {
-  sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
-  moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
-};
+let pageController = null;
+let keyHandler = null;
+let activeVideoSource = null;
 
-
-const PUBLIC_HEADER_HTML = `
-  <div class="wrap site-header-inner">
-    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
-    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
-      <ul>
-        <li><a href="/" data-nav="home">Accueil</a></li>
-        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
-        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
-        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
-      </ul>
-    </nav>
-    <div class="header-right">
-      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
-      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
-    </div>
-  </div>
-`;
-
-function ensureUnifiedHeader() {
-  window.YingNav?.ensureHeader?.();
-}
-
-
-
-let commonReady = false;
-let lastKeyHandler = null;
-let galleryTimer = null;
+function signal() { return pageController?.signal; }
 
 function normalizeText(value) {
   return String(value || '')
@@ -104,67 +76,45 @@ async function getRoles() {
   return roles;
 }
 
-function setThemeIcon() {
-  window.YingNav?.setThemeIcon?.();
-}
-
-
-
-function applyStoredTheme() {
-  window.YingNav?.applyStoredTheme?.();
-}
-
-
-
-function updateActiveNav() {
-  window.YingNav?.updateActiveNav?.();
-}
-
-
-
 function initCommon() {
   window.YingNav?.init?.();
-  ensureUnifiedHeader();
-  applyStoredTheme();
-  updateActiveNav();
   document.querySelectorAll('#year').forEach((year) => { year.textContent = new Date().getFullYear(); });
-  commonReady = true;
 }
 
+function teardown() {
+  pageController?.abort?.();
+  pageController = new AbortController();
+  if (keyHandler) document.removeEventListener('keydown', keyHandler);
+  keyHandler = null;
+  document.body.style.overflow = '';
+  closeVideoLightbox({ keepFrame: false });
+}
 
-
-async function initPresskit() {
+function initPresskit() {
   const modal = document.getElementById('presskitModal');
   if (!modal) return;
-
   const close = document.getElementById('btn-close-presskit');
-  if (close) close.onclick = () => modal.close();
+  if (close) close.addEventListener('click', () => modal.close(), { signal: signal() });
 
   document.querySelectorAll('.js-presskit').forEach((button) => {
-    button.onclick = async () => {
+    button.addEventListener('click', async () => {
       try {
         const cvDoc = await getDoc(doc(db, 'site_data', 'cv_project'));
-        if (cvDoc.exists() && cvDoc.data().publicUrl) {
-          const link = document.getElementById('link-dl-cv');
-          if (link) link.href = cvDoc.data().publicUrl;
-        }
+        if (cvDoc.exists() && cvDoc.data().publicUrl) document.getElementById('link-dl-cv')?.setAttribute('href', cvDoc.data().publicUrl);
         const zcardDoc = await getDoc(doc(db, 'site_data', 'zcard_project'));
-        if (zcardDoc.exists() && zcardDoc.data().publicUrl) {
-          const link = document.getElementById('link-dl-zcard');
-          if (link) link.href = zcardDoc.data().publicUrl;
-        }
+        if (zcardDoc.exists() && zcardDoc.data().publicUrl) document.getElementById('link-dl-zcard')?.setAttribute('href', zcardDoc.data().publicUrl);
       } catch (error) {
-        console.error('Erreur Press Kit :', error);
+        console.warn('Press kit indisponible :', error);
       }
       if (typeof modal.showModal === 'function') modal.showModal();
-    };
+      else modal.setAttribute('open', '');
+    }, { signal: signal() });
   });
 }
 
 async function initHome() {
   initPresskit();
-  initHomeRoles();
-  initHomeVideos();
+  await Promise.allSettled([initHomeRoles(), initHomeVideos()]);
 }
 
 async function initHomeRoles() {
@@ -176,34 +126,46 @@ async function initHomeRoles() {
   let currentPage = 0;
   const perPage = 7;
 
-  function render(roles) {
+  const render = (roles) => {
     const start = currentPage * perPage;
     const pageRoles = roles.slice(start, start + perPage);
-    list.innerHTML = '';
-
-    if (!pageRoles.length) {
-      list.innerHTML = '<li class="loading-line">Aucun rôle disponible.</li>';
-    } else {
-      pageRoles.forEach((role) => {
-        const li = document.createElement('li');
-        const year = role.annee ? ` ${role.annee}` : '';
-        li.innerHTML = `<span class="role-heart">♥</span> ${role.titre || 'Rôle'} — <b>${role.projet || 'Projet'}</b> <span class="role-meta">(${normalizeCategory(role.type)}${year})</span>`;
-        list.appendChild(li);
-      });
-    }
-
+    list.innerHTML = pageRoles.length ? pageRoles.map((role) => {
+      const year = role.annee ? ` ${role.annee}` : '';
+      return `<li><span class="role-heart">♥</span> ${role.titre || 'Rôle'} — <b>${role.projet || 'Projet'}</b> <span class="role-meta">(${normalizeCategory(role.type)}${year})</span></li>`;
+    }).join('') : '<li class="loading-line">Aucun rôle disponible.</li>';
     prev.disabled = currentPage === 0;
     next.disabled = start + perPage >= roles.length;
-  }
+  };
 
   try {
     const roles = sortRolesForDisplay(await getRoles());
     render(roles);
-    prev.onclick = () => { if (currentPage > 0) { currentPage -= 1; render(roles); } };
-    next.onclick = () => { if ((currentPage + 1) * perPage < roles.length) { currentPage += 1; render(roles); } };
+    prev.addEventListener('click', () => { if (currentPage > 0) { currentPage -= 1; render(roles); } }, { signal: signal() });
+    next.addEventListener('click', () => { if ((currentPage + 1) * perPage < roles.length) { currentPage += 1; render(roles); } }, { signal: signal() });
   } catch (error) {
-    console.error('Erreur rôles accueil :', error);
+    console.warn('Rôles accueil indisponibles :', error);
     list.innerHTML = '<li class="loading-line error-line">Erreur de chargement.</li>';
+  }
+}
+
+function buildPlayerUrl(rawUrl, autoplay = false) {
+  try {
+    const url = new URL(rawUrl, window.location.origin);
+    const host = url.hostname.replace(/^www\./, '');
+    if (host.includes('youtube') || host.includes('youtu.be')) {
+      url.searchParams.set('enablejsapi', '1');
+      url.searchParams.set('playsinline', '1');
+      url.searchParams.set('rel', '0');
+      if (autoplay) url.searchParams.set('autoplay', '1');
+    }
+    if (host.includes('vimeo')) {
+      url.searchParams.set('api', '1');
+      url.searchParams.set('playsinline', '1');
+      if (autoplay) url.searchParams.set('autoplay', '1');
+    }
+    return url.toString();
+  } catch (_) {
+    return rawUrl || '';
   }
 }
 
@@ -213,30 +175,9 @@ async function initHomeVideos() {
   const next = document.getElementById('yt-next');
   if (!slider) return;
 
-  function withPlayerParams(rawUrl) {
-    try {
-      const url = new URL(rawUrl, window.location.origin);
-      const host = url.hostname.replace(/^www\./, '');
-      if (host.includes('youtube') || host.includes('youtu.be')) {
-        url.searchParams.set('enablejsapi', '1');
-        url.searchParams.set('playsinline', '1');
-        url.searchParams.set('rel', '0');
-      }
-      if (host.includes('vimeo')) {
-        url.searchParams.set('api', '1');
-        url.searchParams.set('playsinline', '1');
-      }
-      return url.toString();
-    } catch (_) {
-      return rawUrl;
-    }
-  }
-
   try {
-    const q = query(collection(db, 'videos'), orderBy('ordre', 'asc'));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(query(collection(db, 'videos'), orderBy('ordre', 'asc')));
     slider.innerHTML = '';
-
     if (snapshot.empty) {
       slider.innerHTML = '<p class="loading-line">Prochainement : de nouvelles vidéos.</p>';
       return;
@@ -244,7 +185,7 @@ async function initHomeVideos() {
 
     snapshot.forEach((item) => {
       const data = item.data();
-      const safeUrl = withPlayerParams(data.url || '');
+      const safeUrl = buildPlayerUrl(data.url || '', false);
       const div = document.createElement('div');
       div.className = 'yt-item';
       div.innerHTML = `
@@ -254,26 +195,26 @@ async function initHomeVideos() {
       slider.appendChild(div);
     });
 
-    const scrollAmount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
-    if (next) next.onclick = () => slider.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
-    if (prev) prev.onclick = () => slider.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    const amount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
+    prev?.addEventListener('click', () => slider.scrollBy({ left: -amount(), behavior: 'smooth' }), { signal: signal() });
+    next?.addEventListener('click', () => slider.scrollBy({ left: amount(), behavior: 'smooth' }), { signal: signal() });
     initVideoLightbox();
   } catch (error) {
-    console.error('Erreur vidéos :', error);
+    console.warn('Vidéos indisponibles :', error);
     slider.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
   }
 }
 
 function pauseEmbeddedVideos() {
-  document.querySelectorAll('iframe').forEach((iframe) => {
+  document.querySelectorAll('.yt-item iframe').forEach((iframe) => {
     try {
-      iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-      iframe.contentWindow?.postMessage('{"method":"pause"}', '*');
+      iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+      iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*');
     } catch (_) {}
   });
 }
 
-function initVideoLightbox() {
+function ensureVideoLightbox() {
   let modal = document.getElementById('videoLightbox');
   if (!modal) {
     modal = document.createElement('div');
@@ -284,42 +225,59 @@ function initVideoLightbox() {
     modal.setAttribute('aria-modal', 'true');
     modal.innerHTML = `
       <div class="video-lightbox-backdrop" data-video-close></div>
-      <div class="video-lightbox-panel">
+      <div class="video-lightbox-panel" role="document">
         <button class="video-lightbox-close" type="button" data-video-close aria-label="Fermer">✕</button>
-        <div class="video-lightbox-loader">Chargement…</div>
+        <div class="video-lightbox-loader"><span></span><strong>Chargement</strong></div>
         <iframe id="videoLightboxFrame" title="Vidéo agrandie" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
       </div>
     `;
     document.body.appendChild(modal);
   }
+  return modal;
+}
 
+function closeVideoLightbox({ keepFrame = false } = {}) {
+  const modal = document.getElementById('videoLightbox');
+  const frame = document.getElementById('videoLightboxFrame');
+  if (!modal) return;
+  modal.setAttribute('aria-hidden', 'true');
+  modal.classList.remove('is-ready', 'is-loading');
+  document.body.classList.remove('video-modal-open');
+  document.body.style.overflow = '';
+  if (!keepFrame && frame) frame.src = 'about:blank';
+  activeVideoSource?.classList.remove('is-expanded-source');
+  activeVideoSource = null;
+}
+
+function initVideoLightbox() {
+  const modal = ensureVideoLightbox();
   const frame = modal.querySelector('#videoLightboxFrame');
-  const close = () => {
-    modal.setAttribute('aria-hidden', 'true');
-    modal.classList.remove('is-ready');
-    document.body.style.overflow = '';
-    if (frame) frame.src = 'about:blank';
-  };
+  modal.querySelectorAll('[data-video-close]').forEach((button) => button.addEventListener('click', () => closeVideoLightbox(), { signal: signal() }));
 
-  modal.querySelectorAll('[data-video-close]').forEach((button) => { button.onclick = close; });
   document.querySelectorAll('.media-expand').forEach((button) => {
-    button.onclick = () => {
+    button.addEventListener('click', () => {
       const src = button.dataset.videoSrc;
       if (!src || !frame) return;
       pauseEmbeddedVideos();
+      activeVideoSource?.classList.remove('is-expanded-source');
+      activeVideoSource = button.closest('.yt-item');
+      activeVideoSource?.classList.add('is-expanded-source');
       modal.classList.remove('is-ready');
+      modal.classList.add('is-loading');
       modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('video-modal-open');
       document.body.style.overflow = 'hidden';
-      const url = new URL(src, window.location.origin);
-      url.searchParams.set('autoplay', '1');
-      url.searchParams.set('playsinline', '1');
-      frame.onload = () => modal.classList.add('is-ready');
-      frame.src = url.toString();
-    };
+      frame.removeAttribute('src');
+      frame.onload = () => {
+        window.setTimeout(() => {
+          modal.classList.remove('is-loading');
+          modal.classList.add('is-ready');
+        }, 120);
+      };
+      frame.src = buildPlayerUrl(src, true);
+    }, { signal: signal() });
   });
 }
-
-
 
 async function initFilmography() {
   const table = document.querySelector('#filmography tbody');
@@ -329,20 +287,17 @@ async function initFilmography() {
   if (!table || !filter || !sort || !search) return;
 
   let roles = [];
-
-  function render() {
+  const render = () => {
     const term = normalizeText(search.value);
     let rows = roles.filter((role) => {
-      const category = filter.value;
-      if (category !== 'all' && normalizeCategory(role.type) !== normalizeCategory(category)) return false;
+      if (filter.value !== 'all' && normalizeCategory(role.type) !== normalizeCategory(filter.value)) return false;
       if (!term) return true;
-      return [role.projet, role.titre, role.realisateur, role.annee, role.type]
-        .some((value) => normalizeText(value).includes(term));
+      return [role.projet, role.titre, role.realisateur, role.annee, role.type].some((value) => normalizeText(value).includes(term));
     });
 
     rows.sort((a, b) => {
       const mode = sort.value;
-      if (mode === 'custom') return sortRolesForDisplay([a, b])[0] === a ? -1 : 1;
+      if (mode === 'custom') return getRoleOrderValue(a) - getRoleOrderValue(b);
       if (mode === 'year-desc') return (Number(b.annee) || 0) - (Number(a.annee) || 0);
       if (mode === 'year-asc') return (Number(a.annee) || 0) - (Number(b.annee) || 0);
       if (mode === 'title-asc') return (a.projet || '').localeCompare(b.projet || '', 'fr', { sensitivity: 'base' });
@@ -350,12 +305,7 @@ async function initFilmography() {
       return 0;
     });
 
-    if (!rows.length) {
-      table.innerHTML = '<tr><td colspan="6" class="table-empty">Aucun résultat trouvé.</td></tr>';
-      return;
-    }
-
-    table.innerHTML = rows.map((role) => {
+    table.innerHTML = rows.length ? rows.map((role) => {
       const link = role.lien ? `<a class="btn table-link" href="${role.lien}" target="_blank" rel="noopener">Voir</a>` : '<span class="muted">-</span>';
       return `<tr>
         <td data-label="Année">${role.annee || ''}</td>
@@ -365,17 +315,17 @@ async function initFilmography() {
         <td data-label="Catégorie"><span class="category-pill">${normalizeCategory(role.type)}</span></td>
         <td data-label="Lien">${link}</td>
       </tr>`;
-    }).join('');
-  }
+    }).join('') : '<tr><td colspan="6" class="table-empty">Aucun résultat trouvé.</td></tr>';
+  };
 
   try {
     roles = sortRolesForDisplay(await getRoles());
     render();
-    filter.onchange = render;
-    sort.onchange = render;
-    search.oninput = render;
+    filter.addEventListener('change', render, { signal: signal() });
+    sort.addEventListener('change', render, { signal: signal() });
+    search.addEventListener('input', render, { signal: signal() });
   } catch (error) {
-    console.error('Erreur filmographie :', error);
+    console.warn('Filmographie indisponible :', error);
     table.innerHTML = '<tr><td colspan="6" class="table-empty error-line">Erreur de chargement.</td></tr>';
   }
 }
@@ -383,196 +333,162 @@ async function initFilmography() {
 async function initGallery() {
   const grid = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
-  const lbImage = document.getElementById('lb-image');
-  const lbCaption = document.getElementById('lb-caption');
-  if (!grid || !lightbox || !lbImage || !lbCaption) return;
-
-  document.body.style.overflow = '';
-  if (lastKeyHandler) document.removeEventListener('keydown', lastKeyHandler);
-  clearTimeout(galleryTimer);
+  if (!grid || !lightbox) return;
 
   let allPhotos = [];
   let shownPhotos = [];
   let current = 0;
-  let renderToken = 0;
-  let isSliding = false;
+  let renderId = 0;
+  let sliding = false;
 
-  const figure = lightbox.querySelector('.lb-figure');
-  let stage = figure.querySelector('.lb-stage');
-  if (!stage) {
-    stage = document.createElement('div');
-    stage.className = 'lb-stage';
-    lbImage.classList.add('lb-image-slide', 'lb-current');
-    figure.insertBefore(stage, lbImage);
-    stage.appendChild(lbImage);
-    const nextImage = document.createElement('img');
-    nextImage.className = 'lb-image-slide lb-incoming';
-    nextImage.alt = '';
-    nextImage.setAttribute('aria-hidden', 'true');
-    stage.appendChild(nextImage);
-  }
-  const incomingImage = stage.querySelector('.lb-incoming');
+  setupLightboxDom(lightbox);
+  const stage = lightbox.querySelector('.lb-slider-stage');
+  const currentSlide = lightbox.querySelector('.lb-slide-current');
+  const incomingSlide = lightbox.querySelector('.lb-slide-incoming');
+  const currentImg = currentSlide.querySelector('img');
+  const incomingImg = incomingSlide.querySelector('img');
+  const caption = lightbox.querySelector('#lb-caption');
 
-  function preload(url) {
-    return new Promise((resolve) => {
-      if (!url) return resolve();
-      const img = new Image();
-      img.onload = resolve;
-      img.onerror = resolve;
-      img.src = url;
-    });
-  }
+  const preload = (url) => new Promise((resolve) => {
+    if (!url) return resolve();
+    const img = new Image();
+    img.onload = resolve;
+    img.onerror = resolve;
+    img.src = url;
+  });
 
-  function preloadNeighbors(index) {
+  const preloadAround = (index) => {
     if (!shownPhotos.length) return;
-    [-1, 1].forEach((step) => {
-      const photo = shownPhotos[(index + step + shownPhotos.length) % shownPhotos.length];
-      if (photo?.url) {
-        const img = new Image();
-        img.src = photo.url;
-      }
+    [-1, 1].forEach((offset) => {
+      const photo = shownPhotos[(index + offset + shownPhotos.length) % shownPhotos.length];
+      if (photo?.url) { const img = new Image(); img.src = photo.url; }
     });
-  }
+  };
 
-  function setMainPhoto(index) {
+  const setCurrent = (index) => {
     current = (index + shownPhotos.length) % shownPhotos.length;
     const photo = shownPhotos[current];
-    lbImage.src = photo.url;
-    lbImage.alt = photo.caption || 'Photo de Yingying HOU';
-    lbCaption.textContent = photo.caption || '';
-    preloadNeighbors(current);
-  }
-
-  const close = () => {
-    lightbox.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    stage.classList.remove('slide-next', 'slide-prev');
-    incomingImage.removeAttribute('src');
-    isSliding = false;
+    currentImg.src = photo.url;
+    currentImg.alt = photo.caption || 'Photo de Yingying HOU';
+    caption.textContent = photo.caption || '';
+    preloadAround(current);
   };
 
   const open = (index) => {
     if (!shownPhotos.length) return;
-    setMainPhoto(index);
+    setCurrent(index);
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   };
 
-  async function slideTo(delta) {
-    if (isSliding || !shownPhotos.length) return;
-    isSliding = true;
-    const target = (current + delta + shownPhotos.length) % shownPhotos.length;
-    const photo = shownPhotos[target];
-    const dir = delta > 0 ? 'next' : 'prev';
+  const close = () => {
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    stage.classList.remove('is-next', 'is-prev');
+    incomingImg.removeAttribute('src');
+    sliding = false;
+  };
 
+  const go = async (direction) => {
+    if (sliding || !shownPhotos.length) return;
+    sliding = true;
+    const nextIndex = (current + direction + shownPhotos.length) % shownPhotos.length;
+    const photo = shownPhotos[nextIndex];
     await preload(photo.url);
-    incomingImage.src = photo.url;
-    incomingImage.alt = photo.caption || 'Photo de Yingying HOU';
-    incomingImage.setAttribute('aria-hidden', 'false');
-    stage.classList.remove('slide-next', 'slide-prev');
-    incomingImage.style.transform = dir === 'next' ? 'translateX(105%)' : 'translateX(-105%)';
-    // Force le navigateur à poser la photo hors champ avant le départ du slide.
-    void incomingImage.offsetWidth;
-    stage.classList.add(`slide-${dir}`);
-    incomingImage.style.transform = '';
+    incomingImg.src = photo.url;
+    incomingImg.alt = photo.caption || 'Photo de Yingying HOU';
+    stage.classList.remove('is-next', 'is-prev', 'is-resetting');
+    stage.dataset.dir = direction > 0 ? 'next' : 'prev';
+    void stage.offsetWidth;
+    stage.classList.add(direction > 0 ? 'is-next' : 'is-prev');
 
     window.setTimeout(() => {
-      setMainPhoto(target);
-      stage.classList.remove(`slide-${dir}`);
-      incomingImage.removeAttribute('src');
-      incomingImage.setAttribute('aria-hidden', 'true');
-      incomingImage.style.transform = '';
-      isSliding = false;
-    }, 430);
-  }
+      stage.classList.add('is-resetting');
+      setCurrent(nextIndex);
+      stage.classList.remove('is-next', 'is-prev');
+      incomingImg.removeAttribute('src');
+      incomingImg.alt = '';
+      void stage.offsetWidth;
+      stage.classList.remove('is-resetting');
+      sliding = false;
+    }, 460);
+  };
 
-  async function preloadPhotos(photos) {
-    const urls = photos.map((photo) => photo.url).filter(Boolean);
-    await Promise.race([
-      Promise.allSettled(urls.map(preload)),
-      new Promise((resolve) => window.setTimeout(resolve, 5000))
-    ]);
-  }
-
-  async function render(category = 'Tout') {
-    const token = ++renderToken;
+  const render = async (category = 'Tout') => {
+    const token = ++renderId;
     grid.classList.remove('is-ready');
     grid.classList.add('is-loading');
-    grid.innerHTML = `
-      <div class="gallery-loader" role="status" aria-live="polite">
-        <span class="gallery-spinner" aria-hidden="true"></span>
-        <strong>Chargement de la galerie</strong>
-        <em>Préparation des images…</em>
-      </div>
-    `;
-
+    grid.innerHTML = '<div class="gallery-loader" role="status"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Préparation des images…</em></div>';
     shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
-    await preloadPhotos(shownPhotos);
-    if (token !== renderToken) return;
-
-    if (!shownPhotos.length) {
-      grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
-    } else {
-      grid.innerHTML = shownPhotos.map((photo, index) => `
-        <a href="${photo.url}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 55}ms">
-          <img src="${photo.url}" alt="${photo.caption || 'Photo de Yingying HOU'}" loading="eager" decoding="async" />
-          <div class="item-overlay"><span>Agrandir</span></div>
-        </a>`).join('');
-    }
-
+    await Promise.race([
+      Promise.allSettled(shownPhotos.map((photo) => preload(photo.url))),
+      new Promise((resolve) => setTimeout(resolve, 4500))
+    ]);
+    if (token !== renderId) return;
+    grid.innerHTML = shownPhotos.length ? shownPhotos.map((photo, index) => `
+      <a href="${photo.url}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 50}ms">
+        <img src="${photo.url}" alt="${photo.caption || 'Photo de Yingying HOU'}" loading="eager" decoding="async">
+        <span class="item-overlay"><span>Agrandir</span></span>
+      </a>`).join('') : '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
     grid.classList.remove('is-loading');
     requestAnimationFrame(() => grid.classList.add('is-ready'));
-  }
+  };
 
-  grid.onclick = (event) => {
+  grid.addEventListener('click', (event) => {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
     open(Number(item.dataset.index) || 0);
-  };
-
-  lightbox.querySelector('.lb-close').onclick = close;
-  lightbox.querySelector('.lb-next').onclick = () => slideTo(1);
-  lightbox.querySelector('.lb-prev').onclick = () => slideTo(-1);
-  lightbox.onclick = (event) => { if (event.target === lightbox) close(); };
-  lastKeyHandler = (event) => {
+  }, { signal: signal() });
+  lightbox.querySelector('.lb-close')?.addEventListener('click', close, { signal: signal() });
+  lightbox.querySelector('.lb-next')?.addEventListener('click', () => go(1), { signal: signal() });
+  lightbox.querySelector('.lb-prev')?.addEventListener('click', () => go(-1), { signal: signal() });
+  lightbox.addEventListener('click', (event) => { if (event.target === lightbox) close(); }, { signal: signal() });
+  keyHandler = (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
-    if (event.key === 'ArrowRight') slideTo(1);
-    if (event.key === 'ArrowLeft') slideTo(-1);
+    if (event.key === 'ArrowRight') go(1);
+    if (event.key === 'ArrowLeft') go(-1);
   };
-  document.addEventListener('keydown', lastKeyHandler);
+  document.addEventListener('keydown', keyHandler);
 
   document.querySelectorAll('.filter-btn').forEach((button) => {
-    button.onclick = () => {
+    button.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach((item) => item.classList.add('outline'));
       button.classList.remove('outline');
       render(button.dataset.filter || 'Tout');
-    };
+    }, { signal: signal() });
   });
 
   try {
     grid.classList.add('is-loading');
-    grid.innerHTML = `
-      <div class="gallery-loader" role="status" aria-live="polite">
-        <span class="gallery-spinner" aria-hidden="true"></span>
-        <strong>Chargement de la galerie</strong>
-        <em>Récupération des photos…</em>
-      </div>
-    `;
-    const q = query(collection(db, 'galerie'), orderBy('ordre', 'asc'));
-    const snapshot = await getDocs(q);
+    grid.innerHTML = '<div class="gallery-loader" role="status"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Récupération des photos…</em></div>';
+    const snapshot = await getDocs(query(collection(db, 'galerie'), orderBy('ordre', 'asc')));
     allPhotos = [];
     snapshot.forEach((item) => allPhotos.push(item.data()));
     await render('Tout');
   } catch (error) {
-    console.error('Erreur galerie :', error);
+    console.warn('Galerie indisponible :', error);
     grid.classList.remove('is-loading');
     grid.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
   }
 }
 
-
+function setupLightboxDom(lightbox) {
+  const figure = lightbox.querySelector('.lb-figure');
+  const oldImg = lightbox.querySelector('#lb-image');
+  const caption = lightbox.querySelector('#lb-caption');
+  if (!figure || figure.querySelector('.lb-slider-stage')) return;
+  const stage = document.createElement('div');
+  stage.className = 'lb-slider-stage is-resetting';
+  stage.innerHTML = `
+    <div class="lb-slide lb-slide-current"><img class="lb-photo-frame" alt=""></div>
+    <div class="lb-slide lb-slide-incoming"><img class="lb-photo-frame" alt=""></div>
+  `;
+  if (oldImg) oldImg.remove();
+  figure.insertBefore(stage, caption || null);
+  requestAnimationFrame(() => stage.classList.remove('is-resetting'));
+}
 
 function initContact() {
   const form = document.getElementById('contactForm');
@@ -581,44 +497,29 @@ function initContact() {
   const submit = form.querySelector('button[type="submit"]');
   const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || '');
 
-  form.onsubmit = (event) => {
+  form.addEventListener('submit', (event) => {
     if (form.company && form.company.value.trim() !== '') {
       event.preventDefault();
       if (status) { status.textContent = 'Merci.'; status.className = 'form-status ok'; }
       return;
     }
-
     const errors = [];
     if (!form.name?.value.trim()) errors.push('Nom');
     if (!isEmail(form.email?.value.trim())) errors.push('Email');
     if (!form.message?.value.trim()) errors.push('Message');
-
     if (errors.length) {
       event.preventDefault();
-      if (status) {
-        status.textContent = 'Champs à compléter : ' + errors.join(', ') + '.';
-        status.className = 'form-status err';
-      }
+      if (status) { status.textContent = 'Champs à compléter : ' + errors.join(', ') + '.'; status.className = 'form-status err'; }
       return;
     }
-
-    if (status) {
-      status.textContent = 'Envoi en cours…';
-      status.className = 'form-status';
-    }
+    if (status) { status.textContent = 'Envoi en cours…'; status.className = 'form-status'; }
     submit?.setAttribute('disabled', 'disabled');
-  };
+  }, { signal: signal() });
 }
 
 function initScrollHints() {
-  window.__yingScrollHintController?.abort?.();
-
   const hints = document.querySelectorAll('.scroll-hint, .scroll-hint-mobile');
   if (!hints.length) return;
-
-  const controller = new AbortController();
-  window.__yingScrollHintController = controller;
-
   const update = () => {
     hints.forEach((hint) => {
       const hidden = hint.classList.contains('scroll-hint-mobile')
@@ -627,26 +528,25 @@ function initScrollHints() {
       hint.classList.toggle('hidden', hidden);
     });
   };
-
   update();
-  window.addEventListener('scroll', update, { passive: true, signal: controller.signal });
-  window.addEventListener('resize', update, { passive: true, signal: controller.signal });
+  window.addEventListener('scroll', update, { passive: true, signal: signal() });
+  window.addEventListener('resize', update, { passive: true, signal: signal() });
 }
 
 async function initPage() {
+  teardown();
   initCommon();
   initScrollHints();
   document.body.style.overflow = '';
-
   const page = document.getElementById('main')?.dataset.page;
   if (page === 'home') await initHome();
-  if (page === 'filmography') await initFilmography();
-  if (page === 'gallery') await initGallery();
-  if (page === 'contact') initContact();
+  else if (page === 'filmography') await initFilmography();
+  else if (page === 'gallery') await initGallery();
+  else if (page === 'contact') initContact();
+  document.dispatchEvent(new CustomEvent('ying:warm-links'));
 }
 
-window.YingApp = { init: initPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
+window.YingApp = { init: initPage, teardown, db, normalizeCategory };
 
-document.addEventListener('DOMContentLoaded', () => {
-  initPage();
-});
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPage, { once: true });
+else initPage();
