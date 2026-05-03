@@ -25,90 +25,94 @@
 <a class="skip" href="#main">Aller au contenu</a>
 <div id="public-nav-root" class="public-nav-root" data-shell="public"></div>
 <main id="main" data-page="home">
-  <section class="hero hero-reframed">
+  <section class="hero">
     <picture>
       <source media="(max-width: 700px)" srcset="/PHOTO/banniere V3.jpg" />
       <img src="/PHOTO/banniere V3.jpg" alt="Portrait de l'actrice Yingying HOU" />
     </picture>
-    <div class="hero-copy hero-card">
-      <p class="eyebrow">Actrice · cinéma · TV · voix</p>
+    <div class="hero-copy">
       <h1>Yingying HOU — <span class="accent">Actrice</span></h1>
-      <p class="lead">Présence à l’écran lumineuse, rôles dramatiques et d’action. Disponible pour cinéma, TV, pub, théâtre et voix.</p>
+      <p class="lead">Présence à l’écran lumineuse, rôles dramatiques et d’action. Disponible pour cinéma, TV, Pub, théâtre et voix.</p>
       <div class="cta">
         <a class="btn" href="/filmographie.html">Voir la filmographie</a>
-        <a class="btn" href="/galerie.html">Galerie photo</a>
+        <a class="btn" href="/galerie.html">Galerie Photo</a>
         <a class="btn ghost" href="/contact.html">Réserver / Booking</a>
-        <button class="btn outline js-presskit" type="button">Télécharger press kit</button>
+        <button class="btn outline js-presskit" type="button">Télécharger Press kit</button>
       </div>
     </div>
   </section>
 
-  <section class="wrap pad home-overview" aria-label="Aperçu professionnel">
-    <div class="bento-grid bento-grid-reframed">
+  <section class="wrap pad">
+    <div class="bento-grid">
       <article class="bento-card bento-showreel">
-        <div class="section-heading"><p class="eyebrow">Vidéo</p><h2>Showreel</h2></div>
+        <h2>Showreel</h2>
         <div class="ratio-16x9">
           <iframe title="Showreel de Yingying HOU" src="https://player.vimeo.com/video/980397299?autoplay=1&muted=1&playsinline=1&loop=1&background=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
         </div>
       </article>
 
-      <aside class="bento-card bento-roles roles-highlight">
-        <div class="section-heading"><p class="eyebrow">Actualité</p><h2>Derniers rôles</h2></div>
-        <ul id="home-roles-list" class="role-page active home-role-list" aria-live="polite">
-          <li class="loading-line">Chargement...</li>
+      <div class="bento-card bento-roles roles-highlight">
+        <h2>Derniers Rôles</h2>
+        <ul id="home-roles-list" class="role-page active" style="min-height: 480px; list-style: none; padding: 0; margin: 0;">
+          <p style="text-align: center; color: var(--muted); padding: 20px;">Chargement...</p>
         </ul>
-        <div class="role-pagination compact-controls" aria-label="Pagination des derniers rôles">
+        <div style="display: flex !important; gap: 12px; justify-content: center; margin-top: auto; padding-top: 15px;">
           <button id="btn-prev-roles" class="role-tab-btn" type="button" disabled>←</button>
           <button id="btn-next-roles" class="role-tab-btn" type="button">→</button>
         </div>
-      </aside>
+      </div>
 
       <article class="bento-card bento-youtube">
-        <div class="section-heading"><p class="eyebrow">Extraits</p><h2>Apparitions & extraits</h2></div>
+        <h2>Apparitions & Extraits</h2>
         <div class="slider-wrapper">
           <button class="slider-btn prev-btn" id="yt-prev" type="button" aria-label="Vidéo précédente">‹</button>
-          <div class="yt-slider-container" id="ytSlider" aria-live="polite">
-            <p class="loading-line">Chargement des vidéos...</p>
+          <div class="yt-slider-container" id="ytSlider">
+            <p style="padding: 20px; color: var(--text); opacity: 0.7;">Chargement des vidéos...</p>
           </div>
           <button class="slider-btn next-btn" id="yt-next" type="button" aria-label="Vidéo suivante">›</button>
         </div>
       </article>
 
       <article class="bento-card bento-awards roles-highlight">
-        <div class="section-heading"><p class="eyebrow">Parcours</p><h2>Récompenses & festivals</h2></div>
-        <ul class="badges awards-list">
-          <li>🏆 Sélection officielle, réalisatrice — Hong Kong Youth Film Festival 2019</li>
-          <li>🎬 Prix du court métrage <strong>SONGE</strong> — Concours Mairie de Marseille & INA 2018</li>
-        </ul>
+        <h2>Récompenses & Festivals</h2>
+        <div id="award-tabs">
+          <ul class="badges role-page active">
+            <li>🏆 Sélection officielle (Réalisatrice) — Hong Kong Youth Film Festival 2019</li>
+            <li>🎬 Prix du court métrage SONGE — Concours Mairie de Marseille & INA 2018</li>
+          </ul>
+          <ul class="badges role-page"></ul>
+          <div class="role-pagination">
+            <button class="role-tab-btn active" type="button">1</button>
+            <button class="role-tab-btn" type="button">2</button>
+          </div>
+        </div>
       </article>
     </div>
   </section>
 
   <section class="wrap pad">
-    <div class="split bio-reframed">
-      <div class="bento-card">
-        <p class="eyebrow">Biographie</p>
-        <h2>Actrice chinoise basée à Paris et Marseille.</h2>
-        <p class="short"><b>Diplômée Master 2 en Montage au SATIS, Aix-Marseille Université.</b></p>
-        <p class="short"><b>Formation 2010/2013 Athanor Théâtre, Marseille.</b></p>
-        <p class="short"><b>Divers : sportive, salsa, bachata, basket, ex-journaliste.</b></p>
+    <div class="split">
+      <div>
+        <h2>Biographie</h2>
+        <p class="short"><b>Actrice chinoise basée à Paris et Marseille.</b></p>
+        <p class="short"><b>Diplomée Master 2 en Montage au SATIS (AIx-Marseille Université).</b></p>
+        <p class="short"><b>Formation 2010/2013 Athanor Théâtre – Marseille.</b></p>
+        <p class="short"><b>DIVERS : sportive, salsa (bon niveau), bachata (bon niveau), basket (bon niveau), Ex- journaliste.</b></p>
         <a class="btn" href="/filmographie.html">Explorer la filmographie</a>
       </div>
-      <aside class="info bento-card">
-        <p class="eyebrow">Infos pro</p>
-        <h3>Profil</h3>
+      <aside class="info">
+        <h3>Infos pro</h3>
         <ul class="kv">
-          <li><span>Langues</span><b>Français accent, Anglais avancé, Chinois natif</b></li>
+          <li><span>Langues</span><b>Français (accent), Anglais (avancé) et Chinois (natif)</b></li>
           <li><span>Taille</span><b>1,60 m</b></li>
-          <li><span>Tranche âge</span><b>35/45 ans</b></li>
+          <li><span>Tranche Âge</span><b>35/45 ans</b></li>
           <li><span>Cheveux</span><b>Brun</b></li>
           <li><span>Yeux</span><b>Marron</b></li>
         </ul>
-        <button class="btn outline js-presskit" type="button">Télécharger press kit</button>
+        <button class="btn outline js-presskit" type="button">Télécharger Press kit</button>
       </aside>
     </div>
   </section>
-
 
   <div class="scroll-hint left-hint" aria-hidden="true">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5 5 5-5"/></svg>
@@ -128,14 +132,14 @@
     </div>
   </div>
 
-  <dialog id="presskitModal" class="presskit-modal">
-    <h3>Télécharger le Press Kit</h3>
-    <p class="muted small">Choisissez le format souhaité :</p>
-    <div class="presskit-actions">
-      <a href="#" id="link-dl-cv" class="btn" target="_blank" download="CV_Yingying_HOU.png">📄 CV</a>
-      <a href="#" id="link-dl-zcard" class="btn ghost" target="_blank" download="ZCard_Yingying_HOU.png">📸 CV Photo</a>
+  <dialog id="presskitModal" style="border: none; border-radius: 16px; padding: 30px; max-width: 400px; box-shadow: var(--shadow); background: var(--bg);">
+    <h3 style="margin-top: 0;">Télécharger le Press Kit</h3>
+    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 20px;">Choisissez le format souhaité :</p>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <a href="#" id="link-dl-cv" class="btn" target="_blank" download="CV_Yingying_HOU.png" style="text-align: center;">📄 CV</a>
+      <a href="#" id="link-dl-zcard" class="btn ghost" target="_blank" download="ZCard_Yingying_HOU.png" style="text-align: center;">📸 CV Photo</a>
     </div>
-    <button id="btn-close-presskit" class="btn outline" type="button">Fermer</button>
+    <button id="btn-close-presskit" class="btn outline" type="button" style="width: 100%; margin-top: 20px;">Fermer</button>
   </dialog>
 </main>
 <footer class="site-footer">
