@@ -1,0 +1,270 @@
+/* Correctifs publics isolés V4
+   Filmographie : largeur de base conservée, tableau stable, lignes naturelles.
+   V4 : correction des titres de colonnes en mode nuit.
+*/
+
+body.page-filmographie .wrap,
+body.page-filmographie .page-hero-clean .wrap,
+body.page-filmographie .filmography-section.wrap {
+  max-width: 1400px !important;
+}
+
+body.page-filmographie .page-hero-clean .wrap,
+body.page-filmographie .filmography-section.wrap {
+  width: min(1400px, calc(100vw - 40px)) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+body.page-filmographie .filtres-bar {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body.page-filmographie .table-wrap {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+  scrollbar-gutter: stable both-edges !important;
+  display: block !important;
+  align-items: initial !important;
+  justify-content: initial !important;
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow) !important;
+}
+
+body.page-filmographie #filmography,
+body.page-filmographie .table {
+  width: 100% !important;
+  min-width: 1200px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: #fff !important;
+}
+
+body.page-filmographie #filmography thead {
+  display: table-header-group !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+body.page-filmographie #filmography tbody {
+  display: table-row-group !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+body.page-filmographie #filmography tbody::after {
+  content: none !important;
+  display: none !important;
+  height: 0 !important;
+}
+
+body.page-filmographie #filmography tr {
+  display: table-row !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+body.page-filmographie #filmography th,
+body.page-filmographie #filmography td {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 22px 30px !important;
+  vertical-align: middle !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-top: 0 !important;
+  line-height: 1.45 !important;
+}
+
+body.page-filmographie #filmography thead th {
+  background: #fff !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+body.page-filmographie #filmography tbody td {
+  border-bottom: 1px solid rgba(230, 232, 238, .55) !important;
+}
+
+body.page-filmographie #filmography tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+body.page-filmographie #filmography tbody tr:nth-child(odd) {
+  background: rgba(255, 193, 7, .075) !important;
+}
+
+body.page-filmographie #filmography tbody tr:nth-child(even) {
+  background: #fff !important;
+}
+
+body.page-filmographie #filmography th:nth-child(1),
+body.page-filmographie #filmography td:nth-child(1) { width: 12% !important; }
+
+body.page-filmographie #filmography th:nth-child(2),
+body.page-filmographie #filmography td:nth-child(2) { width: 22% !important; }
+
+body.page-filmographie #filmography th:nth-child(3),
+body.page-filmographie #filmography td:nth-child(3) { width: 20% !important; }
+
+body.page-filmographie #filmography th:nth-child(4),
+body.page-filmographie #filmography td:nth-child(4) { width: 22% !important; }
+
+body.page-filmographie #filmography th:nth-child(5),
+body.page-filmographie #filmography td:nth-child(5) { width: 15% !important; }
+
+body.page-filmographie #filmography th:nth-child(6),
+body.page-filmographie #filmography td:nth-child(6) { width: 9% !important; }
+
+body.page-filmographie .table-empty {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 34px 18px !important;
+  text-align: center !important;
+  vertical-align: top !important;
+}
+
+html.is-pjax-navigating body.page-filmographie .page-hero-clean h1 {
+  font-size: clamp(24px, 4vw, 36px) !important;
+}
+
+@media (max-width: 760px) {
+  body.page-filmographie .wrap,
+  body.page-filmographie .page-hero-clean .wrap,
+  body.page-filmographie .filmography-section.wrap {
+    width: min(100vw - 24px, 680px) !important;
+    max-width: 680px !important;
+  }
+
+  body.page-filmographie .table-wrap {
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  body.page-filmographie #filmography,
+  body.page-filmographie .table {
+    min-width: 0 !important;
+    table-layout: auto !important;
+  }
+}
+
+/* =========================================
+   FILMOGRAPHIE — COULEURS MODE NUIT V4
+========================================= */
+
+html.theme-dark body.page-filmographie .table-wrap,
+body.dark-mode.page-filmographie .table-wrap {
+  background: #171a22 !important;
+  border-color: rgba(255, 255, 255, .11) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .28) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography,
+html.theme-dark body.page-filmographie .table,
+body.dark-mode.page-filmographie #filmography,
+body.dark-mode.page-filmographie .table {
+  background: #171a22 !important;
+  color: rgba(255, 255, 255, .88) !important;
+}
+
+/* Correction demandée : titres de colonnes en sombre, pas en blanc. */
+html.theme-dark body.page-filmographie #filmography thead,
+html.theme-dark body.page-filmographie #filmography thead tr,
+body.dark-mode.page-filmographie #filmography thead,
+body.dark-mode.page-filmographie #filmography thead tr {
+  background: #20242d !important;
+}
+
+html.theme-dark body.page-filmographie #filmography thead th,
+body.dark-mode.page-filmographie #filmography thead th {
+  background: #20242d !important;
+  color: rgba(255, 255, 255, .92) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .16) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography thead th:first-child,
+body.dark-mode.page-filmographie #filmography thead th:first-child {
+  border-top-left-radius: 10px !important;
+}
+
+html.theme-dark body.page-filmographie #filmography thead th:last-child,
+body.dark-mode.page-filmographie #filmography thead th:last-child {
+  border-top-right-radius: 10px !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody tr:nth-child(odd),
+body.dark-mode.page-filmographie #filmography tbody tr:nth-child(odd) {
+  background: #171a22 !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody tr:nth-child(even),
+body.dark-mode.page-filmographie #filmography tbody tr:nth-child(even) {
+  background: #13161e !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody td,
+body.dark-mode.page-filmographie #filmography tbody td {
+  color: rgba(255, 255, 255, .86) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .14) !important;
+}
+
+html.theme-dark body.page-filmographie #filmography tbody tr:last-child td,
+body.dark-mode.page-filmographie #filmography tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+html.theme-dark body.page-filmographie #filmography strong,
+body.dark-mode.page-filmographie #filmography strong {
+  color: #ffffff !important;
+}
+
+html.theme-dark body.page-filmographie .category-pill,
+body.dark-mode.page-filmographie .category-pill {
+  background: rgba(255, 193, 7, .18) !important;
+  color: #ffc107 !important;
+  border: 1px solid rgba(255, 193, 7, .22) !important;
+}
+
+html.theme-dark body.page-filmographie .table-link,
+body.dark-mode.page-filmographie .table-link {
+  background: transparent !important;
+  color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+html.theme-dark body.page-filmographie .table-link:hover,
+body.dark-mode.page-filmographie .table-link:hover {
+  background: #ffc107 !important;
+  color: #111318 !important;
+}
+
+html.theme-dark body.page-filmographie .table-empty,
+body.dark-mode.page-filmographie .table-empty {
+  color: rgba(255, 255, 255, .72) !important;
+}
+
+@media (max-width: 760px) {
+  html.theme-dark body.page-filmographie .table-wrap,
+  body.dark-mode.page-filmographie .table-wrap {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}

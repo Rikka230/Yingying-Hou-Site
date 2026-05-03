@@ -5,122 +5,73 @@
   <title>Contact & Booking — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Contact booking pour l'actrice Yingying HOU : formulaire de demande, agent et coordonnées." />
-  <link rel="canonical" href="https://www.example.com/contact.html" />
-  <meta property="og:title" content="Contact — Yingying HOU" />
-  <meta property="og:image" content="https://www.example.com/img/og.jpg" />
+  
+  <link rel="canonical" href="https://kukyying.netlify.app" />
+  <meta property="og:title" content="Contact & Booking — Yingying HOU" />
+  <meta property="og:description" content="Contact booking pour l'actrice Yingying HOU : formulaire de demande, agent et coordonnées." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kukyying.netlify.app" />
+  <meta property="og:image" content="https://kukyying.netlify.app/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css?v=pjax-v34" />
+  <link rel="stylesheet" href="/css/public-shell.css?v=pjax-v34" />
+  <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('theme-dark-preload');</script>
 </head>
-<body>
-  <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
-  
-  <a class="skip" href="#main">Aller au contenu</a>
-
-  <header class="site-header" role="banner">
-    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center;">
-      <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      
-      <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
-        <ul>
-          <li><a href="/">Accueil</a></li>
-          <li><a href="filmographie.html">Filmographie</a></li>
-          <li><a href="galerie.html">Galerie</a></li>
-          <li><a href="contact.html">Contact / Booking</a></li>
-        </ul>
-      </nav>
-
-      <div class="header-right">
-        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème">
-          </button>
-        <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
-      </div>
-    </div>
-  </header>
-
-  <main id="main">
-    <!-- HERO -->
-    <section class="page-hero">
-      <div class="wrap">
-        <h1>Contact / Booking</h1>
-        <p class="kicker">Pour propositions de rôles, auditions, interviews ou presse.</p>
-      </div>
-    </section>
-
-    <!-- CONTENT -->
-    <section class="wrap pad contact-grid">
-      <!-- FORM -->
-      <form id="contactForm"
-      action="https://formsubmit.co/kukyying@gmail.com"
-      method="POST"
-      class="card form-card">
-  <!-- anti-bot -->
-  <input type="text" name="company" style="display:none;" tabindex="-1" autocomplete="off" />
-  <!-- options FormSubmit -->
-  <input type="hidden" name="_subject" value="Nouveau message — Site Yingying HOU">
-  <input type="hidden" name="_template" value="table">
-  <input type="hidden" name="_captcha" value="false">
-
-
-
-        <div class="form-row">
-          <div class="field">
-            <input id="name" name="name" type="text" placeholder=" " required />
-            <label for="name">Nom *</label>
-          </div>
-          <div class="field">
-            <input id="email" name="email" type="email" placeholder=" " required />
-            <label for="email">Email *</label>
-          </div>
-        </div>
-
-        <div class="field">
-          <input id="subject" name="subject" type="text" placeholder=" " />
-          <label for="subject">Objet</label>
-        </div>
-
-        <div class="field">
-          <textarea id="message" name="message" rows="6" placeholder=" " required></textarea>
-          <label for="message">Message *</label>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-primary" type="submit">Envoyer</button>
-          <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
-        </div>
-
-       <p class="muted small">
-  Ou écrivez directement :
-  <a href="mailto:kukyying@gmail.com">kukyying@gmail.com</a>
-</p>
-      </form>
-
-      <!-- AGENT -->
-      <aside class="card agent-card">
-        <h2>Agent</h2>
-        <p class="agent-name">Séquence SUD</p>
-        <p><a href="mailto:contact@sequencesud.com">contact@sequencesud.com</a></p>
-
-        <div class="agent-meta">
-          <h3>Réseaux</h3>
-          <p class="social-list">
-            <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
-            <span>·</span>
-            <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
-          </p>
-        </div>
-      </aside>
-    </section>
-  </main>
-
-  <footer class="site-footer">
+<body class="page-contact">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="public-nav-root" class="public-nav-root" data-shell="public"></div>
+<main id="main" data-page="contact">
+  <section class="page-hero page-hero-clean">
     <div class="wrap">
-      <p>© <span id="year"></span> Yingying HOU. Powered by NOCX WEB. Tous droits réservés.</p>
-      <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
+      <p class="eyebrow">Booking</p>
+      <h1>Contact / Booking</h1>
+      <p class="kicker">Pour propositions de rôles, auditions, interviews ou demandes presse.</p>
     </div>
-  </footer>
-
-  <script src="/js/main.js" defer></script>
+  </section>
+  <section class="wrap pad contact-grid contact-reframed">
+    <form id="contactForm" action="https://formsubmit.co/kukyying@gmail.com" method="POST" class="card form-card">
+      <input type="text" name="company" style="display:none;" tabindex="-1" autocomplete="off" />
+      <input type="hidden" name="_subject" value="Nouveau message — Site Yingying HOU" />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_captcha" value="false" />
+      <div class="form-row">
+        <div class="field"><input id="name" name="name" type="text" placeholder=" " required /><label for="name">Nom *</label></div>
+        <div class="field"><input id="email" name="email" type="email" placeholder=" " required /><label for="email">Email *</label></div>
+      </div>
+      <div class="field"><input id="subject" name="subject" type="text" placeholder=" " /><label for="subject">Objet</label></div>
+      <div class="field"><textarea id="message" name="message" rows="6" placeholder=" " required></textarea><label for="message">Message *</label></div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Envoyer</button><p id="formStatus" class="form-status" role="status" aria-live="polite"></p></div>
+      <p class="muted small">Ou écrivez directement : <a href="mailto:kukyying@gmail.com">kukyying@gmail.com</a></p>
+    </form>
+    <aside class="card agent-card">
+      <p class="eyebrow">Représentation</p>
+      <h2>Agent</h2>
+      <p class="agent-name">Séquence SUD</p>
+      <p><a href="mailto:contact@sequencesud.com">contact@sequencesud.com</a></p>
+      <div class="agent-meta">
+        <h3>Réseaux</h3>
+        <p class="social-list"><a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a><span>·</span><a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a></p>
+      </div>
+    </aside>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© <span id="year"></span> Yingying HOU. Powered by <a href="/admin.html" class="footer-admin-link">NOCX WEB</a>. Tous droits réservés.</p>
+    <nav aria-label="Liens de pied de page">
+      <a href="/legal.html">Mentions légales</a>
+      <a href="/privacy.html">Politique de confidentialité</a>
+      <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
+      <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
+    </nav>
+  </div>
+</footer>
+<script type="module" src="/js/public-nav.js?v=pjax-v34"></script>
+<script type="module" src="/js/public-app.js?v=pjax-v34"></script>
+<script type="module" src="/js/pjax.js?v=pjax-v34"></script>
 </body>
 </html>

@@ -4,34 +4,52 @@
   <meta charset="utf-8" />
   <title>Politique de confidentialité — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Politique de confidentialité du site de Yingying HOU." />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <meta name="description" content="Politique de confidentialité du site officiel de Yingying HOU." />
+  
+  <link rel="canonical" href="https://kukyying.netlify.app" />
+  <meta property="og:title" content="Politique de confidentialité — Yingying HOU" />
+  <meta property="og:description" content="Politique de confidentialité du site officiel de Yingying HOU." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kukyying.netlify.app" />
+  <meta property="og:image" content="https://kukyying.netlify.app/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css?v=pjax-v34" />
+  <link rel="stylesheet" href="/css/public-shell.css?v=pjax-v34" />
+  <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('theme-dark-preload');</script>
 </head>
-<body>
-  <header class="site-header">
-    <div class="wrap">
-      <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
-      <nav id="nav" class="site-nav">
-        <ul>
-          <li><a href="/">Accueil</a></li>
-          <li><a href="/filmographie.html">Filmographie</a></li>
-          <li><a href="/galerie.html">Galerie</a></li>
-          <li><a href="/contact.html">Contact</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-
-  <main class="wrap pad">
-    <h1>Politique de confidentialité</h1>
-    <p>Ce site ne collecte que les données envoyées via le formulaire de contact (nom, email, message). Aucune donnée n’est vendue ni partagée hors besoin de réponse.</p>
-    <p>Pour toute demande d’accès ou suppression : <a href="mailto:privacy@example.com">privacy@example.com</a>.</p>
-  </main>
-
-  <footer class="site-footer">
-    <div class="wrap"><p>© <span id="year"></span> Yingying HOU</p></div>
-  </footer>
-  <script src="/js/main.js" defer></script>
+<body class="page-privacy">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="public-nav-root" class="public-nav-root" data-shell="public"></div>
+<main id="main" data-page="privacy">
+  <section class="page-hero page-hero-clean"><div class="wrap"><p class="eyebrow">Confidentialité</p><h1>Politique de confidentialité</h1><p class="kicker">Données envoyées via le formulaire et demandes de contact.</p></div></section>
+  <section class="wrap pad"><article class="bento-card legal-card">
+    <h2>Données collectées</h2>
+    <p>Le site collecte uniquement les informations envoyées volontairement via le formulaire de contact : nom, adresse email, objet et message.</p>
+    <h2>Utilisation</h2>
+    <p>Ces informations servent uniquement à répondre aux demandes professionnelles liées aux rôles, auditions, interviews, presse ou booking.</p>
+    <h2>Conservation et partage</h2>
+    <p>Aucune donnée n'est vendue. Les données sont conservées le temps nécessaire au traitement de la demande.</p>
+    <h2>Demande d'accès ou suppression</h2>
+    <p>Pour toute demande d'accès, rectification ou suppression, contactez : <a href="mailto:kukyying@gmail.com">kukyying@gmail.com</a>.</p>
+  </article></section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© <span id="year"></span> Yingying HOU. Powered by <a href="/admin.html" class="footer-admin-link">NOCX WEB</a>. Tous droits réservés.</p>
+    <nav aria-label="Liens de pied de page">
+      <a href="/legal.html">Mentions légales</a>
+      <a href="/privacy.html">Politique de confidentialité</a>
+      <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
+      <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
+    </nav>
+  </div>
+</footer>
+<script type="module" src="/js/public-nav.js?v=pjax-v34"></script>
+<script type="module" src="/js/public-app.js?v=pjax-v34"></script>
+<script type="module" src="/js/pjax.js?v=pjax-v34"></script>
 </body>
 </html>

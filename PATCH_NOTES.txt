@@ -1,0 +1,10 @@
+PATCH V4 — Header tableau Filmographie en mode nuit
+
+À remplacer :
+- css/public-fixes.css
+
+Correction :
+- les titres de colonnes passent en fond sombre
+- texte des titres de colonnes lisible
+- coins hauts propres
+- aucune modification de largeur, structure, galerie ou index
