@@ -1440,3 +1440,319 @@ html.is-pjax-navigating #main {
     height: 34px !important;
   }
 }
+
+/* =========================================
+   PATCH PJAX V2.6 — NAV AMBIENT + GALERIE CINÉ + LIGHTBOX SLIDE
+   Le dégradé jaune appartient au shell de navigation et ne repop plus avec le contenu PJAX.
+========================================= */
+:root {
+  --gallery-fade-duration: .62s;
+  --gallery-stagger: 46ms;
+}
+
+#public-nav-root .public-nav-ambient {
+  position: fixed;
+  top: var(--public-nav-height);
+  left: 0;
+  right: 0;
+  height: 190px;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 1;
+  background:
+    radial-gradient(900px 210px at 50% 0%, rgba(255, 193, 7, .18), rgba(255, 193, 7, .08) 34%, rgba(255, 193, 7, 0) 72%),
+    linear-gradient(180deg, rgba(255, 193, 7, .10), rgba(255, 193, 7, 0));
+  transform: translateZ(0);
+  transition: opacity .22s ease;
+}
+
+body.page-home #public-nav-root .public-nav-ambient,
+main[data-page="home"] ~ #public-nav-root .public-nav-ambient {
+  opacity: 0;
+}
+
+body:not(.page-home) .page-hero,
+body:not(.page-home) .page-hero-clean {
+  background: transparent !important;
+  position: relative;
+  z-index: 1;
+}
+
+body.dark-mode #public-nav-root .public-nav-ambient,
+html.theme-dark-active #public-nav-root .public-nav-ambient,
+html.theme-dark-preload #public-nav-root .public-nav-ambient {
+  background:
+    radial-gradient(900px 210px at 50% 0%, rgba(255, 193, 7, .14), rgba(255, 193, 7, .055) 35%, rgba(255, 193, 7, 0) 72%),
+    linear-gradient(180deg, rgba(255, 193, 7, .08), rgba(255, 193, 7, 0));
+}
+
+html.is-pjax-navigating #public-nav-root .public-nav-ambient {
+  transition: opacity .12s linear !important;
+}
+
+/* PJAX : fondu plus doux, sans translation. */
+#main {
+  transition: opacity .42s ease-in-out !important;
+}
+
+html.is-pjax-navigating #main {
+  transition: opacity .30s ease-in-out !important;
+}
+
+#main.is-pjax-leaving,
+#main.is-pjax-entering {
+  opacity: 0 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Galerie : vrai chargement offscreen puis révélation progressive. */
+.gallery-section {
+  min-height: 52vh;
+}
+
+.gallery-grid.is-loading {
+  column-count: initial !important;
+  display: grid !important;
+  place-items: center !important;
+  min-height: 44vh;
+  padding: 72px 0 !important;
+}
+
+.gallery-loader {
+  display: inline-grid;
+  justify-items: center;
+  gap: 14px;
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: .78rem;
+}
+
+.gallery-loader-ring {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 193, 7, .22);
+  border-top-color: var(--yellow);
+  animation: yingSpin .82s linear infinite;
+}
+
+@keyframes yingSpin {
+  to { transform: rotate(360deg); }
+}
+
+.gallery-grid.is-preparing,
+.gallery-grid.is-filtering {
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+.gallery-grid.gallery-reveal .gallery-item {
+  opacity: 0;
+  transform: translateY(18px) scale(.985);
+  animation: yingGalleryItemIn var(--gallery-fade-duration) cubic-bezier(.22, 1, .36, 1) forwards;
+  animation-delay: calc(min(var(--i), 18) * var(--gallery-stagger));
+}
+
+@keyframes yingGalleryItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+body.dark-mode .gallery-loader {
+  color: rgba(245, 247, 251, .72);
+}
+
+/* Lightbox photo : slide directionnel entre deux images. */
+.lightbox .lb-figure {
+  will-change: transform, opacity;
+}
+
+.lightbox .lb-figure img {
+  will-change: transform, opacity;
+  transform: translate3d(0,0,0);
+}
+
+.lightbox:not([aria-hidden="true"]) .lb-figure.is-lb-opened img {
+  animation: yingLbOpen .24s ease-out both;
+}
+
+.lb-figure.is-lb-out-next img { animation: yingLbOutLeft .15s ease-in both; }
+.lb-figure.is-lb-in-next img { animation: yingLbInRight .24s cubic-bezier(.22, 1, .36, 1) both; }
+.lb-figure.is-lb-out-prev img { animation: yingLbOutRight .15s ease-in both; }
+.lb-figure.is-lb-in-prev img { animation: yingLbInLeft .24s cubic-bezier(.22, 1, .36, 1) both; }
+
+@keyframes yingLbOpen {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes yingLbOutLeft {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(-42px) scale(.985); }
+}
+
+@keyframes yingLbInRight {
+  from { opacity: 0; transform: translateX(54px) scale(.985); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes yingLbOutRight {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(42px) scale(.985); }
+}
+
+@keyframes yingLbInLeft {
+  from { opacity: 0; transform: translateX(-54px) scale(.985); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.lb-prev:hover { transform: translateY(-50%) scale(1.08) !important; }
+.lb-next:hover { transform: translateY(-50%) scale(1.08) !important; }
+.lb-close:hover { transform: scale(1.08) !important; }
+
+/* Extraits de l'accueil : bouton d'ouverture en grand + lightbox vidéo. */
+.yt-frame-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.yt-frame-wrap iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.yt-open-large {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 3;
+  border: 1px solid rgba(255,255,255,.48);
+  border-radius: 999px;
+  background: rgba(17, 19, 24, .74);
+  color: #fff;
+  padding: 8px 11px;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .2s ease, transform .2s ease, background-color .2s ease;
+}
+
+.yt-frame-wrap:hover .yt-open-large,
+.yt-open-large:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.yt-open-large:hover {
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  border-color: var(--yellow);
+}
+
+.video-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 48px);
+  background: rgba(8, 9, 12, .84);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+}
+
+.video-lightbox[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.video-lightbox-panel {
+  width: min(1120px, 92vw);
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 32px 92px rgba(0,0,0,.45);
+  background: #000;
+  transform: scale(.985);
+  opacity: 0;
+  transition: transform .34s cubic-bezier(.22, 1, .36, 1), opacity .34s ease;
+}
+
+.video-lightbox[aria-hidden="false"] .video-lightbox-panel {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.video-lightbox-panel iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.video-lightbox-close {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 0;
+  background: #fff;
+  color: #111318;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 16px 40px rgba(0,0,0,.22);
+}
+
+.video-lightbox-close:hover {
+  background: var(--yellow);
+}
+
+@media (max-width: 700px) {
+  #public-nav-root .public-nav-ambient {
+    height: 140px;
+  }
+
+  .yt-open-large {
+    opacity: 1;
+    transform: none;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-loader-ring,
+  .gallery-grid.gallery-reveal .gallery-item,
+  .lightbox .lb-figure img,
+  .video-lightbox,
+  .video-lightbox-panel {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

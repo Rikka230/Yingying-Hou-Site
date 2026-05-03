@@ -36,6 +36,94 @@ function normalizeText(value) {
     .trim();
 }
 
+
+function escapeAttribute(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function preloadImage(url, timeout = 9000) {
+  return new Promise((resolve) => {
+    if (!url) { resolve(); return; }
+    const img = new Image();
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    const timer = setTimeout(finish, timeout);
+    img.onload = async () => {
+      clearTimeout(timer);
+      try { await img.decode?.(); } catch (_) {}
+      finish();
+    };
+    img.onerror = () => { clearTimeout(timer); finish(); };
+    img.src = url;
+  });
+}
+
+function preloadImages(items, timeout = 9000) {
+  return Promise.allSettled(items.map((item) => preloadImage(item?.url, timeout)));
+}
+
+function withUrlParam(url, key, value) {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (!parsed.searchParams.has(key)) parsed.searchParams.set(key, value);
+    return parsed.href;
+  } catch (_) {
+    return url;
+  }
+}
+
+function ensureVideoLightbox() {
+  let box = document.getElementById('videoLightbox');
+  if (box) return box;
+
+  box = document.createElement('div');
+  box.id = 'videoLightbox';
+  box.className = 'video-lightbox';
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  box.setAttribute('aria-hidden', 'true');
+  box.innerHTML = `
+    <button class="video-lightbox-close" type="button" aria-label="Fermer">✕</button>
+    <div class="video-lightbox-panel">
+      <iframe id="videoLightboxFrame" src="" title="Extrait vidéo en grand" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  `;
+  document.body.appendChild(box);
+
+  const close = () => {
+    box.setAttribute('aria-hidden', 'true');
+    const frame = box.querySelector('#videoLightboxFrame');
+    if (frame) frame.src = '';
+    document.body.style.overflow = '';
+  };
+
+  box.querySelector('.video-lightbox-close')?.addEventListener('click', close);
+  box.addEventListener('click', (event) => { if (event.target === box) close(); });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && box.getAttribute('aria-hidden') === 'false') close();
+  });
+  box.__yingClose = close;
+  return box;
+}
+
+function openVideoLightbox(url) {
+  if (!url) return;
+  const box = ensureVideoLightbox();
+  const frame = box.querySelector('#videoLightboxFrame');
+  if (!frame) return;
+  frame.src = withUrlParam(url, 'autoplay', '1');
+  box.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
 function normalizeCategory(value) {
   const raw = String(value || '').trim();
   const key = normalizeText(raw).replace(/[-_/]+/g, ' ').replace(/\s+/g, ' ');
@@ -198,10 +286,22 @@ async function initHomeVideos() {
     snapshot.forEach((item) => {
       const data = item.data();
       const div = document.createElement('div');
+      const url = data.url || '';
       div.className = 'yt-item';
-      div.innerHTML = `<iframe src="${data.url}" title="${data.titre || 'Vidéo'}" loading="lazy" allowfullscreen></iframe>`;
+      div.innerHTML = `
+        <div class="yt-frame-wrap">
+          <iframe src="${escapeAttribute(url)}" title="${escapeAttribute(data.titre || 'Vidéo')}" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+          <button class="yt-open-large" type="button" data-video-url="${escapeAttribute(url)}" aria-label="Ouvrir l’extrait en grand">Agrandir</button>
+        </div>`;
       slider.appendChild(div);
     });
+
+    slider.onclick = (event) => {
+      const button = event.target.closest('.yt-open-large');
+      if (!button) return;
+      event.preventDefault();
+      openVideoLightbox(button.dataset.videoUrl || '');
+    };
 
     const scrollAmount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
     if (next) next.onclick = () => slider.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
@@ -274,9 +374,10 @@ async function initFilmography() {
 async function initGallery() {
   const grid = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
+  const lbFigure = lightbox?.querySelector('.lb-figure');
   const lbImage = document.getElementById('lb-image');
   const lbCaption = document.getElementById('lb-caption');
-  if (!grid || !lightbox || !lbImage || !lbCaption) return;
+  if (!grid || !lightbox || !lbImage || !lbCaption || !lbFigure) return;
 
   document.body.style.overflow = '';
   if (lastKeyHandler) document.removeEventListener('keydown', lastKeyHandler);
@@ -285,55 +386,101 @@ async function initGallery() {
   let allPhotos = [];
   let shownPhotos = [];
   let current = 0;
+  let lightboxTransitioning = false;
 
   const close = () => {
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    lbFigure.classList.remove('is-lb-in-next', 'is-lb-in-prev', 'is-lb-out-next', 'is-lb-out-prev', 'is-lb-opened');
   };
 
-  const open = (index) => {
-    if (!shownPhotos.length) return;
-    current = (index + shownPhotos.length) % shownPhotos.length;
-    lbImage.src = shownPhotos[current].url;
-    lbImage.alt = shownPhotos[current].caption || 'Photo de Yingying HOU';
-    lbCaption.textContent = shownPhotos[current].caption || '';
-    lightbox.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+  const setLightboxPhoto = (photo) => {
+    lbImage.src = photo.url;
+    lbImage.alt = photo.caption || 'Photo de Yingying HOU';
+    lbCaption.textContent = photo.caption || '';
   };
 
-  function render(category = 'Tout') {
-    grid.style.opacity = '0';
+  const showLightboxPhoto = async (index, direction = 'open') => {
+    if (!shownPhotos.length || lightboxTransitioning) return;
+    const nextIndex = (index + shownPhotos.length) % shownPhotos.length;
+    const photo = shownPhotos[nextIndex];
+
+    if (lightbox.getAttribute('aria-hidden') !== 'false' || direction === 'open') {
+      current = nextIndex;
+      setLightboxPhoto(photo);
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      lbFigure.classList.remove('is-lb-in-next', 'is-lb-in-prev', 'is-lb-out-next', 'is-lb-out-prev');
+      lbFigure.classList.add('is-lb-opened');
+      return;
+    }
+
+    lightboxTransitioning = true;
+    const dir = direction === 'prev' ? 'prev' : 'next';
+    lbFigure.classList.remove('is-lb-in-next', 'is-lb-in-prev', 'is-lb-out-next', 'is-lb-out-prev', 'is-lb-opened');
+    lbFigure.classList.add(`is-lb-out-${dir}`);
+    await new Promise((resolve) => setTimeout(resolve, 145));
+
+    current = nextIndex;
+    setLightboxPhoto(photo);
+    lbFigure.classList.remove(`is-lb-out-${dir}`);
+    lbFigure.classList.add(`is-lb-in-${dir}`);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    lbFigure.classList.remove(`is-lb-in-${dir}`);
+    lightboxTransitioning = false;
+  };
+
+  function showGalleryLoader(label = 'Chargement des photos...') {
+    grid.classList.remove('is-ready', 'gallery-reveal');
+    grid.classList.add('is-loading');
+    grid.innerHTML = `
+      <div class="gallery-loader" role="status" aria-live="polite">
+        <span class="gallery-loader-ring" aria-hidden="true"></span>
+        <span>${label}</span>
+      </div>`;
+  }
+
+  function render(category = 'Tout', { initial = false } = {}) {
+    clearTimeout(galleryTimer);
+    grid.classList.remove('is-loading', 'is-ready', 'gallery-reveal');
+    grid.classList.add(initial ? 'is-preparing' : 'is-filtering');
+
     galleryTimer = setTimeout(() => {
       shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
       if (!shownPhotos.length) {
         grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
       } else {
         grid.innerHTML = shownPhotos.map((photo, index) => `
-          <a href="${photo.url}" class="gallery-item" data-index="${index}">
-            <img src="${photo.url}" alt="${photo.caption || 'Photo de Yingying HOU'}" loading="lazy" />
+          <a href="${escapeAttribute(photo.url)}" class="gallery-item" data-index="${index}" style="--i:${index}">
+            <img src="${escapeAttribute(photo.url)}" alt="${escapeAttribute(photo.caption || 'Photo de Yingying HOU')}" loading="${initial ? 'eager' : 'lazy'}" />
             <div class="item-overlay"><span>Agrandir</span></div>
           </a>`).join('');
       }
-      grid.style.opacity = '1';
-    }, 160);
+
+      grid.classList.remove('is-preparing', 'is-filtering');
+      requestAnimationFrame(() => {
+        grid.classList.add('is-ready', 'gallery-reveal');
+        initMediaFadeIn();
+      });
+    }, initial ? 80 : 140);
   }
 
   grid.onclick = (event) => {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
-    open(Number(item.dataset.index) || 0);
+    showLightboxPhoto(Number(item.dataset.index) || 0, 'open');
   };
 
   lightbox.querySelector('.lb-close').onclick = close;
-  lightbox.querySelector('.lb-next').onclick = () => open(current + 1);
-  lightbox.querySelector('.lb-prev').onclick = () => open(current - 1);
+  lightbox.querySelector('.lb-next').onclick = () => showLightboxPhoto(current + 1, 'next');
+  lightbox.querySelector('.lb-prev').onclick = () => showLightboxPhoto(current - 1, 'prev');
   lightbox.onclick = (event) => { if (event.target === lightbox) close(); };
   lastKeyHandler = (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
-    if (event.key === 'ArrowRight') open(current + 1);
-    if (event.key === 'ArrowLeft') open(current - 1);
+    if (event.key === 'ArrowRight') showLightboxPhoto(current + 1, 'next');
+    if (event.key === 'ArrowLeft') showLightboxPhoto(current - 1, 'prev');
   };
   document.addEventListener('keydown', lastKeyHandler);
 
@@ -346,13 +493,27 @@ async function initGallery() {
   });
 
   try {
+    showGalleryLoader('Préparation de la galerie...');
     const q = query(collection(db, 'galerie'), orderBy('ordre', 'asc'));
     const snapshot = await getDocs(q);
     allPhotos = [];
-    snapshot.forEach((item) => allPhotos.push(item.data()));
-    render('Tout');
+    snapshot.forEach((item) => {
+      const photo = item.data();
+      if (photo?.url) allPhotos.push(photo);
+    });
+
+    if (!allPhotos.length) {
+      grid.classList.remove('is-loading');
+      grid.innerHTML = '<p class="loading-line">Aucune photo disponible.</p>';
+      return;
+    }
+
+    showGalleryLoader('Chargement des images...');
+    await preloadImages(allPhotos);
+    render('Tout', { initial: true });
   } catch (error) {
     console.error('Erreur galerie :', error);
+    grid.classList.remove('is-loading');
     grid.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
   }
 }
@@ -450,7 +611,17 @@ async function initPage() {
   initMediaFadeIn();
 }
 
-window.YingApp = { init: initPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
+function teardownPage() {
+  if (lastKeyHandler) {
+    document.removeEventListener('keydown', lastKeyHandler);
+    lastKeyHandler = null;
+  }
+  clearTimeout(galleryTimer);
+  document.getElementById('videoLightbox')?.__yingClose?.();
+  document.body.style.overflow = '';
+}
+
+window.YingApp = { init: initPage, teardown: teardownPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
 
 document.addEventListener('DOMContentLoaded', () => {
   initPage();

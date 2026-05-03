@@ -167,7 +167,7 @@ async function transitionTo(nextMain, { beforeSwap = null } = {}) {
   }
 
   currentMain.classList.add('is-pjax-leaving');
-  await wait(170);
+  await wait(245);
   beforeSwap?.();
   currentMain.replaceWith(nextMain);
   nextMain.classList.add('is-pjax-entering');

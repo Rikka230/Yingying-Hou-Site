@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = 'v25';
+  const VERSION = 'v26';
   const NAV_HTML = `
     <header class="site-header public-site-header" role="banner" data-public-nav-version="${VERSION}">
       <div class="wrap site-header-inner public-nav-inner">
@@ -18,6 +18,7 @@
         </div>
       </div>
     </header>
+    <div class="public-nav-ambient" aria-hidden="true"></div>
   `;
 
   const icons = {
