@@ -1,0 +1,90 @@
+/* Correctifs publics isolés — ne remplace pas styles.css.
+   Sujet : stabilisation filmographie uniquement. */
+
+body.page-filmographie .page-hero-clean .wrap,
+body.page-filmographie .filmography-section {
+  width: min(1120px, calc(100vw - 40px));
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+body.page-filmographie .filmography-section {
+  min-height: calc(100dvh - 220px);
+}
+
+body.page-filmographie .filtres-bar {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.page-filmographie .table-wrap {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: clamp(540px, 62vh, 760px);
+  max-height: clamp(540px, calc(100dvh - 300px), 780px);
+  overflow: auto;
+  scrollbar-gutter: stable both-edges;
+  display: block;
+  align-items: initial;
+  justify-content: initial;
+  background: var(--card);
+}
+
+body.page-filmographie #filmography {
+  width: 100%;
+  min-width: 1060px;
+  height: auto;
+  min-height: 0;
+  table-layout: fixed;
+}
+
+body.page-filmographie #filmography thead,
+body.page-filmographie #filmography tbody,
+body.page-filmographie #filmography tr,
+body.page-filmographie #filmography th,
+body.page-filmographie #filmography td {
+  height: auto;
+  min-height: 0;
+}
+
+body.page-filmographie #filmography tbody::after {
+  content: none;
+  display: none;
+  height: 0;
+}
+
+body.page-filmographie #filmography tbody tr {
+  vertical-align: middle;
+}
+
+body.page-filmographie .table-empty {
+  height: auto;
+  min-height: 0;
+  padding: 34px 18px;
+  text-align: center;
+  vertical-align: top;
+}
+
+@media (max-width: 760px) {
+  body.page-filmographie .page-hero-clean .wrap,
+  body.page-filmographie .filmography-section {
+    width: min(100vw - 24px, 680px);
+  }
+
+  body.page-filmographie .filmography-section {
+    min-height: auto;
+  }
+
+  body.page-filmographie .table-wrap {
+    min-height: 520px;
+    max-height: none;
+    overflow: auto;
+  }
+
+  body.page-filmographie #filmography {
+    min-width: 720px;
+    table-layout: auto;
+  }
+}
