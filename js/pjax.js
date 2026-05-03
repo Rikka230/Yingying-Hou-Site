@@ -2,10 +2,12 @@ const MAIN_SELECTOR = '#main';
 const PUBLIC_PAGE_RE = /\/(index|filmographie|galerie|contact|legal|privacy|404)(\.html)?$/i;
 const EXCLUDED_PAGE_RE = /\/(admin|cv-photo|cv-auto)(\.html)?$/i;
 const ASSET_RE = /\.(pdf|jpg|jpeg|png|webp|gif|svg|mp4|mov|zip|rar|7z|doc|docx|xls|xlsx|ppt|pptx)$/i;
+
 const pageCache = new Map();
-const CACHE_LIMIT = 12;
-let navigating = false;
+const CACHE_LIMIT = 14;
 let aborter = null;
+let navigationToken = 0;
+let currentRouteKey = routeKey(window.location.href);
 
 function routeKey(urlLike = window.location.href) {
   const url = new URL(urlLike, window.location.origin);
@@ -37,7 +39,9 @@ function eligibleLink(anchor, event) {
 }
 
 function rememberScroll() {
-  history.replaceState({ ...(history.state || {}), scrollX: window.scrollX, scrollY: window.scrollY }, '', window.location.href);
+  try {
+    history.replaceState({ ...(history.state || {}), scrollX: window.scrollX, scrollY: window.scrollY }, '', window.location.href);
+  } catch (_) {}
 }
 
 function saveCache(url, html) {
@@ -50,6 +54,7 @@ function saveCache(url, html) {
 async function fetchHtml(url, signal) {
   const key = routeKey(url);
   if (pageCache.has(key)) return pageCache.get(key);
+
   const response = await fetch(url, {
     headers: { Accept: 'text/html,application/xhtml+xml', 'X-Requested-With': 'PJAX' },
     signal
@@ -57,6 +62,7 @@ async function fetchHtml(url, signal) {
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const type = response.headers.get('content-type') || '';
   if (!type.includes('text/html')) throw new Error('Réponse non HTML');
+
   const html = await response.text();
   saveCache(url, html);
   return html;
@@ -96,7 +102,7 @@ function updateHead(doc, url) {
 }
 
 function updateBodyClass(doc) {
-  const dark = document.body.classList.contains('dark-mode');
+  const dark = document.body.classList.contains('dark-mode') || document.documentElement.classList.contains('theme-dark');
   const nextClasses = Array.from(doc.body.classList).filter((name) => name !== 'dark-mode');
   document.body.className = nextClasses.join(' ');
   if (dark) document.body.classList.add('dark-mode');
@@ -106,7 +112,7 @@ function closeTransientUi() {
   document.querySelectorAll('dialog[open]').forEach((dialog) => {
     try { dialog.close(); } catch (_) { dialog.removeAttribute('open'); }
   });
-  document.querySelectorAll('.lightbox[aria-hidden="false"], .video-lightbox[aria-hidden="false"]').forEach((node) => {
+  document.querySelectorAll('.lightbox[aria-hidden="false"], .photo-viewer[aria-hidden="false"], .video-lightbox[aria-hidden="false"]').forEach((node) => {
     node.setAttribute('aria-hidden', 'true');
   });
   document.body.style.overflow = '';
@@ -129,7 +135,7 @@ function scrollAfter(url, state, pop) {
   }
 }
 
-async function wait(ms) {
+function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -137,11 +143,11 @@ async function swapMain(nextMain, url, state, pop) {
   const current = document.querySelector(MAIN_SELECTOR);
   if (!current) throw new Error('Main courant introuvable');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.documentElement.classList.add('is-pjax-navigating');
 
+  document.documentElement.classList.add('is-pjax-navigating');
   if (!reduced) {
     current.classList.add('pjax-leave');
-    await wait(130);
+    await wait(120);
   }
 
   current.replaceWith(nextMain);
@@ -161,15 +167,16 @@ async function swapMain(nextMain, url, state, pop) {
 async function navigate(url, { push = true, state = null, pop = false } = {}) {
   const nextUrl = new URL(url, window.location.origin);
   if (!isPublicRoute(nextUrl.href)) return false;
-  if (routeKey(nextUrl.href) === routeKey(window.location.href) && !nextUrl.hash) {
-    window.YingNav?.updateActiveNav?.();
+
+  const nextKey = routeKey(nextUrl.href);
+  if (!pop && nextKey === currentRouteKey && !nextUrl.hash) {
+    window.YingNav?.updateActiveNav?.(nextUrl.pathname);
     window.YingNav?.closeMenu?.();
     return true;
   }
-  if (navigating) return true;
 
-  navigating = true;
-  rememberScroll();
+  const token = ++navigationToken;
+  if (!pop) rememberScroll();
   closeTransientUi();
   aborter?.abort();
   aborter = new AbortController();
@@ -177,35 +184,41 @@ async function navigate(url, { push = true, state = null, pop = false } = {}) {
   try {
     window.YingApp?.teardown?.();
     const html = await fetchHtml(nextUrl.href, aborter.signal);
+    if (token !== navigationToken) return false;
+
     const { doc, main } = parsePage(html);
     updateHead(doc, nextUrl.href);
     updateBodyClass(doc);
     await swapMain(main, nextUrl.href, state, pop);
+    if (token !== navigationToken) return false;
+
     if (push) history.pushState({ scrollX: 0, scrollY: 0 }, doc.title || '', nextUrl.href);
+    currentRouteKey = nextKey;
+
     window.YingNav?.init?.();
     window.YingNav?.updateActiveNav?.(nextUrl.pathname);
-    await window.YingApp?.init?.({ pjax: true });
+    window.YingApp?.init?.({ pjax: true });
     document.dispatchEvent(new CustomEvent('ying:pagechange', { detail: { url: nextUrl.href } }));
     warmLinks();
     return true;
   } catch (error) {
-    if (error.name !== 'AbortError') {
+    if (error.name !== 'AbortError' && token === navigationToken) {
       console.error('PJAX navigation failed:', error);
-      const main = document.querySelector(MAIN_SELECTOR);
-      if (main) main.removeAttribute('aria-busy');
       window.location.assign(nextUrl.href);
     }
     return false;
   } finally {
-    document.documentElement.classList.remove('is-pjax-navigating');
-    document.querySelector(MAIN_SELECTOR)?.removeAttribute('aria-busy');
-    navigating = false;
-    aborter = null;
+    if (token === navigationToken) {
+      document.documentElement.classList.remove('is-pjax-navigating');
+      document.querySelector(MAIN_SELECTOR)?.removeAttribute('aria-busy');
+      aborter = null;
+    }
   }
 }
 
 function interceptClick(event) {
-  const anchor = event.target.closest('a');
+  const target = event.target instanceof Element ? event.target : null;
+  const anchor = target?.closest('a');
   if (!eligibleLink(anchor, event)) return;
   event.preventDefault();
   event.stopPropagation();
@@ -215,7 +228,7 @@ function interceptClick(event) {
 
 function prefetch(anchor) {
   if (!eligibleLink(anchor)) return;
-  if (routeKey(anchor.href) === routeKey(window.location.href)) return;
+  if (routeKey(anchor.href) === currentRouteKey) return;
   if (pageCache.has(routeKey(anchor.href))) return;
   fetchHtml(anchor.href).catch(() => {});
 }
@@ -229,8 +242,8 @@ function warmLinks() {
 if (!history.state) history.replaceState({ scrollX: window.scrollX, scrollY: window.scrollY }, '', window.location.href);
 
 document.addEventListener('click', interceptClick, true);
-document.addEventListener('pointerover', (event) => prefetch(event.target.closest('a')), { passive: true });
-document.addEventListener('focusin', (event) => prefetch(event.target.closest('a')));
+document.addEventListener('pointerover', (event) => prefetch(event.target instanceof Element ? event.target.closest('a') : null), { passive: true });
+document.addEventListener('focusin', (event) => prefetch(event.target instanceof Element ? event.target.closest('a') : null));
 window.addEventListener('popstate', (event) => navigate(window.location.href, { push: false, state: event.state, pop: true }));
 window.addEventListener('beforeunload', rememberScroll);
 window.addEventListener('load', warmLinks, { once: true });

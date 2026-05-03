@@ -98,7 +98,7 @@ function teardown() {
   scrollController?.abort?.();
   scrollController = null;
   document.body.style.overflow = '';
-  document.querySelectorAll('.video-lightbox[aria-hidden="false"], .lightbox[aria-hidden="false"]').forEach((node) => {
+  document.querySelectorAll('.video-lightbox[aria-hidden="false"], .lightbox[aria-hidden="false"], .photo-viewer[aria-hidden="false"]').forEach((node) => {
     node.setAttribute('aria-hidden', 'true');
   });
 }
@@ -379,27 +379,24 @@ async function initGallery() {
   let shownPhotos = [];
   let currentIndex = 0;
   let moving = false;
-  let transitionId = 0;
   let renderToken = 0;
 
   const isAlive = () => !currentSignal?.aborted && grid.isConnected && lightbox.isConnected;
 
-  lightbox.className = 'lightbox ying-lightbox';
+  lightbox.className = 'photo-viewer';
   lightbox.setAttribute('aria-hidden', 'true');
   lightbox.innerHTML = `
-    <div class="lb-backdrop" data-lb-close></div>
-    <button class="lb-close" type="button" data-lb-close aria-label="Fermer">✕</button>
-    <button class="lb-nav lb-prev" type="button" aria-label="Photo précédente">‹</button>
-    <div class="lb-shell" role="document">
-      <div class="lb-viewport" aria-live="polite"><div class="lb-rail"></div></div>
-      <p class="lb-caption" id="lb-caption"></p>
-    </div>
-    <button class="lb-nav lb-next" type="button" aria-label="Photo suivante">›</button>`;
+    <div class="photo-viewer__backdrop" data-pv-close></div>
+    <button class="photo-viewer__close" type="button" data-pv-close aria-label="Fermer">✕</button>
+    <button class="photo-viewer__nav photo-viewer__prev" type="button" aria-label="Photo précédente">‹</button>
+    <div class="photo-viewer__stage" role="document" aria-live="polite"></div>
+    <button class="photo-viewer__nav photo-viewer__next" type="button" aria-label="Photo suivante">›</button>
+    <p class="photo-viewer__caption"></p>`;
 
-  const rail = lightbox.querySelector('.lb-rail');
-  const caption = lightbox.querySelector('.lb-caption');
-  const prev = lightbox.querySelector('.lb-prev');
-  const next = lightbox.querySelector('.lb-next');
+  const stage = lightbox.querySelector('.photo-viewer__stage');
+  const caption = lightbox.querySelector('.photo-viewer__caption');
+  const prev = lightbox.querySelector('.photo-viewer__prev');
+  const next = lightbox.querySelector('.photo-viewer__next');
 
   function safeIndex(index) {
     if (!shownPhotos.length) return 0;
@@ -410,88 +407,93 @@ async function initGallery() {
     return shownPhotos[safeIndex(index)];
   }
 
-  function slideMarkup(photo, label) {
-    if (!photo) return '<div class="lb-slide"></div>';
-    return `<div class="lb-slide" aria-label="${escapeHtml(label)}"><img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" draggable="false"></div>`;
-  }
-
   function setCaption(photo) {
-    caption.textContent = photo?.caption || '';
+    if (caption) caption.textContent = photo?.caption || '';
   }
 
   function prime(index) {
     [index - 1, index, index + 1].forEach((i) => preloadGalleryImage(photoAt(i)?.url));
   }
 
-  function renderRail(index, withTransition = false) {
-    if (!shownPhotos.length) return;
-    currentIndex = safeIndex(index);
-    rail.classList.remove('is-animated');
-    rail.style.transition = 'none';
-    rail.style.transform = 'translate3d(-100%,0,0)';
-    rail.innerHTML = [
-      slideMarkup(photoAt(currentIndex - 1), 'Photo précédente'),
-      slideMarkup(photoAt(currentIndex), 'Photo actuelle'),
-      slideMarkup(photoAt(currentIndex + 1), 'Photo suivante')
-    ].join('');
-    setCaption(photoAt(currentIndex));
-    prime(currentIndex);
-    // Force le navigateur à poser le rail au centre avant toute animation.
-    rail.offsetHeight;
-    if (withTransition) {
-      rail.style.transition = '';
-      rail.classList.add('is-animated');
-    }
+  function createViewerCard(photo, stateClass = 'is-current') {
+    const figure = document.createElement('figure');
+    figure.className = `photo-viewer__card ${stateClass}`.trim();
+    const img = document.createElement('img');
+    img.src = photo?.url || '';
+    img.alt = photo?.caption || 'Photo de Yingying HOU';
+    img.draggable = false;
+    figure.appendChild(img);
+    return figure;
   }
 
-  function open(index) {
+  function resetViewer(index) {
+    if (!stage || !shownPhotos.length) return;
+    currentIndex = safeIndex(index);
+    stage.innerHTML = '';
+    stage.appendChild(createViewerCard(photoAt(currentIndex), 'is-current'));
+    setCaption(photoAt(currentIndex));
+    prime(currentIndex);
+  }
+
+  async function open(index) {
     if (!shownPhotos.length || !isAlive()) return;
-    transitionId += 1;
+    currentIndex = safeIndex(index);
+    await preloadGalleryImage(photoAt(currentIndex)?.url);
+    if (!isAlive()) return;
     moving = false;
-    renderRail(index, false);
+    resetViewer(currentIndex);
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
 
   function close() {
-    transitionId += 1;
     moving = false;
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    if (rail) rail.innerHTML = '';
+    if (stage) stage.innerHTML = '';
   }
 
   async function go(delta) {
     if (moving || !shownPhotos.length || lightbox.getAttribute('aria-hidden') === 'true') return;
     moving = true;
-    const id = ++transitionId;
+
     const targetIndex = safeIndex(currentIndex + delta);
     await preloadGalleryImage(photoAt(targetIndex)?.url);
-    if (id !== transitionId || !isAlive()) return;
+    if (!isAlive() || lightbox.getAttribute('aria-hidden') === 'true') {
+      moving = false;
+      return;
+    }
 
-    renderRail(currentIndex, false);
+    const outgoing = stage.querySelector('.photo-viewer__card.is-current') || createViewerCard(photoAt(currentIndex), 'is-current');
+    if (!outgoing.isConnected) stage.appendChild(outgoing);
+
+    const incoming = createViewerCard(photoAt(targetIndex), delta > 0 ? 'is-entering-right' : 'is-entering-left');
+    stage.appendChild(incoming);
+    setCaption(photoAt(targetIndex));
+    prime(targetIndex);
+
+    // Pose l'état initial avant d'animer, pour éviter le pop/repop.
+    incoming.offsetHeight;
     requestAnimationFrame(() => {
-      if (id !== transitionId || !isAlive()) return;
-      rail.style.transition = '';
-      rail.classList.add('is-animated');
-      rail.style.transform = delta > 0 ? 'translate3d(-200%,0,0)' : 'translate3d(0,0,0)';
+      outgoing.classList.add(delta > 0 ? 'is-exiting-left' : 'is-exiting-right');
+      incoming.classList.remove('is-entering-right', 'is-entering-left');
+      incoming.classList.add('is-current');
     });
 
-    let finished = false;
-    let timer = null;
+    let done = false;
     const finish = () => {
-      if (finished || id !== transitionId || !isAlive()) return;
-      finished = true;
-      if (timer) clearTimeout(timer);
-      renderRail(targetIndex, false);
+      if (done || !isAlive()) return;
+      done = true;
+      currentIndex = targetIndex;
+      stage.innerHTML = '';
+      stage.appendChild(createViewerCard(photoAt(currentIndex), 'is-current'));
+      setCaption(photoAt(currentIndex));
+      prime(currentIndex);
       moving = false;
     };
 
-    const onEnd = (event) => {
-      if (event.target === rail) finish();
-    };
-    rail.addEventListener('transitionend', onEnd, { once: true, signal: currentSignal });
-    timer = setTimeout(finish, 620);
+    incoming.addEventListener('transitionend', finish, { once: true, signal: currentSignal });
+    window.setTimeout(finish, 700);
   }
 
   async function renderGrid(category = 'Tout') {
@@ -531,25 +533,25 @@ async function initGallery() {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
-    open(Number(item.dataset.index) || 0);
+    void open(Number(item.dataset.index) || 0);
   });
   listen(lightbox, 'click', (event) => {
-    if (event.target.closest('[data-lb-close]')) close();
+    if (event.target.matches('[data-pv-close]')) close();
   });
-  listen(prev, 'click', (event) => { event.preventDefault(); event.stopPropagation(); go(-1); });
-  listen(next, 'click', (event) => { event.preventDefault(); event.stopPropagation(); go(1); });
+  listen(prev, 'click', (event) => { event.preventDefault(); event.stopPropagation(); void go(-1); });
+  listen(next, 'click', (event) => { event.preventDefault(); event.stopPropagation(); void go(1); });
   listen(document, 'keydown', (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
-    if (event.key === 'ArrowLeft') go(-1);
-    if (event.key === 'ArrowRight') go(1);
+    if (event.key === 'ArrowLeft') void go(-1);
+    if (event.key === 'ArrowRight') void go(1);
   });
 
   document.querySelectorAll('.filter-btn').forEach((button) => {
     listen(button, 'click', () => {
       document.querySelectorAll('.filter-btn').forEach((item) => item.classList.add('outline'));
       button.classList.remove('outline');
-      renderGrid(button.dataset.filter || 'Tout');
+      void renderGrid(button.dataset.filter || 'Tout');
     });
   });
 
