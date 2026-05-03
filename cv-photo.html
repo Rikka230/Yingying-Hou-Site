@@ -313,6 +313,7 @@
                                         <option value="Long-métrage">Long-métrage</option>
                                         <option value="Série TV">Série TV</option>
                                         <option value="Doublage">Doublage</option>
+                                        <option value="Voix off">Voix off</option>
                                         <option value="Documentaire">Documentaire</option>
                                         <option value="Publicité">Publicité</option>
                                         <option value="Modèle Photo">Photo</option>
@@ -365,6 +366,7 @@
                     <option value="Long-métrage">Long-métrage</option>
                     <option value="Série TV">Série TV</option>
                     <option value="Doublage">Doublage</option>
+                    <option value="Voix off">Voix off</option>
                     <option value="Documentaire">Documentaire</option>
                     <option value="Publicité">Publicité</option>
                     <option value="Modèle Photo">Modèle Photo</option>
@@ -423,6 +425,7 @@
             { value: "Long-métrage", label: "Long-métrage" },
             { value: "Série TV", label: "Série TV" },
             { value: "Doublage", label: "Doublage" },
+            { value: "Voix off", label: "Voix off" },
             { value: "Documentaire", label: "Documentaire" },
             { value: "Publicité", label: "Publicité" },
             { value: "Modèle Photo", label: "Photo" }
@@ -442,6 +445,12 @@
             "série": "Série TV",
             "serie": "Série TV",
             "doublage": "Doublage",
+            "voix off": "Voix off",
+            "voix-off": "Voix off",
+            "voix - off": "Voix off",
+            "voice off": "Voix off",
+            "voice-over": "Voix off",
+            "voice over": "Voix off",
             "documentaire": "Documentaire",
             "docu": "Documentaire",
             "publicite": "Publicité",
@@ -467,7 +476,8 @@
             const rowText = `${roleText} ${directorText}`.toLowerCase();
 
             if (rowText.includes('documentaire') || rowText.includes('docu')) return 'Documentaire';
-            if (rowText.includes('doublage') || rowText.includes('voix-off') || rowText.includes('voix - off') || rowText.includes('voix off')) return 'Doublage';
+            if (rowText.includes('voix-off') || rowText.includes('voix - off') || rowText.includes('voix off') || rowText.includes('voice-over') || rowText.includes('voice over')) return 'Voix off';
+            if (rowText.includes('doublage')) return 'Doublage';
             return '';
         }
 
@@ -973,6 +983,7 @@
                         <option value="Long-métrage">Long-métrage</option>
                         <option value="Série TV">Série TV</option>
                         <option value="Doublage">Doublage</option>
+                        <option value="Voix off">Voix off</option>
                         <option value="Documentaire">Documentaire</option>
                         <option value="Publicité">Publicité</option>
                         <option value="Modèle Photo">Photo</option>
