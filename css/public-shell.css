@@ -541,3 +541,53 @@ html.theme-dark .ying-lightbox .lb-backdrop {
   .ying-lightbox .lb-next { right: 12px !important; }
   .ying-lightbox .lb-caption { bottom: -34px !important; font-size: 13px !important; }
 }
+
+
+/* V3.3 corrections: filmographie stable + lightbox visible. */
+.page-filmographie .table-wrap {
+  min-height: clamp(560px, 68vh, 860px) !important;
+  display: block !important;
+}
+.page-filmographie #filmography {
+  min-height: 100% !important;
+}
+.page-filmographie #filmography tbody::after {
+  content: "";
+  display: block;
+  height: 1px;
+}
+.page-filmographie .table-empty {
+  height: clamp(360px, 48vh, 560px) !important;
+  vertical-align: middle !important;
+}
+@media (max-width: 760px) {
+  .page-filmographie .table-wrap {
+    min-height: 76vh !important;
+  }
+  .page-filmographie #filmography tbody {
+    display: block !important;
+    min-height: 76vh !important;
+  }
+}
+
+/* Le rail lightbox doit faire 1 viewport, pas 3. Sinon translate(-100%) part trop loin et l'écran devient vide. */
+.ying-lightbox .lb-rail {
+  width: 100% !important;
+  min-width: 100% !important;
+  height: 100% !important;
+  transform: translate3d(-100%, 0, 0) !important;
+}
+.ying-lightbox .lb-slide {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+.ying-lightbox .lb-slide img {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.ying-lightbox[aria-hidden="false"] .lb-rail {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
