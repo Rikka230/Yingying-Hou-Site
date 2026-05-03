@@ -1,22 +1,28 @@
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
-  authDomain: "kukyying-f1c95.firebaseapp.com",
-  projectId: "kukyying-f1c95",
-  storageBucket: "kukyying-f1c95.firebasestorage.app",
-  messagingSenderId: "681899915263",
-  appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca",
-  measurementId: "G-7F34MBVKPN"
+  apiKey: 'AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4',
+  authDomain: 'kukyying-f1c95.firebaseapp.com',
+  projectId: 'kukyying-f1c95',
+  storageBucket: 'kukyying-f1c95.firebasestorage.app',
+  messagingSenderId: '681899915263',
+  appId: '1:681899915263:web:4d64dcf4a9c57748ead9ca',
+  measurementId: 'G-7F34MBVKPN'
 };
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-let keyHandler = null;
+let pageController = null;
 let scrollController = null;
-let roleState = null;
+
+function signal() {
+  return pageController?.signal;
+}
+
+function listen(target, type, handler, options = {}) {
+  target?.addEventListener(type, handler, { ...options, signal: signal() });
+}
 
 function normalizeText(value) {
   return String(value || '')
@@ -28,7 +34,9 @@ function normalizeText(value) {
 }
 
 function escapeHtml(value) {
-  return String(value || '').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+  return String(value || '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
 }
 
 function normalizeCategory(value) {
@@ -80,38 +88,42 @@ async function getRoles() {
 
 function initCommon() {
   window.YingNav?.init?.();
-  document.querySelectorAll('#year').forEach((item) => { item.textContent = new Date().getFullYear(); });
+  document.querySelectorAll('#year').forEach((node) => { node.textContent = new Date().getFullYear(); });
 }
 
 function teardown() {
-  if (keyHandler) document.removeEventListener('keydown', keyHandler);
-  keyHandler = null;
+  pageController?.abort?.();
+  pageController = null;
   scrollController?.abort?.();
   scrollController = null;
   document.body.style.overflow = '';
-  document.querySelectorAll('.video-lightbox[aria-hidden="false"]').forEach((modal) => modal.setAttribute('aria-hidden', 'true'));
+  document.querySelectorAll('.video-lightbox[aria-hidden="false"], .lightbox[aria-hidden="false"]').forEach((node) => {
+    node.setAttribute('aria-hidden', 'true');
+  });
 }
 
 async function initPresskit() {
   const modal = document.getElementById('presskitModal');
   if (!modal) return;
   const close = document.getElementById('btn-close-presskit');
-  if (close) close.onclick = () => modal.close();
+  listen(close, 'click', () => modal.close());
 
   document.querySelectorAll('.js-presskit').forEach((button) => {
-    button.onclick = async () => {
+    listen(button, 'click', async () => {
       try {
-        const cvDoc = await getDoc(doc(db, 'site_data', 'cv_project'));
         const cvLink = document.getElementById('link-dl-cv');
-        if (cvLink && cvDoc.exists() && cvDoc.data().publicUrl) cvLink.href = cvDoc.data().publicUrl;
-        const zcardDoc = await getDoc(doc(db, 'site_data', 'zcard_project'));
         const zcardLink = document.getElementById('link-dl-zcard');
+        const [cvDoc, zcardDoc] = await Promise.all([
+          getDoc(doc(db, 'site_data', 'cv_project')),
+          getDoc(doc(db, 'site_data', 'zcard_project'))
+        ]);
+        if (cvLink && cvDoc.exists() && cvDoc.data().publicUrl) cvLink.href = cvDoc.data().publicUrl;
         if (zcardLink && zcardDoc.exists() && zcardDoc.data().publicUrl) zcardLink.href = zcardDoc.data().publicUrl;
       } catch (error) {
         console.warn('Press kit non disponible :', error);
       }
       if (typeof modal.showModal === 'function') modal.showModal();
-    };
+    });
   });
 }
 
@@ -126,25 +138,24 @@ async function initHomeRoles() {
   const next = document.getElementById('btn-next-roles');
   if (!list || !prev || !next) return;
 
-  roleState = { page: 0, perPage: 7, roles: [] };
+  const state = { page: 0, perPage: 7, roles: [] };
 
   function render() {
-    const start = roleState.page * roleState.perPage;
-    const pageRoles = roleState.roles.slice(start, start + roleState.perPage);
+    const start = state.page * state.perPage;
+    const pageRoles = state.roles.slice(start, start + state.perPage);
     list.innerHTML = pageRoles.length ? pageRoles.map((role) => {
       const year = role.annee ? ` ${escapeHtml(role.annee)}` : '';
       return `<li><span class="role-heart">♥</span> ${escapeHtml(role.titre || 'Rôle')} — <b>${escapeHtml(role.projet || 'Projet')}</b> <span class="role-meta">(${escapeHtml(normalizeCategory(role.type))}${year})</span></li>`;
     }).join('') : '<li class="loading-line">Aucun rôle disponible.</li>';
-
-    prev.disabled = roleState.page === 0;
-    next.disabled = start + roleState.perPage >= roleState.roles.length;
+    prev.disabled = state.page === 0;
+    next.disabled = start + state.perPage >= state.roles.length;
   }
 
   try {
-    roleState.roles = await getRoles();
+    state.roles = await getRoles();
     render();
-    prev.onclick = () => { if (roleState.page > 0) { roleState.page -= 1; render(); } };
-    next.onclick = () => { if ((roleState.page + 1) * roleState.perPage < roleState.roles.length) { roleState.page += 1; render(); } };
+    listen(prev, 'click', () => { if (state.page > 0) { state.page -= 1; render(); } });
+    listen(next, 'click', () => { if ((state.page + 1) * state.perPage < state.roles.length) { state.page += 1; render(); } });
   } catch (error) {
     console.warn('Rôles accueil indisponibles :', error);
     list.innerHTML = '<li class="loading-line error-line">Erreur de chargement.</li>';
@@ -195,14 +206,13 @@ async function initHomeVideos() {
       card.className = 'yt-item';
       card.innerHTML = `
         <iframe src="${src}" title="${title}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
-        <button class="media-expand" type="button" data-video-src="${src}" data-video-title="${title}">Agrandir</button>
-      `;
+        <button class="media-expand" type="button" data-video-src="${src}" data-video-title="${title}">Agrandir</button>`;
       slider.appendChild(card);
     });
 
     const scrollAmount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
-    if (next) next.onclick = () => slider.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
-    if (prev) prev.onclick = () => slider.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    listen(next, 'click', () => slider.scrollBy({ left: scrollAmount(), behavior: 'smooth' }));
+    listen(prev, 'click', () => slider.scrollBy({ left: -scrollAmount(), behavior: 'smooth' }));
     initVideoLightbox();
   } catch (error) {
     console.warn('Vidéos indisponibles :', error);
@@ -234,8 +244,7 @@ function initVideoLightbox() {
         <button class="video-lightbox-close" type="button" data-video-close aria-label="Fermer">✕</button>
         <div class="video-lightbox-loader"><span></span><strong>Chargement de la vidéo</strong></div>
         <iframe id="videoLightboxFrame" title="Vidéo agrandie" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(modal);
   }
 
@@ -250,19 +259,18 @@ function initVideoLightbox() {
     }
   };
 
-  modal.querySelectorAll('[data-video-close]').forEach((button) => { button.onclick = close; });
+  modal.querySelectorAll('[data-video-close]').forEach((button) => listen(button, 'click', close));
   document.querySelectorAll('.media-expand').forEach((button) => {
-    button.onclick = () => {
+    listen(button, 'click', () => {
       const src = button.dataset.videoSrc;
       if (!src || !frame) return;
       pauseMiniPlayers();
       modal.classList.remove('is-ready');
       modal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      const autoplaySrc = buildPlayerUrl(src, true);
-      frame.onload = () => window.setTimeout(() => modal.classList.add('is-ready'), 140);
-      frame.src = autoplaySrc;
-    };
+      frame.onload = () => window.setTimeout(() => modal.classList.add('is-ready'), 120);
+      frame.src = buildPlayerUrl(src, true);
+    });
   });
 }
 
@@ -274,7 +282,6 @@ async function initFilmography() {
   if (!table || !filter || !sort || !search) return;
 
   let roles = [];
-
   function render() {
     const term = normalizeText(search.value);
     let rows = roles.filter((role) => {
@@ -308,9 +315,9 @@ async function initFilmography() {
   try {
     roles = await getRoles();
     render();
-    filter.onchange = render;
-    sort.onchange = render;
-    search.oninput = render;
+    listen(filter, 'change', render);
+    listen(sort, 'change', render);
+    listen(search, 'input', render);
   } catch (error) {
     console.warn('Filmographie indisponible :', error);
     table.innerHTML = '<tr><td colspan="6" class="table-empty error-line">Erreur de chargement.</td></tr>';
@@ -319,79 +326,77 @@ async function initFilmography() {
 
 function preloadImage(url) {
   return new Promise((resolve) => {
-    if (!url) return resolve();
-    const img = new Image();
-    img.onload = resolve;
-    img.onerror = resolve;
-    img.src = url;
+    if (!url) return resolve(false);
+    const image = new Image();
+    image.onload = () => resolve(true);
+    image.onerror = () => resolve(false);
+    image.src = url;
   });
 }
 
 async function initGallery() {
   const grid = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
-  const figure = lightbox?.querySelector('.lb-figure');
-  if (!grid || !lightbox || !figure) return;
-
-  if (keyHandler) document.removeEventListener('keydown', keyHandler);
+  if (!grid || !lightbox) return;
 
   let allPhotos = [];
   let shownPhotos = [];
-  let current = 0;
-  let sliding = false;
+  let currentIndex = 0;
+  let animating = false;
   let renderToken = 0;
 
-  figure.innerHTML = `
-    <div class="lb-viewport" aria-live="polite"></div>
-    <figcaption id="lb-caption"></figcaption>
-  `;
-  const viewport = figure.querySelector('.lb-viewport');
-  const caption = figure.querySelector('#lb-caption');
+  lightbox.className = 'lightbox ying-lightbox';
+  lightbox.setAttribute('aria-hidden', 'true');
+  lightbox.innerHTML = `
+    <div class="lb-backdrop" data-lb-close></div>
+    <div class="lb-shell" role="document">
+      <button class="lb-close" type="button" data-lb-close aria-label="Fermer">✕</button>
+      <button class="lb-nav lb-prev" type="button" aria-label="Photo précédente">‹</button>
+      <div class="lb-stage" aria-live="polite"></div>
+      <button class="lb-nav lb-next" type="button" aria-label="Photo suivante">›</button>
+      <p class="lb-caption" id="lb-caption"></p>
+    </div>`;
 
-  function getPhotoUrl(photo) {
-    return photo?.url || photo?.imageUrl || photo?.src || photo?.photoUrl || photo?.fullUrl || '';
+  const stage = lightbox.querySelector('.lb-stage');
+  const caption = lightbox.querySelector('.lb-caption');
+  const prev = lightbox.querySelector('.lb-prev');
+  const next = lightbox.querySelector('.lb-next');
+
+  function safeIndex(index) {
+    if (!shownPhotos.length) return 0;
+    return (index + shownPhotos.length) % shownPhotos.length;
   }
 
   function photoAt(index) {
-    if (!shownPhotos.length) return null;
-    return shownPhotos[(index + shownPhotos.length) % shownPhotos.length];
+    return shownPhotos[safeIndex(index)];
+  }
+
+  function makeCard(photo, className = 'is-active') {
+    const card = document.createElement('div');
+    card.className = `lb-photo-card ${className}`;
+    const img = document.createElement('img');
+    img.src = photo?.url || '';
+    img.alt = photo?.caption || 'Photo de Yingying HOU';
+    img.draggable = false;
+    card.appendChild(img);
+    return card;
   }
 
   function setCaption(photo) {
-    if (caption) caption.textContent = photo?.caption || '';
+    caption.textContent = photo?.caption || '';
   }
 
-  function makeImage(photo, className = 'lb-photo lb-current') {
-    const img = document.createElement('img');
-    img.className = className;
-    img.alt = photo?.caption || 'Photo de Yingying HOU';
-    img.draggable = false;
-    img.decoding = 'async';
-    img.src = getPhotoUrl(photo);
-    return img;
-  }
-
-  function preloadNeighbors(index) {
-    [index - 1, index, index + 1].forEach((i) => {
-      const photo = photoAt(i);
-      const url = getPhotoUrl(photo);
-      if (url) preloadImage(url);
-    });
-  }
-
-  function renderCurrent(index) {
-    if (!shownPhotos.length || !viewport) return;
-    current = (index + shownPhotos.length) % shownPhotos.length;
-    const active = photoAt(current);
-    viewport.innerHTML = '';
-    viewport.appendChild(makeImage(active, 'lb-photo lb-current'));
-    setCaption(active);
-    preloadNeighbors(current);
+  function primeNeighbors(index) {
+    [index - 1, index, index + 1].forEach((i) => preloadImage(photoAt(i)?.url));
   }
 
   function open(index) {
     if (!shownPhotos.length) return;
-    renderCurrent(index);
+    currentIndex = safeIndex(index);
+    stage.innerHTML = '';
+    stage.appendChild(makeCard(photoAt(currentIndex), 'is-active'));
+    setCaption(photoAt(currentIndex));
+    primeNeighbors(currentIndex);
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
@@ -399,48 +404,45 @@ async function initGallery() {
   function close() {
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    sliding = false;
-    viewport?.classList.remove('slide-next', 'slide-prev', 'is-sliding');
+    animating = false;
+    stage.innerHTML = '';
   }
 
   async function go(delta) {
-    if (sliding || !shownPhotos.length || !viewport) return;
-    const target = (current + delta + shownPhotos.length) % shownPhotos.length;
-    const activePhoto = photoAt(current);
-    const targetPhoto = photoAt(target);
-    const targetUrl = getPhotoUrl(targetPhoto);
-    if (!targetUrl) return;
+    if (animating || !shownPhotos.length) return;
+    animating = true;
+    const targetIndex = safeIndex(currentIndex + delta);
+    const targetPhoto = photoAt(targetIndex);
+    await preloadImage(targetPhoto?.url);
 
-    sliding = true;
-    await preloadImage(targetUrl);
+    const currentCard = stage.querySelector('.lb-photo-card.is-active') || makeCard(photoAt(currentIndex), 'is-active');
+    if (!currentCard.parentNode) stage.appendChild(currentCard);
 
-    viewport.classList.remove('slide-next', 'slide-prev', 'is-sliding');
-    viewport.innerHTML = '';
-    const currentImg = makeImage(activePhoto, 'lb-photo lb-current');
-    const incomingImg = makeImage(targetPhoto, 'lb-photo lb-incoming');
-    viewport.append(currentImg, incomingImg);
+    const incoming = makeCard(targetPhoto, delta > 0 ? 'from-right' : 'from-left');
+    stage.appendChild(incoming);
     setCaption(targetPhoto);
 
-    const directionClass = delta > 0 ? 'slide-next' : 'slide-prev';
-    viewport.classList.add(directionClass);
-
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => viewport.classList.add('is-sliding'));
+      currentCard.classList.add(delta > 0 ? 'to-left' : 'to-right');
+      incoming.classList.remove('from-right', 'from-left');
+      incoming.classList.add('is-active');
     });
 
     const finish = () => {
-      viewport.removeEventListener('transitionend', finish);
-      current = target;
-      renderCurrent(current);
-      viewport.classList.remove(directionClass, 'is-sliding');
-      sliding = false;
+      stage.querySelectorAll('.lb-photo-card').forEach((card) => {
+        if (card !== incoming) card.remove();
+      });
+      incoming.className = 'lb-photo-card is-active';
+      currentIndex = targetIndex;
+      primeNeighbors(currentIndex);
+      animating = false;
     };
 
-    viewport.addEventListener('transitionend', finish, { once: true });
-    setTimeout(() => { if (sliding) finish(); }, 680);
+    incoming.addEventListener('transitionend', finish, { once: true, signal: signal() });
+    setTimeout(() => { if (animating) finish(); }, 520);
   }
 
-  async function loadAndRender(category = 'Tout') {
+  async function renderGrid(category = 'Tout') {
     const token = ++renderToken;
     grid.classList.remove('is-ready');
     grid.classList.add('is-loading');
@@ -448,54 +450,49 @@ async function initGallery() {
 
     shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
     await Promise.race([
-      Promise.allSettled(shownPhotos.map((photo) => preloadImage(getPhotoUrl(photo)))),
-      new Promise((resolve) => setTimeout(resolve, 5200))
+      Promise.allSettled(shownPhotos.map((photo) => preloadImage(photo.url))),
+      new Promise((resolve) => setTimeout(resolve, 4500))
     ]);
     if (token !== renderToken) return;
 
     if (!shownPhotos.length) {
       grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
     } else {
-      grid.innerHTML = shownPhotos.map((photo, index) => {
-        const url = getPhotoUrl(photo);
-        return `<a href="${escapeHtml(url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 20) * 45}ms">
-          <img src="${escapeHtml(url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
+      grid.innerHTML = shownPhotos.map((photo, index) => `
+        <a href="${escapeHtml(photo.url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 42}ms">
+          <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
           <div class="item-overlay"><span>Agrandir</span></div>
-        </a>`;
-      }).join('');
+        </a>`).join('');
     }
 
     grid.classList.remove('is-loading');
     requestAnimationFrame(() => grid.classList.add('is-ready'));
   }
 
-  grid.onclick = (event) => {
+  listen(grid, 'click', (event) => {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
-    const index = Number(item.dataset.index) || 0;
-    open(index);
-  };
-
-  lightbox.querySelector('.lb-close')?.addEventListener('click', close);
-  lightbox.querySelector('.lb-next')?.addEventListener('click', () => go(1));
-  lightbox.querySelector('.lb-prev')?.addEventListener('click', () => go(-1));
-  lightbox.onclick = (event) => { if (event.target === lightbox) close(); };
-
-  keyHandler = (event) => {
+    open(Number(item.dataset.index) || 0);
+  });
+  listen(lightbox, 'click', (event) => {
+    if (event.target.closest('[data-lb-close]')) close();
+  });
+  listen(prev, 'click', (event) => { event.preventDefault(); event.stopPropagation(); go(-1); });
+  listen(next, 'click', (event) => { event.preventDefault(); event.stopPropagation(); go(1); });
+  listen(document, 'keydown', (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
-    if (event.key === 'ArrowRight') go(1);
     if (event.key === 'ArrowLeft') go(-1);
-  };
-  document.addEventListener('keydown', keyHandler);
+    if (event.key === 'ArrowRight') go(1);
+  });
 
   document.querySelectorAll('.filter-btn').forEach((button) => {
-    button.onclick = () => {
+    listen(button, 'click', () => {
       document.querySelectorAll('.filter-btn').forEach((item) => item.classList.add('outline'));
       button.classList.remove('outline');
-      loadAndRender(button.dataset.filter || 'Tout');
-    };
+      renderGrid(button.dataset.filter || 'Tout');
+    });
   });
 
   try {
@@ -505,7 +502,7 @@ async function initGallery() {
     const snapshot = await getDocs(q);
     allPhotos = [];
     snapshot.forEach((item) => allPhotos.push(item.data()));
-    await loadAndRender('Tout');
+    await renderGrid('Tout');
   } catch (error) {
     console.warn('Galerie indisponible :', error);
     grid.classList.remove('is-loading');
@@ -520,7 +517,7 @@ function initContact() {
   const submit = form.querySelector('button[type="submit"]');
   const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || '');
 
-  form.onsubmit = (event) => {
+  listen(form, 'submit', (event) => {
     if (form.company && form.company.value.trim() !== '') {
       event.preventDefault();
       if (status) { status.textContent = 'Merci.'; status.className = 'form-status ok'; }
@@ -537,7 +534,7 @@ function initContact() {
     }
     if (status) { status.textContent = 'Envoi en cours…'; status.className = 'form-status'; }
     submit?.setAttribute('disabled', 'disabled');
-  };
+  });
 }
 
 function initScrollHints() {
@@ -559,22 +556,32 @@ function initScrollHints() {
 }
 
 async function initPage() {
+  teardown();
+  pageController = new AbortController();
   initCommon();
   initScrollHints();
   document.body.style.overflow = '';
   const page = document.getElementById('main')?.dataset.page;
-  try {
-    if (page === 'home') await initHome();
-    else if (page === 'filmography') await initFilmography();
-    else if (page === 'gallery') await initGallery();
-    else if (page === 'contact') initContact();
-  } catch (error) {
-    console.warn('Initialisation page interrompue sans bloquer PJAX :', error);
-  } finally {
-    window.YingNav?.updateActiveNav?.();
-  }
+  if (page === 'home') await initHome();
+  else if (page === 'filmography') await initFilmography();
+  else if (page === 'gallery') await initGallery();
+  else if (page === 'contact') initContact();
 }
 
-window.YingApp = { init: initPage, teardown, db, normalizeCategory, updateActiveNav: () => window.YingNav?.updateActiveNav?.(), ensureUnifiedHeader: () => window.YingNav?.init?.() };
+window.YingApp = {
+  init: initPage,
+  teardown,
+  db,
+  normalizeCategory,
+  updateActiveNav: () => window.YingNav?.updateActiveNav?.(),
+  ensureUnifiedHeader: () => window.YingNav?.init?.()
+};
 
-document.addEventListener('DOMContentLoaded', () => initPage());
+let booted = false;
+function boot() {
+  if (booted) return;
+  booted = true;
+  initPage();
+}
+document.addEventListener('DOMContentLoaded', boot, { once: true });
+if (document.readyState !== 'loading') boot();
