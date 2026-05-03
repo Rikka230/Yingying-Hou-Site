@@ -14,16 +14,37 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const icons = {
+  sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+  moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
+};
+
+
+const PUBLIC_HEADER_HTML = `
+  <div class="wrap site-header-inner">
+    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
+    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/" data-nav="home">Accueil</a></li>
+        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
+        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
+        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+    </div>
+  </div>
+`;
+
 function ensureUnifiedHeader() {
-  window.YingPublicNav?.mount?.();
+  window.YingNav?.ensureHeader?.();
 }
 
-function updateActiveNav() {
-  window.YingPublicNav?.updateActive?.();
-}
+
 
 let commonReady = false;
-
 let lastKeyHandler = null;
 let galleryTimer = null;
 
@@ -34,94 +55,6 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[’']/g, ' ')
     .trim();
-}
-
-
-function escapeAttribute(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function preloadImage(url, timeout = 9000) {
-  return new Promise((resolve) => {
-    if (!url) { resolve(); return; }
-    const img = new Image();
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      resolve();
-    };
-    const timer = setTimeout(finish, timeout);
-    img.onload = async () => {
-      clearTimeout(timer);
-      try { await img.decode?.(); } catch (_) {}
-      finish();
-    };
-    img.onerror = () => { clearTimeout(timer); finish(); };
-    img.src = url;
-  });
-}
-
-function preloadImages(items, timeout = 9000) {
-  return Promise.allSettled(items.map((item) => preloadImage(item?.url, timeout)));
-}
-
-function withUrlParam(url, key, value) {
-  try {
-    const parsed = new URL(url, window.location.origin);
-    if (!parsed.searchParams.has(key)) parsed.searchParams.set(key, value);
-    return parsed.href;
-  } catch (_) {
-    return url;
-  }
-}
-
-function ensureVideoLightbox() {
-  let box = document.getElementById('videoLightbox');
-  if (box) return box;
-
-  box = document.createElement('div');
-  box.id = 'videoLightbox';
-  box.className = 'video-lightbox';
-  box.setAttribute('role', 'dialog');
-  box.setAttribute('aria-modal', 'true');
-  box.setAttribute('aria-hidden', 'true');
-  box.innerHTML = `
-    <button class="video-lightbox-close" type="button" aria-label="Fermer">✕</button>
-    <div class="video-lightbox-panel">
-      <iframe id="videoLightboxFrame" src="" title="Extrait vidéo en grand" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-    </div>
-  `;
-  document.body.appendChild(box);
-
-  const close = () => {
-    box.setAttribute('aria-hidden', 'true');
-    const frame = box.querySelector('#videoLightboxFrame');
-    if (frame) frame.src = '';
-    document.body.style.overflow = '';
-  };
-
-  box.querySelector('.video-lightbox-close')?.addEventListener('click', close);
-  box.addEventListener('click', (event) => { if (event.target === box) close(); });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && box.getAttribute('aria-hidden') === 'false') close();
-  });
-  box.__yingClose = close;
-  return box;
-}
-
-function openVideoLightbox(url) {
-  if (!url) return;
-  const box = ensureVideoLightbox();
-  const frame = box.querySelector('#videoLightboxFrame');
-  if (!frame) return;
-  frame.src = withUrlParam(url, 'autoplay', '1');
-  box.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
 }
 
 function normalizeCategory(value) {
@@ -171,27 +104,34 @@ async function getRoles() {
   return roles;
 }
 
-function syncRootThemeClass() {
-  document.documentElement.classList.toggle('theme-dark-active', document.body.classList.contains('dark-mode'));
+function setThemeIcon() {
+  window.YingNav?.setThemeIcon?.();
 }
 
-function setThemeIcon() {
-  window.YingPublicNav?.setThemeIcon?.();
-}
+
 
 function applyStoredTheme() {
-  window.YingPublicNav?.applyStoredTheme?.();
+  window.YingNav?.applyStoredTheme?.();
 }
 
+
+
+function updateActiveNav() {
+  window.YingNav?.updateActiveNav?.();
+}
+
+
+
 function initCommon() {
+  window.YingNav?.init?.();
   ensureUnifiedHeader();
   applyStoredTheme();
   updateActiveNav();
   document.querySelectorAll('#year').forEach((year) => { year.textContent = new Date().getFullYear(); });
-
-  if (commonReady) return;
   commonReady = true;
 }
+
+
 
 async function initPresskit() {
   const modal = document.getElementById('presskitModal');
@@ -273,6 +213,25 @@ async function initHomeVideos() {
   const next = document.getElementById('yt-next');
   if (!slider) return;
 
+  function withPlayerParams(rawUrl) {
+    try {
+      const url = new URL(rawUrl, window.location.origin);
+      const host = url.hostname.replace(/^www\./, '');
+      if (host.includes('youtube') || host.includes('youtu.be')) {
+        url.searchParams.set('enablejsapi', '1');
+        url.searchParams.set('playsinline', '1');
+        url.searchParams.set('rel', '0');
+      }
+      if (host.includes('vimeo')) {
+        url.searchParams.set('api', '1');
+        url.searchParams.set('playsinline', '1');
+      }
+      return url.toString();
+    } catch (_) {
+      return rawUrl;
+    }
+  }
+
   try {
     const q = query(collection(db, 'videos'), orderBy('ordre', 'asc'));
     const snapshot = await getDocs(q);
@@ -285,32 +244,82 @@ async function initHomeVideos() {
 
     snapshot.forEach((item) => {
       const data = item.data();
+      const safeUrl = withPlayerParams(data.url || '');
       const div = document.createElement('div');
-      const url = data.url || '';
       div.className = 'yt-item';
       div.innerHTML = `
-        <div class="yt-frame-wrap">
-          <iframe src="${escapeAttribute(url)}" title="${escapeAttribute(data.titre || 'Vidéo')}" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-          <button class="yt-open-large" type="button" data-video-url="${escapeAttribute(url)}" aria-label="Ouvrir l’extrait en grand">Agrandir</button>
-        </div>`;
+        <iframe src="${safeUrl}" title="${data.titre || 'Vidéo'}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        <button class="media-expand" type="button" aria-label="Agrandir la vidéo" data-video-src="${safeUrl}" data-video-title="${data.titre || 'Vidéo'}">Agrandir</button>
+      `;
       slider.appendChild(div);
     });
-
-    slider.onclick = (event) => {
-      const button = event.target.closest('.yt-open-large');
-      if (!button) return;
-      event.preventDefault();
-      openVideoLightbox(button.dataset.videoUrl || '');
-    };
 
     const scrollAmount = () => (slider.querySelector('.yt-item')?.offsetWidth || 320) + 16;
     if (next) next.onclick = () => slider.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
     if (prev) prev.onclick = () => slider.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    initVideoLightbox();
   } catch (error) {
     console.error('Erreur vidéos :', error);
     slider.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
   }
 }
+
+function pauseEmbeddedVideos() {
+  document.querySelectorAll('iframe').forEach((iframe) => {
+    try {
+      iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      iframe.contentWindow?.postMessage('{"method":"pause"}', '*');
+    } catch (_) {}
+  });
+}
+
+function initVideoLightbox() {
+  let modal = document.getElementById('videoLightbox');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'videoLightbox';
+    modal.className = 'video-lightbox';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.innerHTML = `
+      <div class="video-lightbox-backdrop" data-video-close></div>
+      <div class="video-lightbox-panel">
+        <button class="video-lightbox-close" type="button" data-video-close aria-label="Fermer">✕</button>
+        <div class="video-lightbox-loader">Chargement…</div>
+        <iframe id="videoLightboxFrame" title="Vidéo agrandie" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const frame = modal.querySelector('#videoLightboxFrame');
+  const close = () => {
+    modal.setAttribute('aria-hidden', 'true');
+    modal.classList.remove('is-ready');
+    document.body.style.overflow = '';
+    if (frame) frame.src = 'about:blank';
+  };
+
+  modal.querySelectorAll('[data-video-close]').forEach((button) => { button.onclick = close; });
+  document.querySelectorAll('.media-expand').forEach((button) => {
+    button.onclick = () => {
+      const src = button.dataset.videoSrc;
+      if (!src || !frame) return;
+      pauseEmbeddedVideos();
+      modal.classList.remove('is-ready');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      const url = new URL(src, window.location.origin);
+      url.searchParams.set('autoplay', '1');
+      url.searchParams.set('playsinline', '1');
+      frame.onload = () => modal.classList.add('is-ready');
+      frame.src = url.toString();
+    };
+  });
+}
+
+
 
 async function initFilmography() {
   const table = document.querySelector('#filmography tbody');
@@ -374,10 +383,9 @@ async function initFilmography() {
 async function initGallery() {
   const grid = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
-  const lbFigure = lightbox?.querySelector('.lb-figure');
   const lbImage = document.getElementById('lb-image');
   const lbCaption = document.getElementById('lb-caption');
-  if (!grid || !lightbox || !lbImage || !lbCaption || !lbFigure) return;
+  if (!grid || !lightbox || !lbImage || !lbCaption) return;
 
   document.body.style.overflow = '';
   if (lastKeyHandler) document.removeEventListener('keydown', lastKeyHandler);
@@ -386,101 +394,152 @@ async function initGallery() {
   let allPhotos = [];
   let shownPhotos = [];
   let current = 0;
-  let lightboxTransitioning = false;
+  let renderToken = 0;
+  let isSliding = false;
+
+  const figure = lightbox.querySelector('.lb-figure');
+  let stage = figure.querySelector('.lb-stage');
+  if (!stage) {
+    stage = document.createElement('div');
+    stage.className = 'lb-stage';
+    lbImage.classList.add('lb-image-slide', 'lb-current');
+    figure.insertBefore(stage, lbImage);
+    stage.appendChild(lbImage);
+    const nextImage = document.createElement('img');
+    nextImage.className = 'lb-image-slide lb-incoming';
+    nextImage.alt = '';
+    nextImage.setAttribute('aria-hidden', 'true');
+    stage.appendChild(nextImage);
+  }
+  const incomingImage = stage.querySelector('.lb-incoming');
+
+  function preload(url) {
+    return new Promise((resolve) => {
+      if (!url) return resolve();
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = url;
+    });
+  }
+
+  function preloadNeighbors(index) {
+    if (!shownPhotos.length) return;
+    [-1, 1].forEach((step) => {
+      const photo = shownPhotos[(index + step + shownPhotos.length) % shownPhotos.length];
+      if (photo?.url) {
+        const img = new Image();
+        img.src = photo.url;
+      }
+    });
+  }
+
+  function setMainPhoto(index) {
+    current = (index + shownPhotos.length) % shownPhotos.length;
+    const photo = shownPhotos[current];
+    lbImage.src = photo.url;
+    lbImage.alt = photo.caption || 'Photo de Yingying HOU';
+    lbCaption.textContent = photo.caption || '';
+    preloadNeighbors(current);
+  }
 
   const close = () => {
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    lbFigure.classList.remove('is-lb-in-next', 'is-lb-in-prev', 'is-lb-out-next', 'is-lb-out-prev', 'is-lb-opened');
+    stage.classList.remove('slide-next', 'slide-prev');
+    incomingImage.removeAttribute('src');
+    isSliding = false;
   };
 
-  const setLightboxPhoto = (photo) => {
-    lbImage.src = photo.url;
-    lbImage.alt = photo.caption || 'Photo de Yingying HOU';
-    lbCaption.textContent = photo.caption || '';
+  const open = (index) => {
+    if (!shownPhotos.length) return;
+    setMainPhoto(index);
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
   };
 
-  const showLightboxPhoto = async (index, direction = 'open') => {
-    if (!shownPhotos.length || lightboxTransitioning) return;
-    const nextIndex = (index + shownPhotos.length) % shownPhotos.length;
-    const photo = shownPhotos[nextIndex];
+  async function slideTo(delta) {
+    if (isSliding || !shownPhotos.length) return;
+    isSliding = true;
+    const target = (current + delta + shownPhotos.length) % shownPhotos.length;
+    const photo = shownPhotos[target];
+    const dir = delta > 0 ? 'next' : 'prev';
 
-    if (lightbox.getAttribute('aria-hidden') !== 'false' || direction === 'open') {
-      current = nextIndex;
-      setLightboxPhoto(photo);
-      lightbox.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      lbFigure.classList.remove('is-lb-in-next', 'is-lb-in-prev', 'is-lb-out-next', 'is-lb-out-prev');
-      lbFigure.classList.add('is-lb-opened');
-      return;
-    }
+    await preload(photo.url);
+    incomingImage.src = photo.url;
+    incomingImage.alt = photo.caption || 'Photo de Yingying HOU';
+    incomingImage.setAttribute('aria-hidden', 'false');
+    stage.classList.remove('slide-next', 'slide-prev');
+    incomingImage.style.transform = dir === 'next' ? 'translateX(105%)' : 'translateX(-105%)';
+    // Force le navigateur à poser la photo hors champ avant le départ du slide.
+    void incomingImage.offsetWidth;
+    stage.classList.add(`slide-${dir}`);
+    incomingImage.style.transform = '';
 
-    lightboxTransitioning = true;
-    const dir = direction === 'prev' ? 'prev' : 'next';
-    lbFigure.classList.remove('is-lb-in-next', 'is-lb-in-prev', 'is-lb-out-next', 'is-lb-out-prev', 'is-lb-opened');
-    lbFigure.classList.add(`is-lb-out-${dir}`);
-    await new Promise((resolve) => setTimeout(resolve, 145));
+    window.setTimeout(() => {
+      setMainPhoto(target);
+      stage.classList.remove(`slide-${dir}`);
+      incomingImage.removeAttribute('src');
+      incomingImage.setAttribute('aria-hidden', 'true');
+      incomingImage.style.transform = '';
+      isSliding = false;
+    }, 430);
+  }
 
-    current = nextIndex;
-    setLightboxPhoto(photo);
-    lbFigure.classList.remove(`is-lb-out-${dir}`);
-    lbFigure.classList.add(`is-lb-in-${dir}`);
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    lbFigure.classList.remove(`is-lb-in-${dir}`);
-    lightboxTransitioning = false;
-  };
+  async function preloadPhotos(photos) {
+    const urls = photos.map((photo) => photo.url).filter(Boolean);
+    await Promise.race([
+      Promise.allSettled(urls.map(preload)),
+      new Promise((resolve) => window.setTimeout(resolve, 5000))
+    ]);
+  }
 
-  function showGalleryLoader(label = 'Chargement des photos...') {
-    grid.classList.remove('is-ready', 'gallery-reveal');
+  async function render(category = 'Tout') {
+    const token = ++renderToken;
+    grid.classList.remove('is-ready');
     grid.classList.add('is-loading');
     grid.innerHTML = `
       <div class="gallery-loader" role="status" aria-live="polite">
-        <span class="gallery-loader-ring" aria-hidden="true"></span>
-        <span>${label}</span>
-      </div>`;
-  }
+        <span class="gallery-spinner" aria-hidden="true"></span>
+        <strong>Chargement de la galerie</strong>
+        <em>Préparation des images…</em>
+      </div>
+    `;
 
-  function render(category = 'Tout', { initial = false } = {}) {
-    clearTimeout(galleryTimer);
-    grid.classList.remove('is-loading', 'is-ready', 'gallery-reveal');
-    grid.classList.add(initial ? 'is-preparing' : 'is-filtering');
+    shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
+    await preloadPhotos(shownPhotos);
+    if (token !== renderToken) return;
 
-    galleryTimer = setTimeout(() => {
-      shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
-      if (!shownPhotos.length) {
-        grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
-      } else {
-        grid.innerHTML = shownPhotos.map((photo, index) => `
-          <a href="${escapeAttribute(photo.url)}" class="gallery-item" data-index="${index}" style="--i:${index}">
-            <img src="${escapeAttribute(photo.url)}" alt="${escapeAttribute(photo.caption || 'Photo de Yingying HOU')}" loading="${initial ? 'eager' : 'lazy'}" />
-            <div class="item-overlay"><span>Agrandir</span></div>
-          </a>`).join('');
-      }
+    if (!shownPhotos.length) {
+      grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
+    } else {
+      grid.innerHTML = shownPhotos.map((photo, index) => `
+        <a href="${photo.url}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 55}ms">
+          <img src="${photo.url}" alt="${photo.caption || 'Photo de Yingying HOU'}" loading="eager" decoding="async" />
+          <div class="item-overlay"><span>Agrandir</span></div>
+        </a>`).join('');
+    }
 
-      grid.classList.remove('is-preparing', 'is-filtering');
-      requestAnimationFrame(() => {
-        grid.classList.add('is-ready', 'gallery-reveal');
-        initMediaFadeIn();
-      });
-    }, initial ? 80 : 140);
+    grid.classList.remove('is-loading');
+    requestAnimationFrame(() => grid.classList.add('is-ready'));
   }
 
   grid.onclick = (event) => {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
-    showLightboxPhoto(Number(item.dataset.index) || 0, 'open');
+    open(Number(item.dataset.index) || 0);
   };
 
   lightbox.querySelector('.lb-close').onclick = close;
-  lightbox.querySelector('.lb-next').onclick = () => showLightboxPhoto(current + 1, 'next');
-  lightbox.querySelector('.lb-prev').onclick = () => showLightboxPhoto(current - 1, 'prev');
+  lightbox.querySelector('.lb-next').onclick = () => slideTo(1);
+  lightbox.querySelector('.lb-prev').onclick = () => slideTo(-1);
   lightbox.onclick = (event) => { if (event.target === lightbox) close(); };
   lastKeyHandler = (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
-    if (event.key === 'ArrowRight') showLightboxPhoto(current + 1, 'next');
-    if (event.key === 'ArrowLeft') showLightboxPhoto(current - 1, 'prev');
+    if (event.key === 'ArrowRight') slideTo(1);
+    if (event.key === 'ArrowLeft') slideTo(-1);
   };
   document.addEventListener('keydown', lastKeyHandler);
 
@@ -493,30 +552,27 @@ async function initGallery() {
   });
 
   try {
-    showGalleryLoader('Préparation de la galerie...');
+    grid.classList.add('is-loading');
+    grid.innerHTML = `
+      <div class="gallery-loader" role="status" aria-live="polite">
+        <span class="gallery-spinner" aria-hidden="true"></span>
+        <strong>Chargement de la galerie</strong>
+        <em>Récupération des photos…</em>
+      </div>
+    `;
     const q = query(collection(db, 'galerie'), orderBy('ordre', 'asc'));
     const snapshot = await getDocs(q);
     allPhotos = [];
-    snapshot.forEach((item) => {
-      const photo = item.data();
-      if (photo?.url) allPhotos.push(photo);
-    });
-
-    if (!allPhotos.length) {
-      grid.classList.remove('is-loading');
-      grid.innerHTML = '<p class="loading-line">Aucune photo disponible.</p>';
-      return;
-    }
-
-    showGalleryLoader('Chargement des images...');
-    await preloadImages(allPhotos);
-    render('Tout', { initial: true });
+    snapshot.forEach((item) => allPhotos.push(item.data()));
+    await render('Tout');
   } catch (error) {
     console.error('Erreur galerie :', error);
     grid.classList.remove('is-loading');
     grid.innerHTML = '<p class="loading-line error-line">Erreur de chargement.</p>';
   }
 }
+
+
 
 function initContact() {
   const form = document.getElementById('contactForm');
@@ -577,27 +633,6 @@ function initScrollHints() {
   window.addEventListener('resize', update, { passive: true, signal: controller.signal });
 }
 
-
-function initMediaFadeIn() {
-  const media = document.querySelectorAll('#main img, #main picture img');
-  media.forEach((item) => {
-    if (item.dataset.yingFadeReady === 'true') return;
-    item.dataset.yingFadeReady = 'true';
-    item.classList.add('ying-fade-media');
-
-    const reveal = () => {
-      item.classList.add('is-visible');
-    };
-
-    if (item.complete && item.naturalWidth !== 0) {
-      requestAnimationFrame(reveal);
-    } else {
-      item.addEventListener('load', reveal, { once: true });
-      item.addEventListener('error', reveal, { once: true });
-    }
-  });
-}
-
 async function initPage() {
   initCommon();
   initScrollHints();
@@ -608,20 +643,9 @@ async function initPage() {
   if (page === 'filmography') await initFilmography();
   if (page === 'gallery') await initGallery();
   if (page === 'contact') initContact();
-  initMediaFadeIn();
 }
 
-function teardownPage() {
-  if (lastKeyHandler) {
-    document.removeEventListener('keydown', lastKeyHandler);
-    lastKeyHandler = null;
-  }
-  clearTimeout(galleryTimer);
-  document.getElementById('videoLightbox')?.__yingClose?.();
-  document.body.style.overflow = '';
-}
-
-window.YingApp = { init: initPage, teardown: teardownPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
+window.YingApp = { init: initPage, db, normalizeCategory, ensureUnifiedHeader, updateActiveNav };
 
 document.addEventListener('DOMContentLoaded', () => {
   initPage();
