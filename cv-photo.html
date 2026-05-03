@@ -313,6 +313,7 @@
                                         <option value="Long-métrage">Long-métrage</option>
                                         <option value="Série TV">Série TV</option>
                                         <option value="Doublage">Doublage</option>
+                                        <option value="Documentaire">Documentaire</option>
                                         <option value="Publicité">Publicité</option>
                                         <option value="Modèle Photo">Photo</option>
                                     </select>
@@ -364,6 +365,7 @@
                     <option value="Long-métrage">Long-métrage</option>
                     <option value="Série TV">Série TV</option>
                     <option value="Doublage">Doublage</option>
+                    <option value="Documentaire">Documentaire</option>
                     <option value="Publicité">Publicité</option>
                     <option value="Modèle Photo">Modèle Photo</option>
                 </select>
@@ -416,22 +418,94 @@
         let targetUploadBlock = null;
         let draggedBlock = null; 
 
-        const CATEGORY_LABELS = {
-            "Court-métrage": "Court-métrage",
-            "Long-métrage": "Long-métrage",
-            "Série TV": "Série TV",
-            "Doublage": "Doublage",
-            "Publicité": "Publicité",
-            "Modèle Photo": "Photo"
+        const CATEGORY_OPTIONS = [
+            { value: "Court-métrage", label: "Court-métrage" },
+            { value: "Long-métrage", label: "Long-métrage" },
+            { value: "Série TV", label: "Série TV" },
+            { value: "Doublage", label: "Doublage" },
+            { value: "Documentaire", label: "Documentaire" },
+            { value: "Publicité", label: "Publicité" },
+            { value: "Modèle Photo", label: "Photo" }
+        ];
+
+        const CATEGORY_ALIASES = {
+            "court métrage": "Court-métrage",
+            "court-métrage": "Court-métrage",
+            "court metrage": "Court-métrage",
+            "court-metrage": "Court-métrage",
+            "long métrage": "Long-métrage",
+            "long-métrage": "Long-métrage",
+            "long metrage": "Long-métrage",
+            "long-metrage": "Long-métrage",
+            "serie tv": "Série TV",
+            "série tv": "Série TV",
+            "série": "Série TV",
+            "serie": "Série TV",
+            "doublage": "Doublage",
+            "documentaire": "Documentaire",
+            "docu": "Documentaire",
+            "publicite": "Publicité",
+            "publicité": "Publicité",
+            "pub": "Publicité",
+            "photo": "Modèle Photo",
+            "modèle photo": "Modèle Photo",
+            "modele photo": "Modèle Photo"
         };
+
+        function normalizeCategoryValue(value) {
+            const raw = (value || '').trim();
+            if (!raw) return '';
+            return CATEGORY_ALIASES[raw.toLowerCase()] || raw;
+        }
+
+        function inferCategoryFromRow(select) {
+            const item = select?.closest?.('.exp-item');
+            if (!item) return '';
+
+            const roleText = item.querySelector('.exp-role-film')?.textContent || '';
+            const directorText = item.querySelector('.exp-dir')?.textContent || '';
+            const rowText = `${roleText} ${directorText}`.toLowerCase();
+
+            if (rowText.includes('documentaire') || rowText.includes('docu')) return 'Documentaire';
+            if (rowText.includes('doublage') || rowText.includes('voix-off') || rowText.includes('voix - off') || rowText.includes('voix off')) return 'Doublage';
+            return '';
+        }
+
+        function ensureExperienceCategoryOptions(select) {
+            if (!select) return;
+
+            const markedOption = select.querySelector('option[selected]');
+            const selectedOption = select.options[select.selectedIndex] || select.options[0];
+            const defaultOption = select.options[0];
+            const inferredValue = inferCategoryFromRow(select);
+            const explicitSelectValue = select.value && select.value !== defaultOption?.value ? select.value : '';
+            const rawCurrentValue = markedOption?.value || markedOption?.textContent || explicitSelectValue || inferredValue || select.value || selectedOption?.value || selectedOption?.textContent || '';
+            const currentValue = normalizeCategoryValue(rawCurrentValue);
+            const knownValues = CATEGORY_OPTIONS.map(option => option.value);
+            const fragment = document.createDocumentFragment();
+
+            if (currentValue && !knownValues.includes(currentValue)) {
+                const customOption = document.createElement('option');
+                customOption.value = currentValue;
+                customOption.textContent = currentValue;
+                fragment.appendChild(customOption);
+            }
+
+            CATEGORY_OPTIONS.forEach(optionData => {
+                const option = document.createElement('option');
+                option.value = optionData.value;
+                option.textContent = optionData.label;
+                fragment.appendChild(option);
+            });
+
+            select.replaceChildren(fragment);
+            select.value = currentValue && (knownValues.includes(currentValue) || currentValue) ? currentValue : CATEGORY_OPTIONS[0].value;
+            syncCategorySelectedState(select);
+        }
 
         function compactExperienceCategoryLabels(root = document) {
             if (!root) return;
-            root.querySelectorAll('.exp-cat').forEach(select => {
-                Array.from(select.options).forEach(option => {
-                    option.textContent = CATEGORY_LABELS[option.value] || option.textContent;
-                });
-            });
+            root.querySelectorAll('.exp-cat').forEach(ensureExperienceCategoryOptions);
         }
 
         function syncCategorySelectedState(select) {
@@ -440,6 +514,27 @@
                 if (option.value === select.value) option.setAttribute('selected', 'selected');
                 else option.removeAttribute('selected');
             });
+        }
+
+        function setCategorySelectValue(select, value) {
+            if (!select) return;
+            const normalizedValue = normalizeCategoryValue(value) || CATEGORY_OPTIONS[0].value;
+            ensureExperienceCategoryOptions(select);
+
+            if (!Array.from(select.options).some(option => option.value === normalizedValue)) {
+                const customOption = document.createElement('option');
+                customOption.value = normalizedValue;
+                customOption.textContent = normalizedValue;
+                select.prepend(customOption);
+            }
+
+            select.value = normalizedValue;
+            syncCategorySelectedState(select);
+        }
+
+        function refreshCategorySelectors(root = document) {
+            if (!root) return;
+            root.querySelectorAll('.exp-cat, #editExpCat').forEach(ensureExperienceCategoryOptions);
         }
 
         function ensureExperienceEditButtons(root = document) {
@@ -464,6 +559,7 @@
 
         function refreshExperienceRows(root = document) {
             compactExperienceCategoryLabels(root);
+            refreshCategorySelectors(document);
             ensureExperienceEditButtons(root);
         }
 
@@ -831,8 +927,11 @@
             editingExpItem = btn.closest('.exp-item');
             if (!editingExpItem) return;
 
+            const editCategorySelect = document.getElementById('editExpCat');
+            ensureExperienceCategoryOptions(editCategorySelect);
+
             document.getElementById('editExpYear').value = getExpFieldText(editingExpItem, '.exp-year');
-            document.getElementById('editExpCat').value = editingExpItem.querySelector('.exp-cat')?.value || 'Court-métrage';
+            setCategorySelectValue(editCategorySelect, editingExpItem.querySelector('.exp-cat')?.value || 'Court-métrage');
             document.getElementById('editExpRole').value = getExpFieldText(editingExpItem, '.exp-role');
             document.getElementById('editExpFilm').value = getExpFieldText(editingExpItem, '.exp-film');
             document.getElementById('editExpDir').value = getExpFieldText(editingExpItem, '.exp-dir');
@@ -858,8 +957,7 @@
             editingExpItem.querySelector('.exp-dir').textContent = document.getElementById('editExpDir').value.trim() || 'Réal';
 
             const select = editingExpItem.querySelector('.exp-cat');
-            select.value = document.getElementById('editExpCat').value;
-            syncCategorySelectedState(select);
+            setCategorySelectValue(select, document.getElementById('editExpCat').value);
             compactExperienceCategoryLabels(editingExpItem);
             closeExperienceEditor();
             checkTextOverflow();
@@ -875,6 +973,7 @@
                         <option value="Long-métrage">Long-métrage</option>
                         <option value="Série TV">Série TV</option>
                         <option value="Doublage">Doublage</option>
+                        <option value="Documentaire">Documentaire</option>
                         <option value="Publicité">Publicité</option>
                         <option value="Modèle Photo">Photo</option>
                     </select>
@@ -890,7 +989,10 @@
         }
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => {
-            if (e.target.classList.contains('exp-cat')) syncCategorySelectedState(e.target);
+            if (e.target.classList.contains('exp-cat') || e.target.id === 'editExpCat') {
+                setCategorySelectValue(e.target, e.target.value);
+                if (e.target.classList.contains('exp-cat')) checkTextOverflow();
+            }
         });
 
         // --- SAUVEGARDE & GARBAGE COLLECTOR ---
