@@ -1036,248 +1036,224 @@ html.is-pjax-navigating .site-header {
   }
 }
 
+
 /* =========================================
-   PATCH PJAX V2.2 — NAVBAR UNIQUE + TRANSITION RÉELLEMENT LISSÉE
-   Ce bloc est volontairement en fin de fichier pour neutraliser les anciennes variantes.
+   PATCH PJAX V2.3 — SHELL FIXE + CROSSFADE SANS TRANSLATION
+   Stabilise la navbar entre toutes les pages et garde le mode sombre visible.
 ========================================= */
-html.has-public-shell,
-html.has-public-shell body {
-  overscroll-behavior-y: none;
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable both-edges;
+}
+
+body {
+  animation: none !important;
 }
 
 .site-header {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 1000 !important;
-  height: 64px !important;
   min-height: 64px !important;
-  background: rgba(255,255,255,.92) !important;
-  border-bottom: 1px solid var(--line) !important;
-  backdrop-filter: saturate(150%) blur(12px) !important;
-  -webkit-backdrop-filter: saturate(150%) blur(12px) !important;
-  transform: translateZ(0) !important;
-  contain: layout paint !important;
+  width: 100% !important;
+  transform: none !important;
+  backface-visibility: hidden;
+  contain: layout style;
 }
 
+.site-header .wrap,
 .site-header-inner,
-.site-header .wrap.site-header-inner {
+.page-filmographie .site-header .wrap,
+.page-filmographie .site-header-inner,
+.page-contact .site-header .wrap,
+.page-contact .site-header-inner,
+.page-galerie .site-header .wrap,
+.page-galerie .site-header-inner {
   width: min(100%, 1100px) !important;
+  max-width: 1100px !important;
   height: 64px !important;
-  min-height: 64px !important;
   margin-inline: auto !important;
   padding-inline: 20px !important;
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: 190px minmax(0, 1fr) 190px !important;
   align-items: center !important;
-  justify-content: space-between !important;
   gap: 20px !important;
 }
 
-.brand {
-  flex: 0 0 auto !important;
-  line-height: 1 !important;
+.site-header .brand {
+  justify-self: start !important;
   white-space: nowrap !important;
+  min-width: 0 !important;
+  color: var(--text) !important;
+  line-height: 1 !important;
+}
+
+.site-header .brand strong {
+  color: inherit !important;
 }
 
 .site-nav {
-  flex: 1 1 auto !important;
+  justify-self: center !important;
+  min-width: 0 !important;
+  background: transparent;
 }
 
 .site-nav ul {
   display: flex !important;
-  align-items: center !important;
   justify-content: center !important;
-  gap: 12px !important;
-  list-style: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  align-items: center !important;
+  gap: 14px !important;
+  width: auto !important;
 }
 
-.site-nav li {
-  display: flex !important;
-}
-
-.site-nav a {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 38px !important;
-  min-height: 38px !important;
-  padding: 0 14px !important;
-  border-radius: 12px !important;
-  color: var(--text) !important;
-  font-size: .92rem !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  text-decoration: none !important;
-  white-space: nowrap !important;
-  box-shadow: none !important;
+.site-nav a,
+.site-nav a.is-active {
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
   transform: none !important;
-  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease !important;
+  width: auto !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
 }
 
-.site-nav a[data-nav="home"] { min-width: 72px !important; }
-.site-nav a[data-nav="filmography"] { min-width: 118px !important; }
-.site-nav a[data-nav="gallery"] { min-width: 78px !important; }
-.site-nav a[data-nav="contact"] { min-width: 142px !important; }
-
-.site-nav a:hover,
-.site-nav a:focus-visible {
-  background: var(--card) !important;
-}
-
-.site-nav a.is-active,
-.site-nav a[aria-current="page"] {
-  background: var(--yellow) !important;
-  color: var(--yellow-ink) !important;
-  font-weight: 700 !important;
-  box-shadow: 0 8px 20px rgba(255,193,7,.20) !important;
+.site-nav a.is-active {
+  box-shadow: 0 8px 20px rgba(255, 193, 7, .18) !important;
 }
 
 .header-right {
-  flex: 0 0 auto !important;
+  justify-self: end !important;
+  width: 190px !important;
+  min-width: 190px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
   gap: 10px !important;
-  min-width: 64px !important;
+  margin-left: 0 !important;
 }
 
 .theme-toggle-modern {
-  flex: 0 0 auto !important;
-}
-
-body.dark-mode .site-header {
-  background: rgba(13,15,20,.88) !important;
-  border-color: var(--line) !important;
-}
-
-body.dark-mode .site-nav a {
+  flex: 0 0 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   color: var(--text) !important;
+  background: rgba(255,255,255,.45) !important;
 }
 
-body.dark-mode .site-nav a:hover,
-body.dark-mode .site-nav a:focus-visible {
-  background: rgba(255,255,255,.08) !important;
+.theme-toggle-modern svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-body.dark-mode .site-nav a.is-active,
-body.dark-mode .site-nav a[aria-current="page"] {
-  color: var(--yellow-ink) !important;
+body.dark-mode .site-header .brand,
+body.dark-mode .site-header .brand strong {
+  color: #f0f2f5 !important;
 }
 
+body.dark-mode .theme-toggle-modern {
+  color: var(--yellow) !important;
+  background: rgba(255, 193, 7, .10) !important;
+  border-color: rgba(255, 193, 7, .42) !important;
+}
+
+body.dark-mode .theme-toggle-modern svg {
+  color: var(--yellow) !important;
+  stroke: var(--yellow) !important;
+}
+
+/* PJAX : crossfade uniquement, pas de déplacement vertical ni effet translation. */
 #main {
-  outline: none !important;
-  will-change: opacity, transform, filter !important;
-  transition:
-    opacity .28s cubic-bezier(.22,1,.36,1),
-    transform .28s cubic-bezier(.22,1,.36,1),
-    filter .28s cubic-bezier(.22,1,.36,1) !important;
+  transition: opacity .24s cubic-bezier(.22, 1, .36, 1) !important;
+  transform: none !important;
+  filter: none !important;
+  will-change: opacity !important;
 }
 
-#main.is-pjax-leaving {
-  opacity: 0 !important;
-  transform: translate3d(0,-6px,0) scale(.998) !important;
-  filter: blur(1px) !important;
-  pointer-events: none !important;
-}
-
+#main.is-pjax-leaving,
 #main.is-pjax-entering {
   opacity: 0 !important;
-  transform: translate3d(0,14px,0) scale(.998) !important;
-  filter: blur(1px) !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+html.is-pjax-navigating #main {
+  transition: opacity .24s cubic-bezier(.22, 1, .36, 1) !important;
 }
 
 html.is-pjax-navigating .site-header {
-  pointer-events: none !important;
+  pointer-events: none;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .pjax-progress {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
   height: 2px !important;
-  z-index: 2000 !important;
-  background: linear-gradient(90deg, transparent, var(--yellow), #ffeaa7, var(--yellow), transparent) !important;
-  transform: scaleX(0) !important;
-  transform-origin: left center !important;
   opacity: 0 !important;
-  transition: transform .45s cubic-bezier(.22,1,.36,1), opacity .16s ease !important;
+  transform: scaleX(0) !important;
 }
 
 .pjax-progress.is-active {
-  opacity: 1 !important;
-  transform: scaleX(.88) !important;
+  opacity: .85 !important;
+  transform: scaleX(.68) !important;
 }
 
-@supports (view-transition-name: ying-main) {
-  .site-header { view-transition-name: ying-header; }
-  #main { view-transition-name: ying-main; }
-
-  ::view-transition-old(ying-header),
-  ::view-transition-new(ying-header) {
-    animation: none !important;
-    mix-blend-mode: normal !important;
+@media (max-width: 900px) {
+  .site-header .wrap,
+  .site-header-inner,
+  .page-filmographie .site-header .wrap,
+  .page-filmographie .site-header-inner,
+  .page-contact .site-header .wrap,
+  .page-contact .site-header-inner,
+  .page-galerie .site-header .wrap,
+  .page-galerie .site-header-inner {
+    grid-template-columns: minmax(150px, 1fr) auto !important;
+    gap: 12px !important;
   }
 
-  ::view-transition-old(ying-main) {
-    animation: ying-pjax-out .22s cubic-bezier(.4,0,1,1) both !important;
-    mix-blend-mode: normal !important;
+  .site-nav {
+    justify-self: stretch !important;
+    grid-column: 1 / -1 !important;
   }
 
-  ::view-transition-new(ying-main) {
-    animation: ying-pjax-in .30s cubic-bezier(.22,1,.36,1) both !important;
-    mix-blend-mode: normal !important;
+  .header-right {
+    width: auto !important;
+    min-width: 0 !important;
   }
-}
-
-@keyframes ying-pjax-out {
-  from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-  to { opacity: 0; transform: translateY(-8px) scale(.998); filter: blur(1px); }
-}
-
-@keyframes ying-pjax-in {
-  from { opacity: 0; transform: translateY(16px) scale(.998); filter: blur(1px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 @media (max-width: 700px) {
+  .site-header .wrap,
   .site-header-inner,
-  .site-header .wrap.site-header-inner {
+  .page-filmographie .site-header .wrap,
+  .page-filmographie .site-header-inner,
+  .page-contact .site-header .wrap,
+  .page-contact .site-header-inner,
+  .page-galerie .site-header .wrap,
+  .page-galerie .site-header-inner {
+    display: flex !important;
     width: 100% !important;
+    max-width: none !important;
     padding-inline: 14px !important;
+    gap: 12px !important;
   }
 
   .site-nav {
     position: absolute !important;
-    inset: 64px 0 auto 0 !important;
+    justify-self: auto !important;
+    grid-column: auto !important;
     background: var(--bg) !important;
-    border-bottom: 1px solid var(--line) !important;
-    transform: translateY(-8px) !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: opacity .18s ease, transform .18s ease !important;
-  }
-
-  .site-nav.open {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
   }
 
   .site-nav ul {
     align-items: stretch !important;
-    justify-content: flex-start !important;
-    flex-direction: column !important;
     gap: 6px !important;
-    padding: 12px !important;
   }
 
   .site-nav a,
-  .site-nav a[data-nav] {
+  .site-nav a.is-active {
     width: 100% !important;
-    min-width: 0 !important;
-    height: 42px !important;
     justify-content: flex-start !important;
   }
 }
@@ -1286,18 +1262,11 @@ html.is-pjax-navigating .site-header {
   #main,
   #main.is-pjax-leaving,
   #main.is-pjax-entering,
-  .site-nav,
+  .site-header,
   .site-nav a,
-  .pjax-progress {
+  .theme-toggle-modern {
     transition: none !important;
     transform: none !important;
     filter: none !important;
-  }
-
-  ::view-transition-old(ying-main),
-  ::view-transition-new(ying-main),
-  ::view-transition-old(ying-header),
-  ::view-transition-new(ying-header) {
-    animation: none !important;
   }
 }
