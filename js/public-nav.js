@@ -1,3 +1,5 @@
+const SHELL_VERSION = 'v30';
+
 const NAV_ITEMS = [
   { href: '/', key: 'home', label: 'Accueil' },
   { href: '/filmographie.html', key: 'filmography', label: 'Filmographie' },
@@ -13,8 +15,20 @@ const ICONS = {
 let navBound = false;
 
 function normalizedPath(pathname = window.location.pathname) {
-  const clean = (pathname || '/').replace(/\/index\.html$/i, '/').replace(/\/+$/g, '');
+  const clean = (pathname || '/')
+    .replace(/\/index\.html$/i, '/')
+    .replace(/\/+/g, '/')
+    .replace(/\/$/g, '');
   return clean || '/';
+}
+
+function keyForPath(pathname = window.location.pathname) {
+  const path = normalizedPath(pathname);
+  if (path === '/') return 'home';
+  if (path === '/filmographie.html') return 'filmography';
+  if (path === '/galerie.html') return 'gallery';
+  if (path === '/contact.html') return 'contact';
+  return '';
 }
 
 function ensureRoot() {
@@ -23,26 +37,28 @@ function ensureRoot() {
     root = document.createElement('div');
     root.id = 'public-nav-root';
     root.className = 'public-nav-root';
+    root.dataset.shell = 'public';
     const skip = document.querySelector('.skip');
     const main = document.getElementById('main');
-    if (skip?.nextSibling) skip.parentNode.insertBefore(root, skip.nextSibling);
-    else if (main) document.body.insertBefore(root, main);
-    else document.body.insertBefore(root, document.body.firstChild);
+    if (skip && skip.parentNode) skip.insertAdjacentElement('afterend', root);
+    else if (main && main.parentNode) main.parentNode.insertBefore(root, main);
+    else document.body.prepend(root);
   }
   return root;
 }
 
 function renderShell() {
   const root = ensureRoot();
-  if (root.dataset.rendered === 'v29') return root;
+  if (root.dataset.rendered === SHELL_VERSION) return root;
 
   root.className = 'public-nav-root';
-  root.dataset.rendered = 'v29';
+  root.dataset.shell = 'public';
+  root.dataset.rendered = SHELL_VERSION;
   root.innerHTML = `
     <div class="public-topbar-glow" aria-hidden="true"></div>
     <header class="site-header public-topbar" role="banner" data-public-shell="true">
       <div class="public-topbar-inner">
-        <a class="brand public-brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
+        <a class="brand public-brand" href="/" aria-label="Accueil Yingying HOU"><span>Yingying</span><strong>HOU</strong></a>
         <nav id="nav" class="site-nav public-nav" role="navigation" aria-label="Navigation principale">
           <ul>
             ${NAV_ITEMS.map((item) => `<li><a href="${item.href}" data-nav="${item.key}">${item.label}</a></li>`).join('')}
@@ -73,11 +89,11 @@ function setThemeIcon() {
   button.innerHTML = isDark ? ICONS.sun : ICONS.moon;
 }
 
-function updateActiveNav() {
-  const path = normalizedPath();
+function updateActiveNav(pathname = window.location.pathname) {
+  const activeKey = keyForPath(pathname);
   document.querySelectorAll('.public-nav a, .site-nav a').forEach((link) => {
-    const href = normalizedPath(new URL(link.getAttribute('href'), window.location.origin).pathname);
-    const active = href === path;
+    const key = link.dataset.nav || keyForPath(new URL(link.href, window.location.origin).pathname);
+    const active = key && key === activeKey;
     link.classList.toggle('is-active', active);
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -118,10 +134,10 @@ function bindEvents() {
     if (event.key === 'Escape') closeMenu();
   });
 
-  document.addEventListener('ying:pagechange', () => {
+  document.addEventListener('ying:pagechange', (event) => {
     renderShell();
     applyStoredTheme();
-    updateActiveNav();
+    updateActiveNav(event.detail?.pathname || window.location.pathname);
     closeMenu();
   });
 }
@@ -141,7 +157,9 @@ window.YingNav = {
   setThemeIcon,
   updateActiveNav,
   closeMenu,
-  normalizedPath
+  normalizedPath,
+  keyForPath
 };
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+else init();

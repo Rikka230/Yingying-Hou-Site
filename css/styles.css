@@ -2172,3 +2172,181 @@ body.page-home .home-overview { padding-top: 128px !important; }
 
 /* V2.9.1 safety: le root nav ne doit pas créer de contenant parasite pour le menu mobile. */
 .public-nav-root { contain: none !important; }
+
+/* =========================================
+   PUBLIC APP V3.0 — CLEAN FIXES
+   Navbar unique, PJAX capture, hero sans fade, lightbox stable.
+========================================= */
+.public-topbar-glow {
+  display: none !important;
+}
+
+body.page-home .hero-reframed::after,
+.hero-reframed::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+.public-brand,
+.brand.public-brand,
+.public-topbar .brand {
+  gap: 4px !important;
+  font-weight: 800 !important;
+  font-variation-settings: normal !important;
+}
+
+.public-brand span,
+.public-brand strong {
+  display: inline-block !important;
+  font-weight: 800 !important;
+}
+
+.public-topbar .site-nav a.is-active,
+.public-nav a.is-active {
+  background: var(--yellow) !important;
+  color: var(--yellow-ink) !important;
+  opacity: 1 !important;
+}
+
+#main.pjax-leave {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity .16s ease !important;
+}
+
+#main.pjax-enter {
+  opacity: 0 !important;
+  transition: opacity .24s ease !important;
+}
+
+#main.pjax-enter.pjax-enter-active {
+  opacity: 1 !important;
+}
+
+html.is-pjax-navigating .public-nav-root,
+html.is-pjax-navigating .public-topbar {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+.lightbox {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(6,7,10,.92) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+.lightbox[aria-hidden="true"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.lightbox[aria-hidden="false"] {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.lb-figure {
+  width: min(92vw, 1180px) !important;
+  max-width: 92vw !important;
+  max-height: 88vh !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.lb-viewport {
+  position: relative !important;
+  width: min(92vw, 1180px) !important;
+  height: min(78vh, 820px) !important;
+  overflow: hidden !important;
+  border-radius: 26px !important;
+  background: transparent !important;
+}
+
+.lb-photo {
+  position: absolute !important;
+  inset: 0 !important;
+  margin: auto !important;
+  max-width: calc(100% - 28px) !important;
+  max-height: calc(100% - 28px) !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 22px !important;
+  border: 8px solid #fff !important;
+  background: #fff !important;
+  box-shadow: 0 30px 70px rgba(0,0,0,.28) !important;
+  transform: translate3d(0,0,0) !important;
+  opacity: 1 !important;
+  will-change: transform, opacity !important;
+}
+
+.lb-viewport .lb-incoming {
+  opacity: 1 !important;
+}
+
+.lb-viewport.slide-next .lb-incoming {
+  transform: translate3d(112%,0,0) !important;
+}
+
+.lb-viewport.slide-prev .lb-incoming {
+  transform: translate3d(-112%,0,0) !important;
+}
+
+.lb-viewport.is-sliding .lb-current,
+.lb-viewport.is-sliding .lb-incoming {
+  transition: transform .52s cubic-bezier(.22,1,.36,1), opacity .52s ease !important;
+}
+
+.lb-viewport.slide-next.is-sliding .lb-current {
+  transform: translate3d(-112%,0,0) !important;
+}
+
+.lb-viewport.slide-next.is-sliding .lb-incoming,
+.lb-viewport.slide-prev.is-sliding .lb-incoming {
+  transform: translate3d(0,0,0) !important;
+}
+
+.lb-viewport.slide-prev.is-sliding .lb-current {
+  transform: translate3d(112%,0,0) !important;
+}
+
+.lb-track,
+.lb-slider {
+  display: none !important;
+}
+
+.lb-prev,
+.lb-next,
+.lb-close {
+  z-index: 10 !important;
+}
+
+#lb-caption,
+.lb-figure figcaption {
+  color: #fff !important;
+  min-height: 28px !important;
+  margin-top: 12px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+}
+
+@media (max-width: 700px) {
+  .lb-viewport {
+    width: 100vw !important;
+    height: 74vh !important;
+    border-radius: 0 !important;
+  }
+  .lb-photo {
+    max-width: calc(100% - 18px) !important;
+    max-height: calc(100% - 18px) !important;
+    border-width: 4px !important;
+    border-radius: 16px !important;
+  }
+}

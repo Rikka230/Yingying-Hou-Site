@@ -1,14 +1,17 @@
 const MAIN_SELECTOR = '#main';
-const PUBLIC_RE = /\/(index|filmographie|galerie|contact|legal|privacy|404)\.html$/i;
+const PUBLIC_ROUTES = new Set(['/', '/filmographie.html', '/galerie.html', '/contact.html', '/legal.html', '/privacy.html', '/404.html']);
 const EXCLUDED_RE = /\/(admin|cv-photo|cv-auto)\.html$/i;
 const ASSET_RE = /\.(pdf|jpg|jpeg|png|webp|gif|svg|mp4|mov|zip|rar|7z|doc|docx|xls|xlsx|ppt|pptx)$/i;
 const pageCache = new Map();
-const CACHE_LIMIT = 10;
+const CACHE_LIMIT = 12;
 let navigating = false;
 let aborter = null;
 
-function normalizePath(pathname) {
-  const clean = (pathname || '/').replace(/\/index\.html$/i, '/').replace(/\/+$/g, '');
+function normalizePath(pathname = '/') {
+  const clean = String(pathname || '/')
+    .replace(/\/index\.html$/i, '/')
+    .replace(/\/+/g, '/')
+    .replace(/\/$/g, '');
   return clean || '/';
 }
 
@@ -19,12 +22,7 @@ function routeKey(urlLike) {
 
 function isPublicRoute(urlLike) {
   const url = new URL(urlLike, window.location.origin);
-  const path = normalizePath(url.pathname);
-  return path === '/' || PUBLIC_RE.test(url.pathname);
-}
-
-function sameDocumentHash(url) {
-  return Boolean(url.hash) && routeKey(url.href) === routeKey(window.location.href);
+  return PUBLIC_ROUTES.has(normalizePath(url.pathname));
 }
 
 function eligibleLink(anchor, event) {
@@ -33,19 +31,27 @@ function eligibleLink(anchor, event) {
   if (anchor.target && anchor.target !== '_self') return false;
   if (anchor.hasAttribute('download')) return false;
   if (event?.metaKey || event?.ctrlKey || event?.shiftKey || event?.altKey || event?.button > 0) return false;
+
   const rawHref = anchor.getAttribute('href') || '';
+  if (!rawHref || rawHref === '#') return false;
   if (/^(mailto:|tel:|sms:|javascript:)/i.test(rawHref)) return false;
+
   const url = new URL(anchor.href, window.location.origin);
   if (url.origin !== window.location.origin) return false;
-  if (sameDocumentHash(url)) return false;
   if (ASSET_RE.test(url.pathname)) return false;
   if (EXCLUDED_RE.test(url.pathname)) return false;
   return isPublicRoute(url.href);
 }
 
+function sameRoute(urlLike) {
+  return routeKey(urlLike) === routeKey(window.location.href);
+}
+
 function rememberScroll() {
   const current = history.state || {};
-  history.replaceState({ ...current, scrollX: window.scrollX, scrollY: window.scrollY }, '', window.location.href);
+  try {
+    history.replaceState({ ...current, scrollX: window.scrollX, scrollY: window.scrollY }, '', window.location.href);
+  } catch (_) {}
 }
 
 function saveCache(url, html) {
@@ -58,19 +64,20 @@ function saveCache(url, html) {
 async function fetchHtml(url, signal) {
   const key = routeKey(url);
   if (pageCache.has(key)) return pageCache.get(key);
+
   const response = await fetch(url, {
     headers: { 'Accept': 'text/html,application/xhtml+xml', 'X-Requested-With': 'PJAX' },
     signal
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const type = response.headers.get('content-type') || '';
-  if (!type.includes('text/html')) throw new Error('Réponse non HTML');
+  if (type && !type.includes('text/html')) throw new Error('Réponse non HTML');
   const html = await response.text();
   saveCache(url, html);
   return html;
 }
 
-function parse(html) {
+function parsePage(html) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const main = doc.querySelector(MAIN_SELECTOR);
   if (!main) throw new Error('Main introuvable');
@@ -119,17 +126,21 @@ function closeTransientUi() {
   window.YingNav?.closeMenu?.();
 }
 
-function waitForImages(root, timeout = 700) {
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function waitForImages(root, timeout = 900) {
   const images = Array.from(root.querySelectorAll('img')).filter((img) => !img.complete);
   if (!images.length) return Promise.resolve();
-  const waits = images.slice(0, 8).map((img) => new Promise((resolve) => {
+  const waits = images.slice(0, 10).map((img) => new Promise((resolve) => {
     img.addEventListener('load', resolve, { once: true });
     img.addEventListener('error', resolve, { once: true });
   }));
-  return Promise.race([Promise.allSettled(waits), new Promise((resolve) => setTimeout(resolve, timeout))]);
+  return Promise.race([Promise.allSettled(waits), wait(timeout)]);
 }
 
-function afterScroll(url, state, pop) {
+function restoreScroll(url, state, pop) {
   const nextUrl = new URL(url, window.location.origin);
   if (nextUrl.hash) {
     const target = document.getElementById(decodeURIComponent(nextUrl.hash.slice(1)));
@@ -148,59 +159,90 @@ function afterScroll(url, state, pop) {
 async function swapMain(nextMain, nextUrl, state, pop) {
   const current = document.querySelector(MAIN_SELECTOR);
   if (!current) throw new Error('Main courant introuvable');
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduced) {
     current.replaceWith(nextMain);
-    afterScroll(nextUrl, state, pop);
+    restoreScroll(nextUrl, state, pop);
     return;
   }
 
   document.documentElement.classList.add('is-pjax-navigating');
   current.classList.add('pjax-leave');
-  await new Promise((resolve) => setTimeout(resolve, 180));
+  await wait(160);
 
   current.replaceWith(nextMain);
-  afterScroll(nextUrl, state, pop);
+  restoreScroll(nextUrl, state, pop);
   nextMain.classList.add('pjax-enter');
   await waitForImages(nextMain);
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   nextMain.classList.add('pjax-enter-active');
-  await new Promise((resolve) => setTimeout(resolve, 260));
+  await wait(240);
   nextMain.classList.remove('pjax-enter', 'pjax-enter-active');
   document.documentElement.classList.remove('is-pjax-navigating');
 }
 
+async function safeInitPage(nextUrl) {
+  try {
+    window.YingNav?.init?.();
+    window.YingNav?.updateActiveNav?.(new URL(nextUrl, window.location.origin).pathname);
+  } catch (error) {
+    console.warn('Navigation shell non bloquante :', error);
+  }
+
+  try {
+    await window.YingApp?.init?.({ pjax: true });
+  } catch (error) {
+    console.warn('Initialisation page non bloquante :', error);
+  }
+
+  try {
+    window.YingNav?.updateActiveNav?.(new URL(nextUrl, window.location.origin).pathname);
+    document.dispatchEvent(new CustomEvent('ying:pagechange', { detail: { url: new URL(nextUrl, window.location.origin).href, pathname: new URL(nextUrl, window.location.origin).pathname } }));
+  } catch (error) {
+    console.warn('Événement pagechange non bloquant :', error);
+  }
+}
+
 async function navigate(url, { push = true, state = null, pop = false } = {}) {
   const nextUrl = new URL(url, window.location.origin);
-  if (navigating) return;
-  if (routeKey(nextUrl.href) === routeKey(window.location.href) && !nextUrl.hash) return;
+  if (!isPublicRoute(nextUrl.href)) {
+    window.location.href = nextUrl.href;
+    return;
+  }
 
+  if (sameRoute(nextUrl.href) && !nextUrl.hash) {
+    window.YingNav?.updateActiveNav?.(nextUrl.pathname);
+    window.YingNav?.closeMenu?.();
+    return;
+  }
+
+  if (navigating) return;
   navigating = true;
   rememberScroll();
   closeTransientUi();
   aborter?.abort();
   aborter = new AbortController();
 
+  let swapped = false;
   try {
     document.querySelector(MAIN_SELECTOR)?.setAttribute('aria-busy', 'true');
-    window.YingApp?.teardown?.();
+    try { window.YingApp?.teardown?.(); } catch (error) { console.warn('Teardown non bloquant :', error); }
+
     const html = await fetchHtml(nextUrl.href, aborter.signal);
-    const { doc, main } = parse(html);
+    const { doc, main } = parsePage(html);
     updateHead(doc, nextUrl.href);
     updateBodyClass(doc);
     await swapMain(main, nextUrl.href, state, pop);
+    swapped = true;
+
     if (push) history.pushState({ scrollX: 0, scrollY: 0 }, doc.title || '', nextUrl.href);
-    window.YingNav?.init?.();
-    await window.YingApp?.init?.({ pjax: true });
-    window.YingNav?.updateActiveNav?.();
-    document.dispatchEvent(new CustomEvent('ying:pagechange', { detail: { url: nextUrl.href } }));
+    await safeInitPage(nextUrl.href);
     warmLinks();
   } catch (error) {
-    if (error.name !== 'AbortError') {
-      console.warn('PJAX fallback:', error);
-      window.location.href = nextUrl.href;
-    }
+    if (error.name === 'AbortError') return;
+    console.warn('PJAX fallback:', error);
+    if (!swapped) window.location.href = nextUrl.href;
   } finally {
     document.querySelector(MAIN_SELECTOR)?.removeAttribute('aria-busy');
     document.documentElement.classList.remove('is-pjax-navigating');
@@ -212,30 +254,32 @@ async function navigate(url, { push = true, state = null, pop = false } = {}) {
 function prefetch(anchor) {
   if (!eligibleLink(anchor)) return;
   const url = new URL(anchor.href, window.location.origin);
-  if (routeKey(url.href) === routeKey(window.location.href)) return;
+  if (sameRoute(url.href)) return;
   if (pageCache.has(routeKey(url.href))) return;
   fetchHtml(url.href).catch(() => {});
 }
 
 function warmLinks() {
   const run = () => document.querySelectorAll('a').forEach((anchor) => prefetch(anchor));
-  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1200 });
-  else setTimeout(run, 350);
+  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1400 });
+  else setTimeout(run, 450);
 }
 
 if (!history.state) history.replaceState({ scrollX: window.scrollX, scrollY: window.scrollY }, '', window.location.href);
 
-document.addEventListener('click', (event) => {
+function onDocumentClick(event) {
   const anchor = event.target.closest('a');
   if (!eligibleLink(anchor, event)) return;
   event.preventDefault();
+  event.stopPropagation();
   navigate(anchor.href);
-});
+}
 
-document.addEventListener('pointerover', (event) => prefetch(event.target.closest('a')), { passive: true });
-document.addEventListener('focusin', (event) => prefetch(event.target.closest('a')));
+document.addEventListener('click', onDocumentClick, true);
+document.addEventListener('pointerover', (event) => prefetch(event.target.closest('a')), { passive: true, capture: true });
+document.addEventListener('focusin', (event) => prefetch(event.target.closest('a')), true);
 window.addEventListener('popstate', (event) => navigate(window.location.href, { push: false, state: event.state, pop: true }));
 window.addEventListener('beforeunload', rememberScroll);
 window.addEventListener('load', warmLinks, { once: true });
 
-window.YingPJAX = { navigate, prefetch, warmLinks, cache: pageCache };
+window.YingPJAX = { navigate, prefetch, warmLinks, cache: pageCache, eligibleLink, routeKey };

@@ -342,44 +342,56 @@ async function initGallery() {
   let renderToken = 0;
 
   figure.innerHTML = `
-    <div class="lb-slider" aria-live="polite"><div class="lb-track"></div></div>
+    <div class="lb-viewport" aria-live="polite"></div>
     <figcaption id="lb-caption"></figcaption>
   `;
-  const track = figure.querySelector('.lb-track');
+  const viewport = figure.querySelector('.lb-viewport');
   const caption = figure.querySelector('#lb-caption');
+
+  function getPhotoUrl(photo) {
+    return photo?.url || photo?.imageUrl || photo?.src || photo?.photoUrl || photo?.fullUrl || '';
+  }
 
   function photoAt(index) {
     if (!shownPhotos.length) return null;
     return shownPhotos[(index + shownPhotos.length) % shownPhotos.length];
   }
 
-  function slideMarkup(photo, label = '') {
-    if (!photo) return '<div class="lb-slide"></div>';
-    return `<div class="lb-slide"><img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" draggable="false" /><span class="sr-only">${escapeHtml(label)}</span></div>`;
+  function setCaption(photo) {
+    if (caption) caption.textContent = photo?.caption || '';
+  }
+
+  function makeImage(photo, className = 'lb-photo lb-current') {
+    const img = document.createElement('img');
+    img.className = className;
+    img.alt = photo?.caption || 'Photo de Yingying HOU';
+    img.draggable = false;
+    img.decoding = 'async';
+    img.src = getPhotoUrl(photo);
+    return img;
   }
 
   function preloadNeighbors(index) {
     [index - 1, index, index + 1].forEach((i) => {
       const photo = photoAt(i);
-      if (photo?.url) preloadImage(photo.url);
+      const url = getPhotoUrl(photo);
+      if (url) preloadImage(url);
     });
   }
 
-  function renderTrack(index, animate = false) {
+  function renderCurrent(index) {
+    if (!shownPhotos.length || !viewport) return;
     current = (index + shownPhotos.length) % shownPhotos.length;
-    const prev = photoAt(current - 1);
     const active = photoAt(current);
-    const next = photoAt(current + 1);
-    track.classList.toggle('is-animated', animate);
-    track.style.transform = 'translate3d(-100%,0,0)';
-    track.innerHTML = `${slideMarkup(prev, 'Photo précédente')}${slideMarkup(active, 'Photo actuelle')}${slideMarkup(next, 'Photo suivante')}`;
-    caption.textContent = active?.caption || '';
+    viewport.innerHTML = '';
+    viewport.appendChild(makeImage(active, 'lb-photo lb-current'));
+    setCaption(active);
     preloadNeighbors(current);
   }
 
   function open(index) {
     if (!shownPhotos.length) return;
-    renderTrack(index, false);
+    renderCurrent(index);
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
@@ -388,26 +400,44 @@ async function initGallery() {
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     sliding = false;
-    track.classList.remove('is-animated');
+    viewport?.classList.remove('slide-next', 'slide-prev', 'is-sliding');
   }
 
   async function go(delta) {
-    if (sliding || !shownPhotos.length) return;
-    sliding = true;
+    if (sliding || !shownPhotos.length || !viewport) return;
     const target = (current + delta + shownPhotos.length) % shownPhotos.length;
-    await preloadImage(photoAt(target)?.url);
-    renderTrack(current, false);
+    const activePhoto = photoAt(current);
+    const targetPhoto = photoAt(target);
+    const targetUrl = getPhotoUrl(targetPhoto);
+    if (!targetUrl) return;
+
+    sliding = true;
+    await preloadImage(targetUrl);
+
+    viewport.classList.remove('slide-next', 'slide-prev', 'is-sliding');
+    viewport.innerHTML = '';
+    const currentImg = makeImage(activePhoto, 'lb-photo lb-current');
+    const incomingImg = makeImage(targetPhoto, 'lb-photo lb-incoming');
+    viewport.append(currentImg, incomingImg);
+    setCaption(targetPhoto);
+
+    const directionClass = delta > 0 ? 'slide-next' : 'slide-prev';
+    viewport.classList.add(directionClass);
+
     requestAnimationFrame(() => {
-      track.classList.add('is-animated');
-      track.style.transform = delta > 0 ? 'translate3d(-200%,0,0)' : 'translate3d(0,0,0)';
+      requestAnimationFrame(() => viewport.classList.add('is-sliding'));
     });
-    const done = () => {
-      track.removeEventListener('transitionend', done);
-      renderTrack(target, false);
+
+    const finish = () => {
+      viewport.removeEventListener('transitionend', finish);
+      current = target;
+      renderCurrent(current);
+      viewport.classList.remove(directionClass, 'is-sliding');
       sliding = false;
     };
-    track.addEventListener('transitionend', done, { once: true });
-    setTimeout(() => { if (sliding) done(); }, 560);
+
+    viewport.addEventListener('transitionend', finish, { once: true });
+    setTimeout(() => { if (sliding) finish(); }, 680);
   }
 
   async function loadAndRender(category = 'Tout') {
@@ -415,21 +445,26 @@ async function initGallery() {
     grid.classList.remove('is-ready');
     grid.classList.add('is-loading');
     grid.innerHTML = `<div class="gallery-loader" role="status" aria-live="polite"><span class="gallery-spinner" aria-hidden="true"></span><strong>Chargement de la galerie</strong><em>Préparation des images…</em></div>`;
+
     shownPhotos = category === 'Tout' ? allPhotos : allPhotos.filter((photo) => photo.categorie === category);
     await Promise.race([
-      Promise.allSettled(shownPhotos.map((photo) => preloadImage(photo.url))),
+      Promise.allSettled(shownPhotos.map((photo) => preloadImage(getPhotoUrl(photo)))),
       new Promise((resolve) => setTimeout(resolve, 5200))
     ]);
     if (token !== renderToken) return;
+
     if (!shownPhotos.length) {
       grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
     } else {
-      grid.innerHTML = shownPhotos.map((photo, index) => `
-        <a href="${escapeHtml(photo.url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 20) * 45}ms">
-          <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
+      grid.innerHTML = shownPhotos.map((photo, index) => {
+        const url = getPhotoUrl(photo);
+        return `<a href="${escapeHtml(url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 20) * 45}ms">
+          <img src="${escapeHtml(url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
           <div class="item-overlay"><span>Agrandir</span></div>
-        </a>`).join('');
+        </a>`;
+      }).join('');
     }
+
     grid.classList.remove('is-loading');
     requestAnimationFrame(() => grid.classList.add('is-ready'));
   }
@@ -438,12 +473,15 @@ async function initGallery() {
     const item = event.target.closest('.gallery-item');
     if (!item) return;
     event.preventDefault();
-    open(Number(item.dataset.index) || 0);
+    const index = Number(item.dataset.index) || 0;
+    open(index);
   };
+
   lightbox.querySelector('.lb-close')?.addEventListener('click', close);
   lightbox.querySelector('.lb-next')?.addEventListener('click', () => go(1));
   lightbox.querySelector('.lb-prev')?.addEventListener('click', () => go(-1));
   lightbox.onclick = (event) => { if (event.target === lightbox) close(); };
+
   keyHandler = (event) => {
     if (lightbox.getAttribute('aria-hidden') === 'true') return;
     if (event.key === 'Escape') close();
@@ -525,10 +563,16 @@ async function initPage() {
   initScrollHints();
   document.body.style.overflow = '';
   const page = document.getElementById('main')?.dataset.page;
-  if (page === 'home') await initHome();
-  else if (page === 'filmography') await initFilmography();
-  else if (page === 'gallery') await initGallery();
-  else if (page === 'contact') initContact();
+  try {
+    if (page === 'home') await initHome();
+    else if (page === 'filmography') await initFilmography();
+    else if (page === 'gallery') await initGallery();
+    else if (page === 'contact') initContact();
+  } catch (error) {
+    console.warn('Initialisation page interrompue sans bloquer PJAX :', error);
+  } finally {
+    window.YingNav?.updateActiveNav?.();
+  }
 }
 
 window.YingApp = { init: initPage, teardown, db, normalizeCategory, updateActiveNav: () => window.YingNav?.updateActiveNav?.(), ensureUnifiedHeader: () => window.YingNav?.init?.() };
