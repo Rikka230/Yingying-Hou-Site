@@ -2,22 +2,60 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Page introuvable — 404</title>
+  <title>Page introuvable — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Page introuvable sur le site officiel de Yingying HOU." />
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://kukyying.netlify.app" />
+  <meta property="og:title" content="Page introuvable — Yingying HOU" />
+  <meta property="og:description" content="Page introuvable sur le site officiel de Yingying HOU." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kukyying.netlify.app" />
+  <meta property="og:image" content="https://kukyying.netlify.app/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
-  <meta name="robots" content="noindex" />
+  <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('theme-dark-preload');</script>
 </head>
-<body>
-  <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
-  
-  <a class="skip" href="#main">Aller au contenu</a>
-  <main class="wrap pad center">
-    <h1>404 — Oups</h1>
-    <p>La page demandée n’existe pas.</p>
-    <p><a class="btn" href="/">Retour à l’accueil</a></p>
-  </main>
+<body class="page-404">
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="site-header" role="banner">
+  <div class="wrap site-header-inner">
+    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
+    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/" data-nav="home">Accueil</a></li>
+        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
+        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
+        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+    </div>
+  </div>
+</header>
+<main id="main" data-page="not-found">
+  <section class="wrap pad center not-found-card">
+    <p class="eyebrow">Erreur 404</p><h1>Page introuvable</h1><p>La page demandée n’existe pas ou a changé d’adresse.</p><p><a class="btn" href="/">Retour à l’accueil</a></p>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© <span id="year"></span> Yingying HOU. Powered by <a href="/admin.html" class="footer-admin-link">NOCX WEB</a>. Tous droits réservés.</p>
+    <nav aria-label="Liens de pied de page">
+      <a href="/legal.html">Mentions légales</a>
+      <a href="/privacy.html">Politique de confidentialité</a>
+      <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
+      <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
+    </nav>
+  </div>
+</footer>
+<script type="module" src="/js/public-app.js"></script>
+<script type="module" src="/js/pjax.js"></script>
 </body>
 </html>

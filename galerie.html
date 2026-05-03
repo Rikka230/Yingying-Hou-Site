@@ -3,168 +3,81 @@
 <head>
   <meta charset="utf-8" />
   <title>Galerie photo — Yingying HOU</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Galerie officielle de photos de Yingying HOU. Photos de studio, tournages et portraits HD." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Galerie officielle de photos de Yingying HOU : portraits studio, photos de tournage, profils et presse." />
+  
+  <link rel="canonical" href="https://kukyying.netlify.app" />
+  <meta property="og:title" content="Galerie photo — Yingying HOU" />
+  <meta property="og:description" content="Galerie officielle de photos de Yingying HOU : portraits studio, photos de tournage, profils et presse." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kukyying.netlify.app" />
+  <meta property="og:image" content="https://kukyying.netlify.app/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
-  <style>
-    .gallery-filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 30px auto 10px; max-width: 900px; }
-    .filter-btn { padding: 8px 20px !important; font-size: 0.9rem !important; cursor: pointer; transition: all 0.3s ease; }
-    #gallery { transition: opacity 0.3s ease-in-out; min-height: 60vh; }
-  </style>
+  <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('theme-dark-preload');</script>
 </head>
-<body>
-  <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
-  
-  <a class="skip" href="#main">Aller au contenu</a>
-
-  <header class="site-header" role="banner">
-    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center;">
-      <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
-        <ul>
-          <li><a href="/">Accueil</a></li>
-          <li><a href="filmographie.html">Filmographie</a></li>
-          <li><a href="galerie.html">Galerie</a></li>
-          <li><a href="contact.html">Contact / Booking</a></li>
-        </ul>
-      </nav>
-      <div class="header-right">
-        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème"></button>
-        <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
-      </div>
+<body class="page-galerie">
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="site-header" role="banner">
+  <div class="wrap site-header-inner">
+    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
+    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/" data-nav="home">Accueil</a></li>
+        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
+        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
+        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     </div>
-  </header>
-
-  <main id="main">
-    <section class="page-hero">
-      <div class="wrap">
-        <h1>Galerie Photo</h1>
-        <p class="kicker">Portraits studio, photos de tournage et presse.</p>
-        <div class="gallery-filters" id="filters-container">
-          <button class="btn filter-btn" data-filter="Tout">Tout</button>
-          <button class="btn outline filter-btn" data-filter="Portrait">Portrait</button>
-          <button class="btn outline filter-btn" data-filter="Profil">Profil</button>
-          <button class="btn outline filter-btn" data-filter="En pied">En pied</button>
-          <button class="btn outline filter-btn" data-filter="Pose">Pose</button>
-          <button class="btn outline filter-btn" data-filter="Tournage">Tournage</button>
-          <button class="btn outline filter-btn" data-filter="Presse">Presse</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="wrap pad" style="padding-top: 20px;">
-      <div class="gallery-grid" id="gallery">
-        <p style="text-align:center; color:#888;">Chargement de la galerie...</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="wrap">
-      <p>© <span id="year"></span> Yingying HOU. Powered by NOCX WEB. Tous droits réservés.</p>
-      <nav><a href="/legal.html">Mentions légales</a> <a href="/privacy.html">Confidentialité</a></nav>
-    </div>
-  </footer>
-
-  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
-    <button class="lb-close" aria-label="Fermer">✕</button>
-    <button class="lb-prev" aria-label="Précédent">‹</button>
-    <figure class="lb-figure">
-      <img id="lb-image" src="" alt="">
-      <figcaption id="lb-caption"></figcaption>
-    </figure>
-    <button class="lb-next" aria-label="Suivant">›</button>
   </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
-      authDomain: "kukyying-f1c95.firebaseapp.com",
-      projectId: "kukyying-f1c95",
-      storageBucket: "kukyying-f1c95.firebasestorage.app",
-      messagingSenderId: "681899915263",
-      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    let toutesLesPhotos = []; 
-    let photosAffichees = []; 
-    let indexActuel = 0;
-    let timerFiltre = null;
-
-    const conteneurGalerie = document.getElementById('gallery');
-    const lightbox = document.getElementById('lightbox');
-    const lbImage = document.getElementById('lb-image');
-    const lbCaption = document.getElementById('lb-caption');
-
-    async function chargerGalerie() {
-      try {
-        const q = query(collection(db, "galerie"), orderBy("ordre", "asc"));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          snapshot.forEach((doc) => { toutesLesPhotos.push(doc.data()); });
-          afficherGrille('Tout');
-        }
-      } catch (erreur) { console.error(erreur); }
-    }
-
-    function afficherGrille(categorieFiltre) {
-      clearTimeout(timerFiltre);
-      conteneurGalerie.style.opacity = '0';
-      timerFiltre = setTimeout(() => {
-        conteneurGalerie.innerHTML = ""; 
-        photosAffichees = (categorieFiltre === 'Tout') ? toutesLesPhotos : toutesLesPhotos.filter(p => p.categorie === categorieFiltre);
-        
-        photosAffichees.forEach((data, index) => {
-          const item = document.createElement('a');
-          item.href = "#";
-          item.className = "gallery-item";
-          item.innerHTML = `<img src="${data.url}" alt="${data.caption || ''}" loading="lazy"><div class="item-overlay"><span>Agrandir</span></div>`;
-          item.onclick = (e) => { e.preventDefault(); afficherPhoto(index); };
-          conteneurGalerie.appendChild(item);
-        });
-        conteneurGalerie.style.opacity = '1';
-      }, 300);
-    }
-
-    const boutonsFiltres = document.querySelectorAll('.filter-btn');
-    boutonsFiltres.forEach(btn => {
-      btn.addEventListener('click', () => {
-        boutonsFiltres.forEach(f => { f.classList.remove('btn'); f.classList.add('btn', 'outline'); });
-        btn.classList.remove('outline');
-        afficherGrille(btn.getAttribute('data-filter'));
-      });
-    });
-
-    // --- GESTION DE LA LIGHTBOX (CORRIGÉE) ---
-    function afficherPhoto(index) {
-      indexActuel = index;
-      lbImage.src = photosAffichees[index].url;
-      lbCaption.textContent = photosAffichees[index].caption || "";
-      lightbox.setAttribute('aria-hidden', 'false');
-      // FIX : On fige le scroll du site derrière
-      document.body.style.overflow = 'hidden'; 
-    }
-
-    lightbox.querySelector('.lb-close').onclick = () => {
-      lightbox.setAttribute('aria-hidden', 'true');
-      // FIX : On redonne le scroll au site
-      document.body.style.overflow = ''; 
-    };
-    
-    lightbox.querySelector('.lb-next').onclick = () => afficherPhoto((indexActuel + 1) % photosAffichees.length);
-    lightbox.querySelector('.lb-prev').onclick = () => afficherPhoto((indexActuel - 1 + photosAffichees.length) % photosAffichees.length);
-
-    chargerGalerie();
-  </script>
-  <script src="/js/main.js" defer></script>
+</header>
+<main id="main" data-page="gallery">
+  <section class="page-hero page-hero-clean">
+    <div class="wrap">
+      <p class="eyebrow">Photos</p>
+      <h1>Galerie photo</h1>
+      <p class="kicker">Portraits studio, photos de tournage, presse et profils.</p>
+      <div class="gallery-filters" id="filters-container" aria-label="Filtres galerie">
+        <button class="btn filter-btn" type="button" data-filter="Tout">Tout</button>
+        <button class="btn outline filter-btn" type="button" data-filter="Portrait">Portrait</button>
+        <button class="btn outline filter-btn" type="button" data-filter="Profil">Profil</button>
+        <button class="btn outline filter-btn" type="button" data-filter="En pied">En pied</button>
+        <button class="btn outline filter-btn" type="button" data-filter="Pose">Pose</button>
+        <button class="btn outline filter-btn" type="button" data-filter="Tournage">Tournage</button>
+        <button class="btn outline filter-btn" type="button" data-filter="Presse">Presse</button>
+      </div>
+    </div>
+  </section>
+  <section class="wrap pad gallery-section">
+    <div class="gallery-grid" id="gallery" aria-live="polite"><p class="loading-line">Chargement de la galerie...</p></div>
+  </section>
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <button class="lb-close" type="button" aria-label="Fermer">✕</button>
+    <button class="lb-prev" type="button" aria-label="Précédent">‹</button>
+    <figure class="lb-figure"><img id="lb-image" src="" alt=""><figcaption id="lb-caption"></figcaption></figure>
+    <button class="lb-next" type="button" aria-label="Suivant">›</button>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© <span id="year"></span> Yingying HOU. Powered by <a href="/admin.html" class="footer-admin-link">NOCX WEB</a>. Tous droits réservés.</p>
+    <nav aria-label="Liens de pied de page">
+      <a href="/legal.html">Mentions légales</a>
+      <a href="/privacy.html">Politique de confidentialité</a>
+      <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
+      <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
+    </nav>
+  </div>
+</footer>
+<script type="module" src="/js/public-app.js"></script>
+<script type="module" src="/js/pjax.js"></script>
 </body>
 </html>

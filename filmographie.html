@@ -4,223 +4,94 @@
   <meta charset="utf-8" />
   <title>Filmographie — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Filmographie complète de Yingying HOU : longs métrages, courts, séries TV, théâtre et voix." />
-  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="description" content="Filmographie complète de Yingying HOU : longs métrages, courts métrages, séries TV, publicités, doublage, voix off et documentaire." />
+  
+  <link rel="canonical" href="https://kukyying.netlify.app" />
+  <meta property="og:title" content="Filmographie — Yingying HOU" />
+  <meta property="og:description" content="Filmographie complète de Yingying HOU : longs métrages, courts métrages, séries TV, publicités, doublage, voix off et documentaire." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kukyying.netlify.app" />
+  <meta property="og:image" content="https://kukyying.netlify.app/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    /* Style spécifique pour la barre de recherche calqué sur tes filtres */
-    .search-input {
-      font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 16px; 
-      border-radius: 12px; background: var(--card); border: 1px solid var(--line); 
-      color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.04); outline: none; 
-      transition: all 0.2s ease; width: 100%;
-    }
-    .search-input:hover, .search-input:focus {
-      border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,193,7,.18);
-    }
-    body.dark-mode .search-input {
-      background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('theme-dark-preload');</script>
 </head>
 <body class="page-filmographie">
-  <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
-  <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
-  
-  <a class="skip" href="#main">Aller au contenu</a>
-  
-  <header class="site-header" role="banner">
-    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center;">
-      <a class="brand" href="/">Yingying <strong>HOU</strong></a>
-      
-      <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
-        <ul>
-          <li><a href="/">Accueil</a></li>
-          <li><a href="filmographie.html">Filmographie</a></li>
-          <li><a href="galerie.html">Galerie</a></li>
-          <li><a href="contact.html">Contact / Booking</a></li>
-        </ul>
-      </nav>
-
-      <div class="header-right">
-        <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème"></button>
-        <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
-      </div>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="site-header" role="banner">
+  <div class="wrap site-header-inner">
+    <a class="brand" href="/" aria-label="Accueil Yingying HOU">Yingying <strong>HOU</strong></a>
+    <nav id="nav" class="site-nav" role="navigation" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/" data-nav="home">Accueil</a></li>
+        <li><a href="/filmographie.html" data-nav="filmography">Filmographie</a></li>
+        <li><a href="/galerie.html" data-nav="gallery">Galerie</a></li>
+        <li><a href="/contact.html" data-nav="contact">Contact / Booking</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <button id="theme-toggle-btn" class="theme-toggle-modern" aria-label="Changer le thème" type="button"></button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     </div>
-  </header>
-
-  <main id="main">
-    <section class="page-hero">
-      <div class="wrap">
-        <h1>Filmographie</h1>
-        <p class="kicker">Longs métrages, courts, séries, voix & théâtre.</p>
-      </div>
-    </section>
-
-    <section class="wrap pad">
-      
-      <div class="filtres-bar">
-        <input type="search" id="search-film" class="search-input" placeholder="Rechercher : Titre, rôle, réalisateur..." autocomplete="off">
-        
-        <div class="filtre-selects">
-          <select id="filter-category" class="select-input" autocomplete="off">
-            <option value="all" selected>Toutes catégories</option>
-            <option value="Long métrage">Long métrage</option>
-            <option value="Court métrage">Court métrage</option>
-            <option value="Série TV">Série TV</option>
-            <option value="Réalisation">Réalisation</option>
-            <option value="Pub">Pub</option>
-            <option value="Théâtre">Théâtre</option>
-            <option value="Doublage / Voix off">Doublage / Voix off</option>
-          </select>
-            
-          <select id="sort-by" class="select-input" autocomplete="off">
-            <option value="year-desc" selected>Trier : Année ↓</option>
-            <option value="year-asc">Trier : Année ↑</option>
-            <option value="title-asc">Trier : Titre A→Z</option>
-            <option value="title-desc">Trier : Titre Z→A</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table class="table" id="filmography">
-          <thead>
-            <tr>
-              <th>Année</th>
-              <th>Projet / Titre</th>
-              <th>Rôle</th>
-              <th>Réalisateur</th>
-              <th>Catégorie</th>
-              <th>Lien</th>
-            </tr>
-          </thead>
-          <tbody>
-            </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
+  </div>
+</header>
+<main id="main" data-page="filmography">
+  <section class="page-hero page-hero-clean">
     <div class="wrap">
-      <p>© <span id="year"></span> Yingying HOU. Powered by NOCX WEB. Tous droits réservés.</p>
-      <nav>
-        <a href="/legal.html">Mentions légales</a>
-        <a href="/privacy.html">Confidentialité</a>
-      </nav>
+      <p class="eyebrow">Parcours</p>
+      <h1>Filmographie</h1>
+      <p class="kicker">Longs métrages, courts, séries, publicités, doublage, voix off et documentaires.</p>
     </div>
-  </footer>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4",
-      authDomain: "kukyying-f1c95.firebaseapp.com",
-      projectId: "kukyying-f1c95",
-      storageBucket: "kukyying-f1c95.firebasestorage.app",
-      messagingSenderId: "681899915263",
-      appId: "1:681899915263:web:4d64dcf4a9c57748ead9ca"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    async function chargerFilmographie() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "role"));
-        let roles = [];
-        querySnapshot.forEach((doc) => roles.push(doc.data()));
-
-        const tbody = document.querySelector('#filmography tbody');
-        const filterCat = document.getElementById('filter-category');
-        const sortBtn = document.getElementById('sort-by');
-        const searchInput = document.getElementById('search-film'); // NOUVEAU : Champ de recherche
-
-        function afficherTableau() {
-          tbody.innerHTML = '';
-          let rolesFiltres = [...roles];
-
-          // 1. Recherche exacte (Début de texte ou début de mot)
-          const termeRecherche = searchInput.value.toLowerCase().trim();
-          if (termeRecherche !== '') {
-            rolesFiltres = rolesFiltres.filter(role => {
-              const projet = (role.projet || '').toLowerCase();
-              const titre = (role.titre || '').toLowerCase();
-              const realisateur = (role.realisateur || '').toLowerCase();
-              const annee = (role.annee || '').toString();
-
-              // Fonction qui vérifie si le texte commence par la recherche 
-              // OU si un mot à l'intérieur commence par la recherche (grâce à l'espace ou tiret)
-              const commencePar = (texte) => 
-                texte.startsWith(termeRecherche) || 
-                texte.includes(' ' + termeRecherche) || 
-                texte.includes('-' + termeRecherche) ||
-                texte.includes('’' + termeRecherche) ||
-                texte.includes('\'' + termeRecherche);
-
-              return commencePar(projet) || commencePar(titre) || commencePar(realisateur) || commencePar(annee);
-            });
-          }
-
-          // 2. Filtrage par catégorie
-          const categorieChoisie = filterCat.value;
-          if (categorieChoisie !== 'all') {
-            rolesFiltres = rolesFiltres.filter(role => role.type === categorieChoisie);
-          }
-
-          // 3. Logique de Tri
-          rolesFiltres.sort((a, b) => {
-            const tri = sortBtn.value;
-            if (tri === 'year-desc') return (Number(b.annee) || 0) - (Number(a.annee) || 0);
-            if (tri === 'year-asc') return (Number(a.annee) || 0) - (Number(b.annee) || 0);
-            if (tri === 'title-asc') return (a.projet || '').localeCompare(b.projet || '');
-            if (tri === 'title-desc') return (b.projet || '').localeCompare(a.projet || '');
-            return 0;
-          });
-
-          // 4. Affichage des lignes (ou message vide)
-          if (rolesFiltres.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé pour cette recherche.</td></tr>`;
-            return;
-          }
-
-          rolesFiltres.forEach(role => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td data-label="Année">${role.annee || ''}</td>
-              <td data-label="Titre">${role.projet || ''}</td>
-              <td data-label="Rôle">${role.titre || ''}</td>
-              <td data-label="Réalisateur">${role.realisateur || '-'}</td>
-              <td data-label="Catégorie">${role.type || ''}</td>
-              <td data-label="Lien"><a class="btn" href="${role.lien || '#'}" target="_blank">Voir</a></td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-
-        // Écouteurs d'événements : on actualise le tableau dès qu'on tape au clavier ou qu'on change un menu
-        filterCat.addEventListener('change', afficherTableau);
-        sortBtn.addEventListener('change', afficherTableau);
-        searchInput.addEventListener('input', afficherTableau);
-
-        // Lancement initial
-        if (roles.length > 0) {
-          afficherTableau();
-        }
-
-      } catch (erreur) {
-        console.error("Erreur Firebase :", erreur);
-      }
-    }
-    
-    chargerFilmographie();
-  </script>
-  
-  <script src="/js/main.js" defer></script>
+  </section>
+  <section class="wrap pad filmography-section">
+    <div class="filtres-bar">
+      <input type="search" id="search-film" class="search-input" placeholder="Rechercher : projet, rôle, réalisateur, année..." autocomplete="off" />
+      <div class="filtre-selects">
+        <select id="filter-category" class="select-input" autocomplete="off">
+          <option value="all" selected>Toutes catégories</option>
+          <option value="Long métrage">Long métrage</option>
+          <option value="Court métrage">Court métrage</option>
+          <option value="Série TV">Série TV</option>
+          <option value="Publicité">Publicité</option>
+          <option value="Pub">Pub</option>
+          <option value="Théâtre">Théâtre</option>
+          <option value="Doublage">Doublage</option>
+          <option value="Voix off">Voix off</option>
+          <option value="Documentaire">Documentaire</option>
+        </select>
+        <select id="sort-by" class="select-input" autocomplete="off">
+          <option value="custom" selected>Ordre personnalisé</option>
+          <option value="year-desc">Année ↓</option>
+          <option value="year-asc">Année ↑</option>
+          <option value="title-asc">Titre A→Z</option>
+          <option value="title-desc">Titre Z→A</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="table" id="filmography">
+        <thead><tr><th>Année</th><th>Projet / Titre</th><th>Rôle</th><th>Réalisateur</th><th>Catégorie</th><th>Lien</th></tr></thead>
+        <tbody><tr><td colspan="6" class="table-empty">Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© <span id="year"></span> Yingying HOU. Powered by <a href="/admin.html" class="footer-admin-link">NOCX WEB</a>. Tous droits réservés.</p>
+    <nav aria-label="Liens de pied de page">
+      <a href="/legal.html">Mentions légales</a>
+      <a href="/privacy.html">Politique de confidentialité</a>
+      <a href="https://www.imdb.com/fr/name/nm6977907" target="_blank" rel="noopener">IMDb</a>
+      <a href="https://www.instagram.com/kukyying" target="_blank" rel="noopener">Instagram</a>
+    </nav>
+  </div>
+</footer>
+<script type="module" src="/js/public-app.js"></script>
+<script type="module" src="/js/pjax.js"></script>
 </body>
 </html>
