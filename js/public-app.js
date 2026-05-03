@@ -424,8 +424,14 @@ function initContact() {
 }
 
 function initScrollHints() {
+  window.__yingScrollHintController?.abort?.();
+
   const hints = document.querySelectorAll('.scroll-hint, .scroll-hint-mobile');
   if (!hints.length) return;
+
+  const controller = new AbortController();
+  window.__yingScrollHintController = controller;
+
   const update = () => {
     hints.forEach((hint) => {
       const hidden = hint.classList.contains('scroll-hint-mobile')
@@ -434,7 +440,10 @@ function initScrollHints() {
       hint.classList.toggle('hidden', hidden);
     });
   };
+
   update();
+  window.addEventListener('scroll', update, { passive: true, signal: controller.signal });
+  window.addEventListener('resize', update, { passive: true, signal: controller.signal });
 }
 
 async function initPage() {
