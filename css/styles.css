@@ -723,3 +723,82 @@ body.dark-mode .site-nav a.is-active { color: var(--yellow-ink) !important; }
   .page-hero-clean { padding-top: 36px; }
   .category-pill { min-width: 0; }
 }
+
+/* =========================================
+   PATCH V1.2 — HERO OVERLAP + ROLE CONTROLS
+   Restore the larger cinematic header and keep latest-role pagination visible on desktop.
+========================================= */
+@media (min-width: 901px) {
+  .hero-reframed {
+    min-height: clamp(520px, 62vh, 680px) !important;
+    align-items: end !important;
+  }
+
+  .hero-reframed picture,
+  .hero-reframed img {
+    min-height: clamp(520px, 62vh, 680px) !important;
+    height: clamp(520px, 62vh, 680px) !important;
+    max-height: 680px !important;
+    object-fit: cover !important;
+    object-position: center 45% !important;
+  }
+
+  .hero-reframed:after {
+    height: 22% !important;
+    background: linear-gradient(to top, var(--bg) 0%, rgba(255,255,255,.78) 18%, transparent 100%) !important;
+  }
+
+  .hero-reframed .hero-card {
+    width: min(880px, calc(100% - 48px)) !important;
+    margin: 0 auto -128px !important;
+    transform: none !important;
+  }
+
+  .hero-card {
+    padding: 38px 48px !important;
+  }
+
+  .home-overview {
+    padding-top: 178px !important;
+  }
+}
+
+@media (min-width: 701px) {
+  .bento-roles .compact-controls,
+  .bento-roles .role-pagination.compact-controls {
+    display: flex !important;
+    position: absolute !important;
+    top: 22px !important;
+    right: 22px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 8px !important;
+    border: 0 !important;
+    z-index: 5 !important;
+  }
+
+  .bento-roles .compact-controls .role-tab-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+    background: rgba(255,255,255,.76) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+
+  .bento-roles .compact-controls .role-tab-btn:not(:disabled):hover {
+    background: var(--yellow) !important;
+    border-color: var(--yellow) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .bento-roles .compact-controls,
+  .bento-roles .role-pagination.compact-controls {
+    display: flex !important;
+  }
+}
