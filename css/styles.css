@@ -859,3 +859,67 @@ body.dark-mode .site-nav a.is-active { color: var(--yellow-ink) !important; }
     justify-content: center !important;
   }
 }
+
+
+/* =========================================
+   PATCH PJAX V2 — NAVIGATION PUBLIQUE FLUIDE
+========================================= */
+.pjax-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--yellow), #ffd95c, var(--yellow));
+  transition: transform .42s ease, opacity .2s ease;
+}
+
+.pjax-progress.is-active {
+  opacity: 1;
+  transform: scaleX(.72);
+}
+
+html.is-pjax-navigating body {
+  cursor: progress;
+}
+
+html.is-pjax-navigating a,
+html.is-pjax-navigating button {
+  cursor: progress;
+}
+
+#main {
+  outline: none;
+  will-change: opacity, transform;
+}
+
+#main.is-pjax-leaving {
+  opacity: 0;
+  transform: translateY(10px) scale(.996);
+  pointer-events: none;
+}
+
+#main.is-pjax-entering {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+html.is-pjax-navigating #main {
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pjax-progress,
+  html.is-pjax-navigating #main,
+  #main,
+  #main.is-pjax-leaving,
+  #main.is-pjax-entering {
+    transition: none !important;
+    transform: none !important;
+  }
+}
