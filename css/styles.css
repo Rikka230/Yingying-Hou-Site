@@ -658,19 +658,22 @@ html.is-pjax-loading #main { opacity: .18; transform: translateY(8px); pointer-e
 #main { transition: opacity .22s ease, transform .22s ease; }
 .eyebrow { margin: 0 0 8px; color: #b88700; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .section-heading h2 { margin-top: 0; }
-.hero-reframed { min-height: 520px; display: grid; align-items: end; }
-.hero-reframed picture, .hero-reframed img { grid-area: 1 / 1; min-height: 520px; height: 70vh; max-height: 780px; }
-.hero-reframed:after { content: ""; grid-area: 1 / 1; align-self: end; height: 42%; background: linear-gradient(to top, var(--bg), transparent); pointer-events: none; }
-.hero-reframed .hero-card { grid-area: 1 / 1; z-index: 1; margin-bottom: -42px; }
+.hero-reframed { min-height: 468px; display: grid; align-items: end; overflow: visible; }
+.hero-reframed picture, .hero-reframed img { grid-area: 1 / 1; min-height: 468px; height: 52vh; max-height: 560px; object-position: center center; }
+.hero-reframed:after { content: ""; grid-area: 1 / 1; align-self: end; height: 32%; background: linear-gradient(to top, var(--bg), transparent); pointer-events: none; }
+.hero-reframed .hero-card { grid-area: 1 / 1; z-index: 1; margin-bottom: -116px; }
 .hero-card { background: rgba(255,255,255,.88); border: 1px solid rgba(255,255,255,.58); backdrop-filter: blur(18px); border-radius: 28px; box-shadow: 0 24px 80px rgba(17,19,24,.12); padding: 26px; }
 .hero-card h1 { margin: 0; background: transparent; box-shadow: none; padding: 0; display: block; }
-.home-overview { padding-top: 92px; }
+.home-overview { padding-top: 154px; }
 .bento-grid-reframed { align-items: stretch; }
 .home-role-list { min-height: 430px; list-style: none; padding: 0; margin: 0; }
 .home-role-list li { display: block; }
 .role-heart { color: #ff4f87; font-weight: 900; }
 .role-meta { color: var(--muted); font-size: .92em; }
 .compact-controls { margin-top: auto; }
+.bento-roles { position: relative; }
+.bento-roles .compact-controls { position: absolute; top: 22px; right: 22px; margin: 0; padding: 0; z-index: 2; }
+.bento-roles .compact-controls .role-tab-btn:disabled { opacity: .35; cursor: not-allowed; }
 .loading-line { color: var(--muted); padding: 16px; text-align: center; }
 .error-line { color: #d32222; }
 .awards-list { flex-direction: column; }
@@ -709,12 +712,13 @@ body.dark-mode .site-nav a.is-active { color: var(--yellow-ink) !important; }
   .bento-showreel, .bento-roles, .bento-youtube, .bento-awards { grid-column: auto; grid-row: auto; }
   .home-role-list { min-height: 0; }
   .hero-reframed, .hero-reframed picture, .hero-reframed img { min-height: 460px; }
+  .bento-roles .compact-controls { position: static; margin-top: 18px; }
 }
 @media (max-width: 700px) {
   .site-header-inner { height: 64px; }
   .hero-card { border-radius: 20px; padding: 20px; }
-  .hero-reframed .hero-card { margin-bottom: -28px; }
-  .home-overview { padding-top: 68px; }
+  .hero-reframed .hero-card { margin-bottom: -64px; }
+  .home-overview { padding-top: 112px; }
   .filtre-selects { flex-direction: column; }
   .page-hero-clean { padding-top: 36px; }
   .category-pill { min-width: 0; }
