@@ -666,3 +666,151 @@ body.dark-mode.page-filmographie .table-empty {
   font-weight: 800 !important;
   font-size: 13px !important;
 }
+
+/* =========================================
+   V6 MOBILE FILMOGRAPHIE - page sans débordement + cartes lisibles
+   Ce bloc arrive en fin de cascade pour neutraliser les largeurs desktop nth-child.
+========================================= */
+
+@media (max-width: 760px) {
+  body.page-filmographie .public-topbar-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+  }
+
+  body.page-filmographie .public-brand {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.page-filmographie .public-actions {
+    width: auto !important;
+    min-width: 0 !important;
+    gap: 8px !important;
+  }
+
+  body.page-filmographie .public-actions .nav-toggle {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    background:
+      linear-gradient(var(--text), var(--text)) center calc(50% - 6px) / 18px 2px no-repeat,
+      linear-gradient(var(--text), var(--text)) center / 18px 2px no-repeat,
+      linear-gradient(var(--text), var(--text)) center calc(50% + 6px) / 18px 2px no-repeat,
+      var(--card) !important;
+  }
+
+  body.page-filmographie .public-actions .nav-toggle::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  body.page-filmographie .page-hero-clean .kicker {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  body.page-filmographie .filtres-bar,
+  body.page-filmographie .filtre-selects,
+  body.page-filmographie .search-input,
+  body.page-filmographie .select-input {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body.page-filmographie #filmography th,
+  body.page-filmographie #filmography td,
+  body.page-filmographie #filmography th:nth-child(1),
+  body.page-filmographie #filmography td:nth-child(1),
+  body.page-filmographie #filmography th:nth-child(2),
+  body.page-filmographie #filmography td:nth-child(2),
+  body.page-filmographie #filmography th:nth-child(3),
+  body.page-filmographie #filmography td:nth-child(3),
+  body.page-filmographie #filmography th:nth-child(4),
+  body.page-filmographie #filmography td:nth-child(4),
+  body.page-filmographie #filmography th:nth-child(5),
+  body.page-filmographie #filmography td:nth-child(5),
+  body.page-filmographie #filmography th:nth-child(6),
+  body.page-filmographie #filmography td:nth-child(6) {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.page-filmographie #filmography tbody {
+    min-height: 0 !important;
+  }
+
+  body.page-filmographie #filmography tr {
+    gap: 10px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  body.page-filmographie #filmography td {
+    grid-template-columns: minmax(78px, 28%) minmax(0, 1fr) !important;
+    gap: 10px !important;
+    overflow: hidden !important;
+  }
+
+  body.page-filmographie #filmography td:nth-child(1),
+  body.page-filmographie #filmography td:nth-child(2),
+  body.page-filmographie #filmography td:nth-child(5),
+  body.page-filmographie #filmography td:last-child {
+    display: flex !important;
+    width: 100% !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+  }
+
+  body.page-filmographie #filmography td:nth-child(1) {
+    width: fit-content !important;
+  }
+
+  body.page-filmographie #filmography td:nth-child(2) {
+    min-width: 0 !important;
+  }
+
+  body.page-filmographie #filmography td:nth-child(2) strong,
+  body.page-filmographie #filmography td,
+  body.page-filmographie #filmography .category-pill,
+  body.page-filmographie #filmography .table-link {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+
+  body.page-filmographie #filmography .category-pill {
+    min-width: 0 !important;
+  }
+
+  body.page-filmographie #filmography .table-link {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 380px) {
+  body.page-filmographie .public-actions .nav-toggle {
+    padding: 0 !important;
+  }
+
+  body.page-filmographie #filmography td {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+  }
+}
