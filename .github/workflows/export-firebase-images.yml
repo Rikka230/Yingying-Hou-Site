@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - public-reagencement-pjax
+      - main
     paths:
       - scripts/export-firebase-images.mjs
       - package.json
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: public-reagencement-pjax
+          ref: main
 
       - name: Setup Node
         uses: actions/setup-node@v4
