@@ -81,20 +81,35 @@ function syncMeta(doc, selector, attr = 'content') {
   else document.head.appendChild(next.cloneNode(true));
 }
 
+function syncStructuredData(doc) {
+  document.querySelectorAll('script[type="application/ld+json"][data-seo]').forEach((script) => script.remove());
+  doc.querySelectorAll('script[type="application/ld+json"][data-seo]').forEach((script) => {
+    document.head.appendChild(script.cloneNode(true));
+  });
+}
+
 function updateHead(doc, url) {
   document.title = doc.title || document.title;
   [
     'meta[name="description"]',
+    'meta[name="robots"]',
+    'meta[name="author"]',
+    'meta[name="theme-color"]',
     'meta[name="twitter:card"]',
     'meta[name="twitter:title"]',
     'meta[name="twitter:description"]',
     'meta[name="twitter:image"]',
+    'meta[name="twitter:image:alt"]',
+    'meta[property="og:locale"]',
+    'meta[property="og:site_name"]',
     'meta[property="og:title"]',
     'meta[property="og:description"]',
     'meta[property="og:type"]',
-    'meta[property="og:image"]'
+    'meta[property="og:image"]',
+    'meta[property="og:image:alt"]'
   ].forEach((selector) => syncMeta(doc, selector));
   syncMeta(doc, 'link[rel="canonical"]', 'href');
+  syncStructuredData(doc);
   const ogUrl = document.querySelector('meta[property="og:url"]');
   if (ogUrl) ogUrl.setAttribute('content', new URL(url, window.location.origin).href);
 }

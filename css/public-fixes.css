@@ -268,3 +268,9 @@ body.dark-mode.page-filmographie .table-empty {
     box-shadow: none !important;
   }
 }
+
+/* SEO / accessibilité galerie : conserve la mise en page après ajout des captions crawlables. */
+.gallery-item figure {
+  margin: 0;
+  padding: 0;
+}

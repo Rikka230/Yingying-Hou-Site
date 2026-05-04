@@ -2,8 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Administration — Yingying HOU</title>
+  <title>Administration privée — Yingying HOU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="description" content="Espace privé d’administration du site Yingying HOU." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -367,14 +369,30 @@
       if(!editPhotoId) document.getElementById('photo-ordre').value = lastO + 1;
     }
 
-    // --- ENVOI DE LA PHOTO (AVEC COMPRESSION ET CATÉGORIE) ---
+    function makeSeoSlug(value) {
+      return String(value || '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 70) || 'yingying-hou-photo';
+    }
+
+    function buildPhotoSeoText(caption, categorie) {
+      const base = String(caption || '').trim();
+      if (base) return /yingying|ying|hou/i.test(base) ? base : `${base} - Yingying HOU`;
+      return `${categorie || 'Photo'} de Yingying HOU`;
+    }
+
+    // --- ENVOI DE LA PHOTO (AVEC COMPRESSION, CATÉGORIE ET CHAMPS SEO) ---
     document.getElementById('form-photo').onsubmit = async (e) => {
       e.preventDefault(); 
       const btn = document.getElementById('btn-photo-submit'), 
             file = fileInput.files[0], 
             caption = document.getElementById('photo-caption').value, 
             ordreS = Number(document.getElementById('photo-ordre').value),
-            categorie = document.getElementById('photo-categorie').value;
+            categorie = document.getElementById('photo-categorie').value,
+            alt = buildPhotoSeoText(caption, categorie);
 
       try {
         btn.disabled = true; 
@@ -383,7 +401,7 @@
           btn.textContent = "Mise à jour...";
           const snap = await getDocs(collection(db, "galerie")); let current = null; snap.forEach(d => { if(d.id === editPhotoId) current = d.data(); });
           const adj = (ordreS < current.ordre) ? -0.5 : 0.5;
-          await updateDoc(doc(db, "galerie", editPhotoId), { caption, categorie, ordre: ordreS + adj });
+          await updateDoc(doc(db, "galerie", editPhotoId), { caption, categorie, alt, seoTitle: alt, ordre: ordreS + adj });
         } else {
           if(!file) throw new Error("Veuillez sélectionner une image.");
           
@@ -391,11 +409,12 @@
           const compressedFile = await compresserImage(file, 1920, 0.82); 
           
           btn.textContent = "Envoi...";
-          const sRef = ref(storage, `galerie/${Date.now()}_${compressedFile.name}`); 
+          const seoName = `${makeSeoSlug(alt)}-${Date.now()}.jpg`;
+          const sRef = ref(storage, `galerie/${seoName}`); 
           await uploadBytes(sRef, compressedFile);
           const url = await getDownloadURL(sRef); 
           
-          await addDoc(collection(db, "galerie"), { url, caption, categorie, ordre: ordreS + 0.5 });
+          await addDoc(collection(db, "galerie"), { url, caption, categorie, alt, seoTitle: alt, ordre: ordreS + 0.5 });
         }
         
         await compactP(); document.getElementById('photo-success').style.display='block'; 

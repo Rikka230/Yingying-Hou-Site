@@ -13,6 +13,8 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const SITE_URL = 'https://kukyying.netlify.app';
+const PERSON_SCHEMA_ID = `${SITE_URL}/#person`;
 let pageController = null;
 let scrollController = null;
 const galleryStore = { photos: null, fetchPromise: null, preloaded: new Set() };
@@ -38,6 +40,57 @@ function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[char]));
+}
+
+function absoluteUrl(value) {
+  try {
+    return new URL(value || '/', SITE_URL).href;
+  } catch (_) {
+    return SITE_URL + '/';
+  }
+}
+
+function cleanText(value, fallback = '') {
+  return String(value || fallback)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function upsertJsonLd(id, payload) {
+  if (!id || !payload) return;
+  document.getElementById(id)?.remove();
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = id;
+  script.dataset.seo = 'dynamic';
+  script.textContent = JSON.stringify(payload);
+  document.head.appendChild(script);
+}
+
+function buildPhotoAlt(photo, index = 0) {
+  const explicit = cleanText(photo?.alt || photo?.seoTitle);
+  const caption = cleanText(photo?.caption);
+  const category = cleanText(photo?.categorie, 'photo');
+  const base = explicit || caption;
+  if (base) {
+    return /yingying|ying|hou/i.test(base) ? base : `${base} — Yingying HOU`;
+  }
+  return `${category} de Yingying HOU, actrice chinoise basée à Paris et Marseille`;
+}
+
+function imageObject(photo, index = 0) {
+  const alt = buildPhotoAlt(photo, index);
+  return {
+    '@type': 'ImageObject',
+    position: index + 1,
+    url: absoluteUrl(photo?.url),
+    contentUrl: absoluteUrl(photo?.url),
+    name: alt,
+    caption: alt,
+    description: alt,
+    creator: { '@id': PERSON_SCHEMA_ID },
+    creditText: 'Yingying HOU'
+  };
 }
 
 function normalizeCategory(value) {
@@ -85,6 +138,38 @@ async function getRoles() {
   const roles = [];
   snapshot.forEach((item) => roles.push({ id: item.id, ...item.data(), type: normalizeCategory(item.data().type) }));
   return sortRolesForDisplay(roles);
+}
+
+function roleStructuredItem(role, index = 0) {
+  const project = cleanText(role?.projet, 'Projet');
+  const character = cleanText(role?.titre);
+  const director = cleanText(role?.realisateur);
+  const year = cleanText(role?.annee);
+  const category = normalizeCategory(role?.type);
+  const item = {
+    '@type': 'CreativeWork',
+    name: project,
+    genre: category,
+    contributor: { '@id': PERSON_SCHEMA_ID }
+  };
+  if (character) item.characterName = character;
+  if (director && director !== '-') item.director = { '@type': 'Person', name: director };
+  if (year) item.datePublished = String(year);
+  if (role?.lien) item.url = absoluteUrl(role.lien);
+  return { '@type': 'ListItem', position: index + 1, item };
+}
+
+function updateRolesJsonLd(roles, id, listId, name) {
+  const safeRoles = Array.isArray(roles) ? roles : [];
+  if (!safeRoles.length) return;
+  upsertJsonLd(id, {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    '@id': listId,
+    name,
+    numberOfItems: safeRoles.length,
+    itemListElement: safeRoles.map(roleStructuredItem)
+  });
 }
 
 function initCommon() {
@@ -154,6 +239,7 @@ async function initHomeRoles() {
 
   try {
     state.roles = await getRoles();
+    updateRolesJsonLd(state.roles, 'seo-home-roles-jsonld', `${SITE_URL}/#latest-roles`, 'Derniers rôles de Yingying HOU');
     render();
     listen(prev, 'click', () => { if (state.page > 0) { state.page -= 1; render(); } });
     listen(next, 'click', () => { if ((state.page + 1) * state.perPage < state.roles.length) { state.page += 1; render(); } });
@@ -315,6 +401,7 @@ async function initFilmography() {
 
   try {
     roles = await getRoles();
+    updateRolesJsonLd(roles, 'seo-filmography-jsonld', `${SITE_URL}/filmographie.html#filmographie`, 'Filmographie de Yingying HOU');
     render();
     listen(filter, 'change', render);
     listen(sort, 'change', render);
@@ -369,6 +456,23 @@ function preloadGalleryImage(url) {
   });
 }
 
+function updateGalleryJsonLd(photos) {
+  const safePhotos = Array.isArray(photos) ? photos.filter((photo) => photo?.url) : [];
+  if (!safePhotos.length) return;
+  upsertJsonLd('seo-gallery-images-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'ImageGallery',
+    '@id': `${SITE_URL}/galerie.html#gallery-firebase`,
+    url: `${SITE_URL}/galerie.html`,
+    name: 'Galerie photo officielle de Yingying HOU',
+    description: 'Images Firebase référencées de la galerie officielle de Yingying HOU : portraits, profils, tournages, presse et poses.',
+    about: { '@id': PERSON_SCHEMA_ID },
+    numberOfItems: safePhotos.length,
+    image: safePhotos.map(imageObject),
+    associatedMedia: safePhotos.map(imageObject)
+  });
+}
+
 async function initGallery() {
   const grid = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
@@ -420,7 +524,7 @@ async function initGallery() {
     figure.className = `photo-viewer__card ${stateClass}`.trim();
     const img = document.createElement('img');
     img.src = photo?.url || '';
-    img.alt = photo?.caption || 'Photo de Yingying HOU';
+    img.alt = buildPhotoAlt(photo, currentIndex);
     img.draggable = false;
     figure.appendChild(img);
     return figure;
@@ -518,11 +622,20 @@ async function initGallery() {
     if (!shownPhotos.length) {
       grid.innerHTML = '<p class="loading-line">Aucune photo dans cette catégorie.</p>';
     } else {
-      grid.innerHTML = shownPhotos.map((photo, index) => `
-        <a href="${escapeHtml(photo.url)}" class="gallery-item" data-index="${index}" style="--stagger:${Math.min(index, 18) * 38}ms">
-          <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.caption || 'Photo de Yingying HOU')}" loading="eager" decoding="async" />
+      grid.innerHTML = shownPhotos.map((photo, index) => {
+        const alt = buildPhotoAlt(photo, index);
+        const imageUrl = escapeHtml(photo.url);
+        const loading = index < 6 ? 'eager' : 'lazy';
+        const priority = index === 0 ? ' fetchpriority="high"' : '';
+        return `
+        <a href="${imageUrl}" class="gallery-item" data-index="${index}" title="${escapeHtml(alt)}" aria-label="Agrandir : ${escapeHtml(alt)}" style="--stagger:${Math.min(index, 18) * 38}ms">
+          <figure>
+            <img src="${imageUrl}" alt="${escapeHtml(alt)}" loading="${loading}" decoding="async"${priority} />
+            <figcaption class="sr-only">${escapeHtml(alt)}</figcaption>
+          </figure>
           <div class="item-overlay"><span>Agrandir</span></div>
-        </a>`).join('');
+        </a>`;
+      }).join('');
     }
 
     grid.classList.remove('is-loading');
@@ -562,6 +675,7 @@ async function initGallery() {
     }
     allPhotos = await loadGalleryPhotos(currentSignal);
     if (!isAlive()) return;
+    updateGalleryJsonLd(allPhotos);
     await renderGrid('Tout');
   } catch (error) {
     if (currentSignal?.aborted || !isAlive()) return;

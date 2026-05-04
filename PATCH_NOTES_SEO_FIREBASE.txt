@@ -1,0 +1,17 @@
+Patch SEO Firebase — 2026-05-04
+
+Objectif : renforcer l’indexation du site public Yingying HOU sans toucher à la logique visuelle validée ni casser PJAX.
+
+Inclus :
+- Canonical, title, meta description, robots, Open Graph et Twitter Card corrigés par page publique.
+- JSON-LD statique : WebSite, Person, WebPage/CollectionPage, BreadcrumbList, ImageGallery.
+- JSON-LD dynamique Firebase : filmographie et galerie injectées après lecture Firestore.
+- Galerie Firebase : liens image directs, alt renforcés, figcaption accessible, title/aria-label, lazy loading après les premières images.
+- Admin galerie : nouveaux uploads Firebase nommés avec slug SEO basé sur la légende/catégorie + champs alt/seoTitle sauvegardés.
+- PJAX : synchronisation des metas robots, social tags et JSON-LD à chaque changement de page.
+- robots.txt corrigé avec domaine réel + blocage admin/CV privés.
+- sitemap.xml corrigé avec domaine réel + images principales.
+- sitemap-images.xml ajouté pour les images statiques locales.
+- _headers Netlify ajouté pour les bons Content-Type sitemap/robots et noindex serveur sur les pages privées.
+
+Note : les images Firebase déjà en base ne peuvent pas être listées dans un sitemap XML statique sans export Firestore de leurs URLs. Elles sont désormais référencées côté page via <img>, <a>, alt/figcaption et JSON-LD dynamique. Pour une indexation image maximale, l’étape ultime serait d’exporter la collection Firestore "galerie" et de générer un sitemap Firebase statique.
