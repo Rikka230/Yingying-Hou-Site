@@ -1,0 +1,51 @@
+name: Export Firebase images
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - public-reagencement-pjax
+    paths:
+      - scripts/export-firebase-images.mjs
+      - package.json
+      - .github/workflows/export-firebase-images.yml
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  export-firebase-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: public-reagencement-pjax
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Export Firebase gallery images
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://yingying-hou.netlify.app' }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: npm run export:firebase-images
+
+      - name: Commit exported files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/firebase-images.json sitemap-firebase-images.xml
+          if git diff --cached --quiet; then
+            echo "No Firebase image export changes."
+          else
+            git commit -m "Export Firebase gallery images"
+            git push
+          fi
