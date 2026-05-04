@@ -3,13 +3,13 @@ import { mkdir, writeFile } from 'node:fs/promises';
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyD_Yvi_u5WixeTxuuEORgwFtxksAm7OUY4',
   authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'kukyying-f1c95.firebaseapp.com',
-  projectId: process.env.FIREBASE_PROJECT_ID || 'kukyying-f1c95',
+  projectId: 'kukyying-f1c95',
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'kukyying-f1c95.firebasestorage.app',
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '681899915263',
+  messagingSenderId: '681899915263',
   appId: process.env.FIREBASE_APP_ID || '1:681899915263:web:4d64dcf4a9c57748ead9ca',
 };
 
-const SITE_URL = normalizeSiteUrl(process.env.SITE_URL || 'https://yingying-hou.netlify.app');
+const SITE_URL = normalizeSiteUrl(process.env.SITE_URL || 'https://www.yingyinghou.fr');
 const GALLERY_URL = `${SITE_URL}/galerie.html`;
 const COLLECTION_NAME = process.env.FIREBASE_GALLERY_COLLECTION || 'galerie';
 const OUTPUT_JSON = process.env.FIREBASE_IMAGES_JSON || 'data/firebase-images.json';
@@ -18,7 +18,7 @@ const OUTPUT_SITEMAP = process.env.FIREBASE_IMAGES_SITEMAP || 'sitemap-firebase-
 function normalizeSiteUrl(value) {
   return String(value || '')
     .trim()
-    .replace(/\/+$/, '') || 'https://yingying-hou.netlify.app';
+    .replace(/\/+$/, '') || 'https://www.yingyinghou.fr';
 }
 
 function toPlainFirestoreValue(value) {
@@ -58,7 +58,7 @@ function normalizeImageDocument(doc, index) {
   return {
     id: doc.id || plain.id || `firebase-image-${index + 1}`,
     url,
-    pageUrl: cleanText(plain.pageUrl || plain.pageURL || GALLERY_URL),
+    pageUrl: cleanText(plain.pageUrl || plain.pageURL || GALLERY_URL).replace('https://yingying-hou.netlify.app', SITE_URL),
     title: caption || `Yingying HOU - photo ${index + 1}`,
     caption: caption || `Photo de Yingying HOU`,
     alt: makeAlt(plain, index),
