@@ -34,7 +34,7 @@ jobs:
 
       - name: Export Firebase gallery images
         env:
-          SITE_URL: ${{ vars.SITE_URL || 'https://yingying-hou.netlify.app' }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.yingyinghou.fr' }}
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         run: npm run export:firebase-images
 
