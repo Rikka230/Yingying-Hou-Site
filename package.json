@@ -1,0 +1,12 @@
+{
+  "name": "yingying-hou-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export:firebase-images": "node scripts/export-firebase-images.mjs"
+  },
+  "dependencies": {
+    "firebase": "10.8.1",
+    "firebase-admin": "12.7.0"
+  }
+}
