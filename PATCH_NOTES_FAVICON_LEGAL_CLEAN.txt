@@ -1,0 +1,1 @@
+Patch propre basé sur la couche SEO validée : favicon HOU complet, manifest, liens favicon dans les pages publiques, mentions légales enrichies, lien NOCX WEB vers https://nocxweb.fr, domaines SEO remplacés par https://www.yingyinghou.fr dans HTML/robots/sitemaps. Aucun CSS, JS ou layout modifié.

@@ -15,3 +15,15 @@
 
 /cv-photo.html
   X-Robots-Tag: noindex, nofollow, noarchive
+
+/sitemap-firebase-images.xml
+  Content-Type: application/xml; charset=utf-8
+
+/favicon.ico
+  Content-Type: image/x-icon
+
+/favicon.svg
+  Content-Type: image/svg+xml; charset=utf-8
+
+/site.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8

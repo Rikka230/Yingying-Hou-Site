@@ -5,5 +5,6 @@ Disallow: /admin.html
 Disallow: /cv-auto.html
 Disallow: /cv-photo.html
 
-Sitemap: https://kukyying.netlify.app/sitemap.xml
-Sitemap: https://kukyying.netlify.app/sitemap-images.xml
+Sitemap: https://www.yingyinghou.fr/sitemap.xml
+Sitemap: https://www.yingyinghou.fr/sitemap-images.xml
+Sitemap: https://www.yingyinghou.fr/sitemap-firebase-images.xml
