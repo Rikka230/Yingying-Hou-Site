@@ -1,0 +1,12 @@
+Patch ciblé main actuel.
+
+Fichier modifié : css/public-fixes.css
+
+Correctifs :
+- Filmographie mobile convertie en cartes empilées, sans débordement horizontal.
+- Filtres filmographie adaptés en colonne sur mobile.
+- Suppression du comportement table desktop qui écrasait le responsive mobile.
+- Masquage de la lightbox HTML héritée quand fermée pour supprimer la croix et les flèches visibles en bas de galerie.
+- Style de secours pour #lightbox.photo-viewer si l’ancien script l’ouvre encore.
+
+Aucun HTML, aucun JS, aucune image, aucun fichier SEO/Firebase modifié.
