@@ -224,7 +224,7 @@ async function initHomeRoles() {
   const next = document.getElementById('btn-next-roles');
   if (!list || !prev || !next) return;
 
-  const state = { page: 0, perPage: 7, roles: [] };
+  const state = { page: 0, perPage: 5, roles: [] };
 
   function render() {
     const start = state.page * state.perPage;

@@ -1,0 +1,1 @@
+Patch compact Derniers Rôles : 5 rôles par page, cartes plus denses, suppression du min-height 480px et alignement de la grille pour éviter le grand blanc sous Showreel.
