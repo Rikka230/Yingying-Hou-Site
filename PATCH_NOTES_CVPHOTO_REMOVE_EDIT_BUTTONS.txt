@@ -1,0 +1,2 @@
+Patch CV photo : supprime les gros boutons crayon/modifier hérités dans les lignes de rôles.
+Conserve uniquement les petits boutons ↑ ↓ × pour réordonner/supprimer.

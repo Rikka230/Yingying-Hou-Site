@@ -211,8 +211,18 @@
         .exp-tool-btn.exp-delete:hover { background: #cc2936; color: #fff; }
         .exp-order-controls { display: none !important; }
         .exp-item > .remove-exp-btn { display: none !important; }
+        .exp-item button:not(.exp-tool-btn),
         .exp-item .edit-btn,
-        .exp-item .action-btn:not(.exp-tool-btn) { display: none !important; }
+        .exp-item .action-btn:not(.exp-tool-btn),
+        .exp-item .exp-edit-btn,
+        .exp-item .edit-exp-btn,
+        .exp-item .edit-line-btn,
+        .exp-item [data-edit],
+        .exp-item [title*="Modifier"],
+        .exp-item [title*="modifier"],
+        .exp-item [aria-label*="Modifier"],
+        .exp-item [aria-label*="modifier"] { display: none !important; }
+        .exp-item .exp-toolbar button.exp-tool-btn { display: inline-flex !important; }
         body.is-exporting .exp-toolbar,
         body.is-exporting .exp-order-controls,
         body.is-exporting .remove-exp-btn { display: none !important; }
@@ -581,7 +591,8 @@
         function ensureExperienceTools(root = document) {
             root.querySelectorAll('.exp-item').forEach((item) => {
                 item.querySelectorAll('.exp-order-controls').forEach((node) => node.remove());
-                item.querySelectorAll('.edit-btn, .action-btn:not(.exp-tool-btn)').forEach((node) => node.remove());
+                item.querySelectorAll('.edit-btn, .action-btn:not(.exp-tool-btn), .exp-edit-btn, .edit-exp-btn, .edit-line-btn, [data-edit], [title*="Modifier"], [title*="modifier"], [aria-label*="Modifier"], [aria-label*="modifier"]').forEach((node) => node.remove());
+                item.querySelectorAll('button:not(.exp-tool-btn)').forEach((node) => node.remove());
 
                 let toolbar = item.querySelector('.exp-toolbar');
                 if (!toolbar) {
