@@ -1,0 +1,12 @@
+Patch CV photo - contrôles de lignes
+
+Fichier à remplacer :
+- cv-photo.html
+
+Corrections :
+- Les flèches haut/bas sont maintenant à l'intérieur de chaque ligne de rôle.
+- Les contrôles ne sortent plus du cadre et ne disparaissent plus quand la souris va dessus.
+- Suppression du gros bouton modifier inutile sur les lignes de rôle.
+- Le bouton supprimer est regroupé avec les flèches dans une petite barre stable.
+- Nettoyage automatique des anciens contrôles sauvegardés dans le projet Firebase.
+- Export PDF A4 paysage et compacité bloc infos conservés.

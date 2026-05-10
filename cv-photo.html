@@ -174,12 +174,48 @@
         .info-density-label { color: var(--ui-text); font-size: 11px; min-width: 58px; text-align: right; }
 
         /* --- Réorganisation des lignes du CV photo --- */
-        .exp-item { padding-right: 18px; }
-        .exp-order-controls { position: absolute; right: -18px; top: 18px; display: none; flex-direction: column; gap: 2px; z-index: 12; }
-        .exp-order-btn { width: 15px; height: 15px; border: none; border-radius: 4px; background: #222; color: #fff; font-size: 9px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
-        .exp-order-btn:hover { background: var(--accent-color); color: #111; }
-        .exp-item:hover .exp-order-controls { display: flex; }
-        body.is-exporting .exp-order-controls { display: none !important; }
+        .exp-item { padding-right: 44px; min-height: 18px; }
+        .exp-toolbar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            z-index: 12;
+            opacity: 0.36;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: auto;
+        }
+        .exp-item:hover .exp-toolbar,
+        .exp-item:focus-within .exp-toolbar,
+        .exp-toolbar:hover { opacity: 1; }
+        .exp-tool-btn {
+            width: 16px;
+            height: 16px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(17, 17, 17, 0.88);
+            color: #fff;
+            font-size: 9px;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        }
+        .exp-tool-btn:hover { background: var(--accent-color); color: #111; }
+        .exp-tool-btn.exp-delete { background: #ff4444; color: #fff; }
+        .exp-tool-btn.exp-delete:hover { background: #cc2936; color: #fff; }
+        .exp-order-controls { display: none !important; }
+        .exp-item > .remove-exp-btn { display: none !important; }
+        .exp-item .edit-btn,
+        .exp-item .action-btn:not(.exp-tool-btn) { display: none !important; }
+        body.is-exporting .exp-toolbar,
+        body.is-exporting .exp-order-controls,
+        body.is-exporting .remove-exp-btn { display: none !important; }
 
         /* --- GRILLE MODULAIRE --- */
         .photo-grid {
@@ -357,7 +393,11 @@
                                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle Principal</span> - <span class="exp-film" contenteditable="true">Titre du Film</span></div>
                                     <div class="exp-dir" contenteditable="true">Réal : J. Dupont</div>
                                 </div>
-                                <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
+                                <div class="no-print exp-toolbar" aria-label="Réordonner ou supprimer cette ligne">
+                                    <button class="exp-tool-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
+                                    <button class="exp-tool-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>
+                                    <button class="exp-tool-btn exp-delete" type="button" title="Supprimer" onclick="window.removeExperience(this)">×</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -540,17 +580,24 @@
 
         function ensureExperienceTools(root = document) {
             root.querySelectorAll('.exp-item').forEach((item) => {
-                if (!item.querySelector('.exp-order-controls')) {
-                    const controls = document.createElement('div');
-                    controls.className = 'no-print exp-order-controls';
-                    controls.setAttribute('aria-label', 'Réordonner cette ligne');
-                    controls.innerHTML = `
-                        <button class="exp-order-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
-                        <button class="exp-order-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>`;
-                    const remove = item.querySelector('.remove-exp-btn');
-                    if (remove) item.insertBefore(controls, remove);
-                    else item.appendChild(controls);
+                item.querySelectorAll('.exp-order-controls').forEach((node) => node.remove());
+                item.querySelectorAll('.edit-btn, .action-btn:not(.exp-tool-btn)').forEach((node) => node.remove());
+
+                let toolbar = item.querySelector('.exp-toolbar');
+                if (!toolbar) {
+                    toolbar = document.createElement('div');
+                    toolbar.className = 'no-print exp-toolbar';
+                    toolbar.setAttribute('aria-label', 'Réordonner ou supprimer cette ligne');
+                    item.appendChild(toolbar);
                 }
+
+                toolbar.innerHTML = `
+                    <button class="exp-tool-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
+                    <button class="exp-tool-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>
+                    <button class="exp-tool-btn exp-delete" type="button" title="Supprimer" onclick="window.removeExperience(this)">×</button>`;
+
+                const legacyRemove = item.querySelector(':scope > .remove-exp-btn');
+                if (legacyRemove) legacyRemove.remove();
             });
         }
 
@@ -820,11 +867,11 @@
                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle</span> - <span class="exp-film" contenteditable="true">Film</span></div>
                     <div class="exp-dir" contenteditable="true">Réal</div>
                 </div>
-                <div class="no-print exp-order-controls" aria-label="Réordonner cette ligne">
-                    <button class="exp-order-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
-                    <button class="exp-order-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>
+                <div class="no-print exp-toolbar" aria-label="Réordonner ou supprimer cette ligne">
+                    <button class="exp-tool-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
+                    <button class="exp-tool-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>
+                    <button class="exp-tool-btn exp-delete" type="button" title="Supprimer" onclick="window.removeExperience(this)">×</button>
                 </div>
-                <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
             `;
             document.getElementById('expList').prepend(div);
             ensureExperienceTools(div);
