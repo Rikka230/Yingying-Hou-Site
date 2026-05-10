@@ -230,8 +230,23 @@ async function initHomeRoles() {
     const start = state.page * state.perPage;
     const pageRoles = state.roles.slice(start, start + state.perPage);
     list.innerHTML = pageRoles.length ? pageRoles.map((role) => {
-      const year = role.annee ? ` ${escapeHtml(role.annee)}` : '';
-      return `<li><span class="role-heart">♥</span> ${escapeHtml(role.titre || 'Rôle')} — <b>${escapeHtml(role.projet || 'Projet')}</b> <span class="role-meta">(${escapeHtml(normalizeCategory(role.type))}${year})</span></li>`;
+      const project = escapeHtml(role.projet || 'Projet');
+      const character = escapeHtml(role.titre || 'Rôle');
+      const category = escapeHtml(normalizeCategory(role.type));
+      const year = role.annee ? ` · ${escapeHtml(role.annee)}` : '';
+      const director = cleanText(role.realisateur);
+      const directorHtml = director && director !== '-'
+        ? `<span class="home-role-separator">·</span><span class="home-role-director">Réal. : ${escapeHtml(director)}</span>`
+        : '';
+
+      return `<li class="home-role-item">
+        <span class="role-heart" aria-hidden="true">♥</span>
+        <span class="home-role-content">
+          <strong class="home-role-project">${project}</strong>
+          <span class="home-role-meta">${category}${year}</span>
+          <span class="home-role-credit"><span>Rôle : ${character}</span>${directorHtml}</span>
+        </span>
+      </li>`;
     }).join('') : '<li class="loading-line">Aucun rôle disponible.</li>';
     prev.disabled = state.page === 0;
     next.disabled = start + state.perPage >= state.roles.length;

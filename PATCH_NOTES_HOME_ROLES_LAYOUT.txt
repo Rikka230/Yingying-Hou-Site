@@ -1,0 +1,13 @@
+Patch ciblé accueil / Derniers Rôles.
+
+Fichiers à remplacer :
+- js/public-app.js
+- css/styles.css
+
+Changements :
+- affichage des derniers rôles en hiérarchie lisible ;
+- ligne 1 : titre du projet ;
+- ligne 2 : catégorie + année ;
+- ligne 3 : rôle + réalisateur ;
+- la catégorie n'est plus collée à la suite du titre ;
+- le réalisateur remplace l'ancienne sensation de liste compacte confuse.
