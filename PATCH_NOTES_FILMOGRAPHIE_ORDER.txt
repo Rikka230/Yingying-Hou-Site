@@ -1,0 +1,2 @@
+Patch: la page filmographie affiche par défaut le tri Année ↓ (rôles les plus récents en premier).
+Fichier à remplacer: filmographie.html
