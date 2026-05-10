@@ -97,13 +97,19 @@
   <option value="Série TV">Série TV</option>
   <option value="Court métrage">Court métrage</option>
   <option value="Long métrage">Long métrage</option>
+  <option value="Publicité">Publicité</option>
   <option value="Pub">Pub</option>
-  <option value="Réalisation">Réalisation</option>
+  <option value="Théâtre">Théâtre</option>
+  <option value="Documentaire">Documentaire</option>
+  <option value="Doublage">Doublage</option>
+  <option value="Voix off">Voix off</option>
   <option value="Doublage / Voix off">Doublage / Voix off</option>
+  <option value="Réalisation">Réalisation</option>
 </select>
                 </div>
                 <div class="form-group" style="flex:1;"><label>Année</label><input type="number" id="role-annee" value="2025"></div>
               </div>
+              <div class="form-group"><label>Position / Ordre d’affichage</label><input type="number" id="role-ordre" min="1" step="1" placeholder="1"></div>
               <div class="form-group"><label>Réalisateur</label><input type="text" id="role-real"></div>
               <div class="form-group"><label>Lien IMDb/Vidéo</label><input type="url" id="role-lien"></div>
               <div style="display: flex; gap: 10px;">
@@ -228,7 +234,7 @@
     let editVideoId = null;
     let videoPageActuelle = 1; const videoParPage = 5;
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
@@ -304,32 +310,123 @@
     }
 
     // --- ROLES ---
+    function roleHasOrder(role) {
+      const value = Number(role?.ordre);
+      return Number.isFinite(value) && value > 0;
+    }
+
+    function sortRolesAdmin(roles) {
+      return [...roles].sort((a, b) => {
+        const ao = Number(a.ordre);
+        const bo = Number(b.ordre);
+        const aHas = Number.isFinite(ao) && ao > 0;
+        const bHas = Number.isFinite(bo) && bo > 0;
+        if (aHas || bHas) return (aHas ? ao : 10000) - (bHas ? bo : 10000);
+        const years = (Number(b.annee) || 0) - (Number(a.annee) || 0);
+        if (years !== 0) return years;
+        return String(a.projet || '').localeCompare(String(b.projet || ''), 'fr', { sensitivity: 'base' });
+      });
+    }
+
+    async function compactRoles() {
+      const snap = await getDocs(collection(db, "role"));
+      let roles = [];
+      snap.forEach(d => roles.push({ id: d.id, ...d.data() }));
+      roles = sortRolesAdmin(roles);
+      const batch = writeBatch(db);
+      roles.forEach((role, index) => batch.update(doc(db, "role", role.id), { ordre: index + 1 }));
+      await batch.commit();
+    }
+
     async function loadRoles() {
-      const q = query(collection(db, "role"), orderBy("annee", "desc")), snap = await getDocs(q), list = document.getElementById('list-roles');
-      let roles = []; snap.forEach(d => roles.push({id: d.id, ...d.data()}));
-      const start = (rolePageActuelle - 1) * roleParPage, items = roles.slice(start, start + roleParPage);
+      const snap = await getDocs(collection(db, "role"));
+      const list = document.getElementById('list-roles');
+      let roles = [];
+      snap.forEach(d => roles.push({ id: d.id, ...d.data() }));
+      roles = sortRolesAdmin(roles);
+
+      const lastOrder = roles.reduce((max, role, index) => {
+        const value = Number(role.ordre);
+        return Math.max(max, Number.isFinite(value) && value > 0 ? value : index + 1);
+      }, 0);
+      if (!editRoleId) document.getElementById('role-ordre').value = lastOrder + 1;
+
+      const start = (rolePageActuelle - 1) * roleParPage;
+      const items = roles.slice(start, start + roleParPage);
       list.innerHTML = "";
-      items.forEach(data => {
-        const li = document.createElement('li'); li.className = "admin-list-item";
-        li.innerHTML = `<div><strong>${data.projet}</strong></div><div class="action-btns"><button class="ed-r">✏️</button><button class="del-r">🗑️</button></div>`;
+      items.forEach((data, localIndex) => {
+        const displayOrder = roleHasOrder(data) ? Number(data.ordre) : start + localIndex + 1;
+        const li = document.createElement('li');
+        li.className = "admin-list-item";
+        li.innerHTML = `<div><strong>#${displayOrder} — ${data.projet || 'Projet sans titre'}</strong><br><small>${data.annee || ''} · ${data.type || 'Projet'} · ${data.titre || ''}</small></div><div class="action-btns"><button class="ed-r">✏️</button><button class="del-r">🗑️</button></div>`;
         li.querySelector('.ed-r').onclick = () => {
-          editRoleId = data.id; document.getElementById('role-title').textContent = "Modifier Rôle"; document.getElementById('btn-role-cancel').classList.remove('hidden');
-          document.getElementById('role-projet').value = data.projet; document.getElementById('role-titre').value = data.titre;
-          document.getElementById('role-type').value = data.type; document.getElementById('role-annee').value = data.annee;
-          document.getElementById('role-real').value = data.realisateur || ''; document.getElementById('role-lien').value = data.lien || '';
-          window.scrollTo({top:0, behavior:'smooth'});
+          editRoleId = data.id;
+          document.getElementById('role-title').textContent = "Modifier Rôle";
+          document.getElementById('btn-role-cancel').classList.remove('hidden');
+          document.getElementById('role-projet').value = data.projet || '';
+          document.getElementById('role-titre').value = data.titre || '';
+          document.getElementById('role-type').value = data.type || 'Série TV';
+          document.getElementById('role-annee').value = data.annee || new Date().getFullYear();
+          document.getElementById('role-ordre').value = displayOrder;
+          document.getElementById('role-real').value = data.realisateur || '';
+          document.getElementById('role-lien').value = data.lien || '';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         };
-        li.querySelector('.del-r').onclick = async () => { if(confirm("Supprimer?")){ await deleteDoc(doc(db,"role",data.id)); loadRoles(); } };
+        li.querySelector('.del-r').onclick = async () => {
+          if (confirm("Supprimer?")) {
+            await deleteDoc(doc(db, "role", data.id));
+            await compactRoles();
+            loadRoles();
+          }
+        };
         list.appendChild(li);
       });
       renderPagination(roles.length, roleParPage, rolePageActuelle, 'role-pagination', (p) => { rolePageActuelle = p; loadRoles(); });
     }
+
     document.getElementById('form-role').onsubmit = async (e) => {
-      e.preventDefault(); const btn = document.getElementById('btn-role-submit');
-      const data = { projet: document.getElementById('role-projet').value, titre: document.getElementById('role-titre').value, type: document.getElementById('role-type').value, annee: Number(document.getElementById('role-annee').value), realisateur: document.getElementById('role-real').value, lien: document.getElementById('role-lien').value };
-      try { btn.disabled = true; if(editRoleId) await updateDoc(doc(db,"role",editRoleId), data); else await addDoc(collection(db,"role"), data); document.getElementById('role-success').style.display='block'; setTimeout(()=> { document.getElementById('role-success').style.display='none'; resetR(); loadRoles(); }, 1500); } finally { btn.disabled = false; }
+      e.preventDefault();
+      const btn = document.getElementById('btn-role-submit');
+      const ordreS = Math.max(1, Number(document.getElementById('role-ordre').value) || 1);
+      const data = {
+        projet: document.getElementById('role-projet').value,
+        titre: document.getElementById('role-titre').value,
+        type: document.getElementById('role-type').value,
+        annee: Number(document.getElementById('role-annee').value),
+        ordre: ordreS,
+        realisateur: document.getElementById('role-real').value,
+        lien: document.getElementById('role-lien').value
+      };
+      try {
+        btn.disabled = true;
+        if (editRoleId) {
+          const currentSnap = await getDoc(doc(db, "role", editRoleId));
+          const currentOrder = Number(currentSnap.data()?.ordre) || ordreS;
+          data.ordre = ordreS > currentOrder ? ordreS + 0.5 : ordreS - 0.5;
+          await updateDoc(doc(db, "role", editRoleId), data);
+        } else {
+          data.ordre = ordreS - 0.5;
+          await addDoc(collection(db, "role"), data);
+        }
+        await compactRoles();
+        document.getElementById('role-success').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('role-success').style.display = 'none';
+          resetR();
+          loadRoles();
+        }, 900);
+      } finally {
+        btn.disabled = false;
+      }
     };
-    function resetR() { editRoleId=null; document.getElementById('form-role').reset(); document.getElementById('btn-role-cancel').classList.add('hidden'); document.getElementById('role-title').textContent="Ajouter un Rôle"; }
+
+    function resetR() {
+      editRoleId = null;
+      document.getElementById('form-role').reset();
+      document.getElementById('btn-role-cancel').classList.add('hidden');
+      document.getElementById('role-title').textContent = "Ajouter un Rôle";
+      loadRoles();
+    }
     document.getElementById('btn-role-cancel').onclick = resetR;
 
     // --- PHOTOS ---

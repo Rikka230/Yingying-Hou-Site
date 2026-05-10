@@ -1,0 +1,12 @@
+Patch propre depuis la version CV restaurée.
+
+Fichiers inclus :
+- cv-auto.html : conserve la mise en page compacte/densité du CV, publie maintenant presskit/cv_public.pdf.
+- cv-photo.html : publie maintenant presskit/zcard_public.pdf.
+- index.html : les boutons Press kit téléchargent en .pdf.
+- admin.html : retour du champ Position / Ordre d’affichage pour les rôles, tri admin par ordre, compactage automatique, catégories restaurées.
+
+Après upload :
+1. Ouvrir /admin.html > Rôles et régler les positions si besoin.
+2. Ouvrir /cv-auto.html puis Sauvegarder & Publier PDF.
+3. Ouvrir /cv-photo.html puis Sauvegarder & Publier sur le site.

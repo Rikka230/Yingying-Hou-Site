@@ -8,6 +8,7 @@
     <title>Générateur Z-Card privé — Yingying HOU</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -707,6 +708,17 @@
         window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
+
+
+        function createPdfDataUrlFromImage(dataUrl, width, height, orientation = 'landscape') {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                throw new Error('jsPDF n’est pas chargé.');
+            }
+            const pdf = new window.jspdf.jsPDF({ orientation, unit: 'px', format: [width, height], compress: true });
+            pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+            return pdf.output('datauristring');
+        }
+
         // --- SAUVEGARDE & GARBAGE COLLECTOR ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
@@ -718,7 +730,7 @@
             try {
                 await prepareImagesForExport();
 
-                btn.innerHTML = "⏳ Création du Press Kit HD...";
+                btn.innerHTML = "⏳ Création du PDF HD...";
                 const cvPage = document.getElementById('cvPage');
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
@@ -727,9 +739,10 @@
                     style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
-                btn.innerHTML = "⏳ Envoi de l'image finale...";
-                const publicSRef = ref(storage, `presskit/zcard_public.png`);
-                await uploadString(publicSRef, dataUrl, 'data_url');
+                btn.innerHTML = "⏳ Envoi du PDF final...";
+                const pdfDataUrl = createPdfDataUrlFromImage(dataUrl, 1123, 794, 'landscape');
+                const publicSRef = ref(storage, `presskit/zcard_public.pdf`);
+                await uploadString(publicSRef, pdfDataUrl, 'data_url', { contentType: 'application/pdf' });
                 const publicUrl = await getDownloadURL(publicSRef);
 
                 btn.innerHTML = "⏳ Sauvegarde des données...";
@@ -780,7 +793,7 @@
                     console.warn("Le nettoyage automatique a été ignoré (Sans gravité) :", cleanupError);
                 }
                 
-                alert("✅ Z-Card publiée avec succès ! Le serveur a été nettoyé.");
+                alert("✅ Z-Card PDF publiée avec succès ! Le serveur a été nettoyé.");
                 
             } catch(e) { 
                 console.error("Erreur détaillée :", e);

@@ -8,6 +8,7 @@
     <title>Générateur CV privé — Yingying HOU</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -276,7 +277,7 @@
 
         <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Charger CV</button>
         <input type="file" id="importProject" style="display:none" accept=".json">
-        <button class="btn-action" id="saveProject">💾 Sauvegarder & Publier</button>
+        <button class="btn-action" id="saveProject">💾 Sauvegarder & Publier PDF</button>
         
         <button class="btn-action" onclick="window.print()" style="background: #2563eb; border-color: #1d4ed8; color: white; margin-top: 10px;">
             📄 Exporter PDF (ATS Friendly)
@@ -787,11 +788,22 @@ Télévision : GLAM SQUAD — assistante star chinoise</p>
             checkOverflow(); 
         };
 
+
+
+        function createPdfDataUrlFromImage(dataUrl, width, height, orientation = 'portrait') {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                throw new Error('jsPDF n’est pas chargé.');
+            }
+            const pdf = new window.jspdf.jsPDF({ orientation, unit: 'px', format: [width, height], compress: true });
+            pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+            return pdf.output('datauristring');
+        }
+
         // --- SAUVEGARDE & PUBLICATION ---
         document.getElementById('saveProject').addEventListener('click', async () => {
             const btn = document.getElementById('saveProject');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ Génération & Mise en ligne...";
+            btn.innerHTML = "⏳ Génération du PDF & mise en ligne...";
             btn.disabled = true;
             document.body.classList.add('is-exporting');
             await prepareImageForExport();
@@ -809,8 +821,9 @@ Télévision : GLAM SQUAD — assistante star chinoise</p>
                     style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
-                const sRef = ref(storage, `presskit/cv_public.png`);
-                await uploadString(sRef, dataUrl, 'data_url');
+                const pdfDataUrl = createPdfDataUrlFromImage(dataUrl, 794, 1123, 'portrait');
+                const sRef = ref(storage, `presskit/cv_public.pdf`);
+                await uploadString(sRef, pdfDataUrl, 'data_url', { contentType: 'application/pdf' });
                 const publicUrl = await getDownloadURL(sRef);
 
                 const projectData = {
@@ -822,7 +835,7 @@ Télévision : GLAM SQUAD — assistante star chinoise</p>
                 };
                 await setDoc(doc(db, "site_data", "cv_project"), projectData);
                 
-                alert("✅ CV Bento mis en ligne avec succès !");
+                alert("✅ CV PDF mis en ligne avec succès !");
             } catch(e) {
                 console.error("Erreur de sauvegarde :", e); 
                 alert("Erreur lors de la sauvegarde. Vérifiez votre connexion.");
