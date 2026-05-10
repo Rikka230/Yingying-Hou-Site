@@ -1,0 +1,1 @@
+Patch ciblé cv-auto.html : adaptation CV acteur pour les rôles/expériences, titre “Rôles & expériences”, densité automatique, ajout de rôle plus adapté et meilleure tenue de “Intermittente du spectacle”.
