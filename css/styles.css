@@ -2458,3 +2458,28 @@ html.is-pjax-navigating .public-topbar {
     min-height: 0 !important;
   }
 }
+
+
+/* =========================================
+   PATCH HOME ROLES 6 ITEMS
+   Compacte légèrement les cartes pour afficher 6 derniers rôles sans regonfler la grille.
+========================================= */
+@media (min-width: 901px) {
+  .bento-roles .home-role-item {
+    padding: 8px 12px !important;
+    min-height: 0 !important;
+  }
+
+  .bento-roles .home-role-project {
+    font-size: .84rem !important;
+  }
+
+  .bento-roles .home-role-meta {
+    font-size: .72rem !important;
+  }
+
+  .bento-roles .home-role-credit {
+    font-size: .76rem !important;
+    line-height: 1.14 !important;
+  }
+}

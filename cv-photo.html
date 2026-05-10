@@ -139,6 +139,31 @@
         .text-column.has-annex .exp-header h3 { font-size: 0.7rem; }
         .text-column.has-annex .annex-block .details { font-size: 0.6rem; line-height: 1.3; }
 
+
+        /* --- DENSITÉ ACTEUR : garde beaucoup de rôles dans la colonne sans débordement --- */
+        .text-content-wrapper { gap: 7px; }
+        .nom-complet { font-size: 1.55rem; }
+        .contact { font-size: 0.68rem; line-height: 1.25; }
+        .details { font-size: 0.62rem; line-height: 1.28; padding: 6px 7px; }
+        .experiences-container { gap: 4px; }
+        .exp-header { padding-bottom: 3px; }
+        .exp-header h3 { font-size: 0.66rem; letter-spacing: .06em; }
+        .exp-list { gap: 3px; }
+        .exp-item { gap: 5px; font-size: 0.58rem; line-height: 1.16; }
+        .exp-year { width: 28px; padding-top: 0; }
+        .exp-content { gap: 1px; }
+        .exp-cat { font-size: 0.46rem; padding: 1px 4px; line-height: 1.2; }
+        .exp-dir { font-size: 0.52rem; line-height: 1.14; }
+        .exp-role-film { line-height: 1.14; }
+        .text-column.has-annex .text-content-wrapper { gap: 5px; }
+        .text-column.has-annex .nom-complet { font-size: 1.38rem; }
+        .text-column.has-annex .contact { font-size: 0.62rem; }
+        .text-column.has-annex .details { font-size: 0.56rem; line-height: 1.18; padding: 5px 6px; }
+        .text-column.has-annex .exp-list { gap: 2px; }
+        .text-column.has-annex .exp-item { font-size: 0.52rem; line-height: 1.12; }
+        .text-column.has-annex .exp-cat { font-size: 0.42rem; padding: 1px 3px; }
+        .text-column.has-annex .exp-dir { font-size: 0.48rem; }
+
         /* --- GRILLE MODULAIRE --- */
         .photo-grid {
             width: 62%; height: 100%; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr);
@@ -261,7 +286,7 @@
 
         <div class="bottom-actions">
             <div class="control-header"><label>Mise en ligne & Exports</label></div>
-            <button class="btn-action" id="saveProject" style="background: #2563eb; border-color: #1d4ed8; color: white;">💾 Sauvegarder & Publier sur le site</button>
+            <button class="btn-action" id="saveProject" style="background: #2563eb; border-color: #1d4ed8; color: white;">💾 Sauvegarder & Publier PDF</button>
             <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Importer une sauvegarde (.json)</button>
             <input type="file" id="importProject" style="display:none" accept=".json">
             <button class="btn-action" id="btnExportImg" onclick="window.exportImage()" style="margin-top: 5px;">
@@ -709,13 +734,17 @@
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
 
-
-        function createPdfDataUrlFromImage(dataUrl, width, height, orientation = 'landscape') {
+        function createA4LandscapePdfDataUrl(dataUrl) {
             if (!window.jspdf || !window.jspdf.jsPDF) {
-                throw new Error('jsPDF n’est pas chargé.');
+                throw new Error('jsPDF non chargé. Rechargez la page puis réessayez.');
             }
-            const pdf = new window.jspdf.jsPDF({ orientation, unit: 'px', format: [width, height], compress: true });
-            pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+            const pdf = new window.jspdf.jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+            pdf.addImage(dataUrl, 'PNG', 0, 0, 297, 210, undefined, 'FAST');
             return pdf.output('datauristring');
         }
 
@@ -730,7 +759,7 @@
             try {
                 await prepareImagesForExport();
 
-                btn.innerHTML = "⏳ Création du PDF HD...";
+                btn.innerHTML = "⏳ Création du Press Kit HD...";
                 const cvPage = document.getElementById('cvPage');
                 const dataUrl = await domtoimage.toPng(cvPage, { 
                     quality: 1, 
@@ -739,8 +768,10 @@
                     style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
+                btn.innerHTML = "⏳ Création du PDF A4...";
+                const pdfDataUrl = createA4LandscapePdfDataUrl(dataUrl);
+
                 btn.innerHTML = "⏳ Envoi du PDF final...";
-                const pdfDataUrl = createPdfDataUrlFromImage(dataUrl, 1123, 794, 'landscape');
                 const publicSRef = ref(storage, `presskit/zcard_public.pdf`);
                 await uploadString(publicSRef, pdfDataUrl, 'data_url', { contentType: 'application/pdf' });
                 const publicUrl = await getDownloadURL(publicSRef);
@@ -793,7 +824,7 @@
                     console.warn("Le nettoyage automatique a été ignoré (Sans gravité) :", cleanupError);
                 }
                 
-                alert("✅ Z-Card PDF publiée avec succès ! Le serveur a été nettoyé.");
+                alert("✅ Z-Card publiée avec succès ! Le serveur a été nettoyé.");
                 
             } catch(e) { 
                 console.error("Erreur détaillée :", e);

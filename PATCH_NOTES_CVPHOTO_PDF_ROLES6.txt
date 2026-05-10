@@ -1,0 +1,2 @@
+Patch ciblé : cv-photo PDF A4 paysage standard, densité texte compacte restaurée, accueil Derniers Rôles à 6 blocs.
+Fichiers à remplacer : cv-photo.html, js/public-app.js, css/styles.css.
