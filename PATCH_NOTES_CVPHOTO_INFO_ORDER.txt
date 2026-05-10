@@ -1,0 +1,6 @@
+Patch CV photo :
+- ajoute un réglage Compacité bloc infos (Large / Compact / Très compact / Micro) ;
+- auto-compacte le bloc infos si la colonne texte déborde ;
+- ajoute des boutons ↑ / ↓ sur chaque ligne de rôle du CV photo ;
+- conserve l'export PDF A4 paysage ;
+- garde l'accueil à 6 derniers rôles.

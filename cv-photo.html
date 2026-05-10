@@ -164,6 +164,23 @@
         .text-column.has-annex .exp-cat { font-size: 0.42rem; padding: 1px 3px; }
         .text-column.has-annex .exp-dir { font-size: 0.48rem; }
 
+
+        /* --- Compacité réglable du bloc informations --- */
+        .top-info-details { transition: font-size 0.2s ease, line-height 0.2s ease, padding 0.2s ease; }
+        .text-column.info-density-0 .top-info-details { font-size: 0.66rem; line-height: 1.34; padding: 7px 8px; }
+        .text-column.info-density-1 .top-info-details { font-size: 0.58rem; line-height: 1.20; padding: 5px 6px; }
+        .text-column.info-density-2 .top-info-details { font-size: 0.51rem; line-height: 1.10; padding: 4px 5px; }
+        .text-column.info-density-3 .top-info-details { font-size: 0.45rem; line-height: 1.04; padding: 3px 4px; }
+        .info-density-label { color: var(--ui-text); font-size: 11px; min-width: 58px; text-align: right; }
+
+        /* --- Réorganisation des lignes du CV photo --- */
+        .exp-item { padding-right: 18px; }
+        .exp-order-controls { position: absolute; right: -18px; top: 18px; display: none; flex-direction: column; gap: 2px; z-index: 12; }
+        .exp-order-btn { width: 15px; height: 15px; border: none; border-radius: 4px; background: #222; color: #fff; font-size: 9px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .exp-order-btn:hover { background: var(--accent-color); color: #111; }
+        .exp-item:hover .exp-order-controls { display: flex; }
+        body.is-exporting .exp-order-controls { display: none !important; }
+
         /* --- GRILLE MODULAIRE --- */
         .photo-grid {
             width: 62%; height: 100%; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr);
@@ -255,6 +272,11 @@
             </label>
         </div>
 
+        <div class="control-group">
+            <div class="control-header"><label>Compacité bloc infos</label><span id="infoDensityValue" class="info-density-label">Compact</span></div>
+            <input type="range" id="infoDensitySlider" min="0" max="3" step="1" value="1">
+        </div>
+
         <div class="color-row">
             <div class="color-box">
                 Accentuation
@@ -306,7 +328,7 @@
                         <div class="contact" contenteditable="true">Tel : 06 25 31 60 93 | Email : contact@email.fr</div>
                     </div>
                     
-                    <div class="details" contenteditable="true">
+                    <div class="details top-info-details" id="topInfoDetails" contenteditable="true">
                         <strong>Langues :</strong> Français, Anglais, Japonais<br>
                         <strong>Mensurations :</strong> 1m60 / 50Kg / Yeux marron<br>
                         <strong>Confection :</strong> Haut S / Bas 34 / Pointure 37<br>
@@ -327,6 +349,9 @@
                                         <option value="Long-métrage">Long-métrage</option>
                                         <option value="Série TV">Série TV</option>
                                         <option value="Publicité">Publicité</option>
+                                        <option value="Documentaire">Documentaire</option>
+                                        <option value="Doublage">Doublage</option>
+                                        <option value="Voix off">Voix off</option>
                                         <option value="Modèle Photo">Modèle Photo</option>
                                     </select>
                                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle Principal</span> - <span class="exp-film" contenteditable="true">Titre du Film</span></div>
@@ -449,6 +474,9 @@
                     }
                     
                     document.querySelectorAll('.img-container').forEach(attachBlockEvents);
+                    ensureExperienceTools();
+                    getTopInfoDetails();
+                    applyInfoDensity(data.infoDensity ?? 1);
                     
                     // FIX CORS : On s'assure que les images chargées depuis Firebase ont la balise crossorigin !
                     document.querySelectorAll('.img-container img').forEach(img => {
@@ -470,12 +498,72 @@
         }
 
         function checkGridOverflow() { return photoGrid.scrollHeight > photoGrid.clientHeight + 5; }
+
+        function getTopInfoDetails() {
+            const explicit = document.getElementById('topInfoDetails');
+            if (explicit) return explicit;
+            const firstDetails = textWrap?.querySelector('.details');
+            if (firstDetails) {
+                firstDetails.id = 'topInfoDetails';
+                firstDetails.classList.add('top-info-details');
+            }
+            return firstDetails;
+        }
+
+        function infoDensityLabel(level) {
+            return ['Large', 'Compact', 'Très compact', 'Micro'][Number(level) || 0] || 'Compact';
+        }
+
+        function applyInfoDensity(level, syncSlider = true) {
+            if (!textCol) return;
+            const cleanLevel = Math.max(0, Math.min(3, Number(level) || 0));
+            getTopInfoDetails();
+            textCol.classList.remove('info-density-0', 'info-density-1', 'info-density-2', 'info-density-3');
+            textCol.classList.add(`info-density-${cleanLevel}`);
+            if (syncSlider) {
+                const slider = document.getElementById('infoDensitySlider');
+                if (slider) slider.value = String(cleanLevel);
+            }
+            const label = document.getElementById('infoDensityValue');
+            if (label) label.textContent = infoDensityLabel(cleanLevel);
+        }
+
+        function tryAutoCompactInfo() {
+            const slider = document.getElementById('infoDensitySlider');
+            let level = Number(slider?.value ?? 1);
+            applyInfoDensity(level);
+            while (textWrap.scrollHeight > textCol.clientHeight && level < 3) {
+                level += 1;
+                applyInfoDensity(level);
+            }
+        }
+
+        function ensureExperienceTools(root = document) {
+            root.querySelectorAll('.exp-item').forEach((item) => {
+                if (!item.querySelector('.exp-order-controls')) {
+                    const controls = document.createElement('div');
+                    controls.className = 'no-print exp-order-controls';
+                    controls.setAttribute('aria-label', 'Réordonner cette ligne');
+                    controls.innerHTML = `
+                        <button class="exp-order-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
+                        <button class="exp-order-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>`;
+                    const remove = item.querySelector('.remove-exp-btn');
+                    if (remove) item.insertBefore(controls, remove);
+                    else item.appendChild(controls);
+                }
+            });
+        }
+
         function checkTextOverflow() {
+            tryAutoCompactInfo();
+            ensureExperienceTools();
             if (textWrap.scrollHeight > textCol.clientHeight) { textCol.style.boxShadow = "inset 0 0 0 4px #ff4444"; showAlert(); return true;}
             else { textCol.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)"; return false;}
         }
 
-        function bindTextEvents() { textWrap.addEventListener('input', checkTextOverflow); }
+        function bindTextEvents() {
+            textWrap.addEventListener('input', () => window.requestAnimationFrame(checkTextOverflow));
+        }
         function bindGridEvents() {
             photoGrid.addEventListener('dragover', e => { if(draggedBlock) e.preventDefault(); });
             photoGrid.addEventListener('drop', e => {
@@ -495,6 +583,9 @@
             });
         }
         bindTextEvents(); bindGridEvents();
+        ensureExperienceTools();
+        getTopInfoDetails();
+        applyInfoDensity(Number(document.getElementById('infoDensitySlider')?.value || 1));
 
         document.getElementById('toggleAnnex').addEventListener('change', (e) => {
             const annex = document.getElementById('annexBlock');
@@ -503,6 +594,7 @@
             setTimeout(checkTextOverflow, 50); 
         });
 
+        document.getElementById('infoDensitySlider').addEventListener('input', (e) => { applyInfoDensity(e.target.value); setTimeout(checkTextOverflow, 30); });
         document.getElementById('gutterSlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--gutter', e.target.value + 'px'); document.getElementById('gutterValue').textContent = e.target.value + 'px'; });
         document.getElementById('accentColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--accent-color', e.target.value); document.getElementById('accentBtnDisplay').style.background = e.target.value; });
         document.getElementById('bgColor').addEventListener('input', (e) => { document.documentElement.style.setProperty('--bg-page', e.target.value); document.getElementById('bgBtnDisplay').style.background = e.target.value; });
@@ -720,17 +812,33 @@
                         <option value="Long-métrage">Long-métrage</option>
                         <option value="Série TV">Série TV</option>
                         <option value="Publicité">Publicité</option>
+                        <option value="Documentaire">Documentaire</option>
+                        <option value="Doublage">Doublage</option>
+                        <option value="Voix off">Voix off</option>
                         <option value="Modèle Photo">Modèle Photo</option>
                     </select>
                     <div class="exp-role-film"><span class="exp-role" contenteditable="true">Rôle</span> - <span class="exp-film" contenteditable="true">Film</span></div>
                     <div class="exp-dir" contenteditable="true">Réal</div>
                 </div>
+                <div class="no-print exp-order-controls" aria-label="Réordonner cette ligne">
+                    <button class="exp-order-btn" type="button" title="Monter" onclick="window.moveExperience(this, -1)">↑</button>
+                    <button class="exp-order-btn" type="button" title="Descendre" onclick="window.moveExperience(this, 1)">↓</button>
+                </div>
                 <button class="no-print remove-exp-btn" onclick="window.removeExperience(this)">X</button>
             `;
             document.getElementById('expList').prepend(div);
+            ensureExperienceTools(div);
             if (checkTextOverflow()) div.remove();
         }
-        window.removeExperience = function(btn) { btn.parentElement.remove(); checkTextOverflow(); }
+        window.removeExperience = function(btn) { btn.closest('.exp-item')?.remove(); checkTextOverflow(); }
+        window.moveExperience = function(btn, direction) {
+            const item = btn.closest('.exp-item');
+            const list = document.getElementById('expList');
+            if (!item || !list) return;
+            if (direction < 0 && item.previousElementSibling) list.insertBefore(item, item.previousElementSibling);
+            if (direction > 0 && item.nextElementSibling) list.insertBefore(item.nextElementSibling, item);
+            checkTextOverflow();
+        }
         document.addEventListener('change', e => { if (e.target.classList.contains('exp-cat')) { Array.from(e.target.options).forEach(opt => opt.removeAttribute('selected')); e.target.options[e.target.selectedIndex].setAttribute('selected', 'selected'); }});
 
 
@@ -793,6 +901,7 @@
                     accent: document.documentElement.style.getPropertyValue('--accent-color'),
                     bg: document.documentElement.style.getPropertyValue('--bg-page'),
                     annexVisible: document.getElementById('toggleAnnex').checked,
+                    infoDensity: Number(document.getElementById('infoDensitySlider')?.value || 1),
                     publicUrl: publicUrl
                 };
                 
