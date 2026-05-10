@@ -354,7 +354,7 @@
 
         <div class="bottom-actions">
             <div class="control-header"><label>Mise en ligne & Exports</label></div>
-            <button class="btn-action" id="saveProject" style="background: #2563eb; border-color: #1d4ed8; color: white;">💾 Sauvegarder & Publier PDF</button>
+            <button class="btn-action" id="saveProject" style="background: #2563eb; border-color: #1d4ed8; color: white;">💾 Sauvegarder & Publier PNG</button>
             <button class="btn-action" onclick="document.getElementById('importProject').click()">📂 Importer une sauvegarde (.json)</button>
             <input type="file" id="importProject" style="display:none" accept=".json">
             <button class="btn-action" id="btnExportImg" onclick="window.exportImage()" style="margin-top: 5px;">
@@ -934,12 +934,9 @@
                     style: { transform: 'scale(2)', transformOrigin: 'top left', margin: 0 }
                 });
                 
-                btn.innerHTML = "⏳ Création du PDF A4...";
-                const pdfDataUrl = createA4LandscapePdfDataUrl(dataUrl);
-
-                btn.innerHTML = "⏳ Envoi du PDF final...";
-                const publicSRef = ref(storage, `presskit/zcard_public.pdf`);
-                await uploadString(publicSRef, pdfDataUrl, 'data_url', { contentType: 'application/pdf' });
+                btn.innerHTML = "⏳ Envoi du PNG HD final...";
+                const publicSRef = ref(storage, `presskit/zcard_public.png`);
+                await uploadString(publicSRef, dataUrl, 'data_url', { contentType: 'image/png' });
                 const publicUrl = await getDownloadURL(publicSRef);
 
                 btn.innerHTML = "⏳ Sauvegarde des données...";
@@ -991,7 +988,7 @@
                     console.warn("Le nettoyage automatique a été ignoré (Sans gravité) :", cleanupError);
                 }
                 
-                alert("✅ Z-Card publiée avec succès ! Le serveur a été nettoyé.");
+                alert("✅ CV photo publié en PNG avec succès ! Le serveur a été nettoyé.");
                 
             } catch(e) { 
                 console.error("Erreur détaillée :", e);

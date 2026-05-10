@@ -1,0 +1,3 @@
+Patch ciblé : le CV photo/Z-card public repasse en PNG HD pour le téléchargement depuis l’accueil. Le CV normal reste en PDF via cv-auto.html.
+Fichiers à remplacer : cv-photo.html, index.html.
+Après upload : ouvrir /cv-photo.html puis cliquer sur Sauvegarder & Publier PNG pour mettre à jour site_data/zcard_project.publicUrl vers presskit/zcard_public.png.
